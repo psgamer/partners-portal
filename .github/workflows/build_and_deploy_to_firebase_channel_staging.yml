@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-        description: Channel name
+        description: Channel name (not 'live')
         required: true
         type: string
       branch:
