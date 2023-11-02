@@ -2,7 +2,6 @@ import {Injectable} from '@angular/core';
 import {getFirebaseBackend} from '../../authUtils';
 import {User} from '../models/auth.models';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {BehaviorSubject} from 'rxjs';
 import {GlobalComponent} from "../../global-component";
 
 const AUTH_API = GlobalComponent.AUTH_API;
@@ -22,11 +21,11 @@ export class AuthenticationService {
     user!: User;
     currentUserValue: any;
 
-    private currentUserSubject: BehaviorSubject<User>;
-    // public currentUser: Observable<User>;
+    // private currentUserSubject: BehaviorSubject<User>;
+    // public currentUser: Observable<User> | undefined;
 
     constructor(private http: HttpClient) {
-        this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')!));
+        // this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')!));
         // this.currentUser = this.currentUserSubject.asObservable();
      }
 
@@ -36,17 +35,17 @@ export class AuthenticationService {
      * @param password password
      */
     register(email: string, first_name: string, password: string) {
-        // return getFirebaseBackend()!.registerUser(email, password).then((response: any) => {
-        //     const user = response;
-        //     return user;
-        // });
+        return getFirebaseBackend()!.registerUser(email, password).then((response: any) => {
+            const user = response;
+            return user;
+        });
 
         // Register Api
-        return this.http.post(AUTH_API + 'signup', {
-            email,
-            first_name,
-            password,
-          }, httpOptions);
+        // return this.http.post(AUTH_API + 'signup', {
+        //     email,
+        //     first_name,
+        //     password,
+        //   }, httpOptions);
     }
 
     /**
@@ -55,15 +54,15 @@ export class AuthenticationService {
      * @param password password of user
      */
     login(email: string, password: string) {
-        // return getFirebaseBackend()!.loginUser(email, password).then((response: any) => {
-        //     const user = response;
-        //     return user;
-        // });
+        return getFirebaseBackend()!.loginUser(email, password).then((response: any) => {
+            const user = response;
+            return user;
+        });
 
-        return this.http.post(AUTH_API + 'signin', {
-            email,
-            password
-          }, httpOptions);
+        // return this.http.post(AUTH_API + 'signin', {
+        //     email,
+        //     password
+        //   }, httpOptions);
     }
 
     /**
@@ -78,10 +77,10 @@ export class AuthenticationService {
      */
     logout() {
         // logout the user
-        // return getFirebaseBackend()!.logout();
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('token');
-        this.currentUserSubject.next(null!);
+        return getFirebaseBackend()!.logout();
+        // localStorage.removeItem('currentUser');
+        // localStorage.removeItem('token');
+        // this.currentUserSubject.next(null!);
     }
 
     /**

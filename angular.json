@@ -46,7 +46,8 @@
               "src/assets/scss/bootstrap.scss",
               "src/assets/scss/app.scss",
               "src/assets/scss/icons.scss",
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/firebaseui/dist/firebaseui.css"
             ],
             "scripts": [
               "node_modules/prismjs/prism.js",
@@ -80,7 +81,34 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            },
+            "staging": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "8mb",
+                  "maximumError": "8mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ]
             },
             "development": {
               "buildOptimizer": false,
@@ -98,6 +126,9 @@
           "configurations": {
             "production": {
               "browserTarget": "partnersPortal:build:production"
+            },
+            "staging": {
+              "browserTarget": "partnersPortal:build:staging"
             },
             "development": {
               "browserTarget": "partnersPortal:build:development"
