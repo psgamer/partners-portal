@@ -10,21 +10,7 @@
 import {logger} from 'firebase-functions';
 import {onRequest} from 'firebase-functions/v2/https';
 
-export const helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", { structuredData: true });
+export const testFn = onRequest((request, response) => {
+  logger.info("Hello logs!");
   response.send("Hello from Firebase!");
 });
-
-// export const onAuth = user().onCreate((user) => {
-//   logger.info("User signed in!", { structuredData: true });
-//   return user;
-// });
-
-// export const onAuthUser = user().beforeSignIn(() => {
-//   logger.info("new sign in before");
-//   return {
-//     customClaims: {
-//       customData: 'somestr',
-//     }
-//   };
-// });
