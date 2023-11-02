@@ -21,7 +21,7 @@ on:
     secrets:
       firebaseServiceAccount:
         required: true
-      GITHUB_TOKEN:
+      gitToken:
         required: true
 
 
@@ -43,7 +43,7 @@ jobs:
       - run: npm run ${{ inputs.build_env_command }}
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          repoToken: ${{ secrets.gitToken }}
           firebaseServiceAccount: ${{ secrets.firebaseServiceAccount }}
           projectId: ${{ inputs.projectId }}
           channelId: ${{ inputs.channel }}

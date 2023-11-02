@@ -23,4 +23,4 @@ jobs:
       branch: ${{ inputs.branch }}
     secrets:
       firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ESET_PARTNERS_PORTAL_PROD }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      gitToken: ${{ secrets.GITHUB_TOKEN }}
