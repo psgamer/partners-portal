@@ -18,7 +18,7 @@ jobs:
     with:
       environment: production_channel
       build_env_command: build_prod
-      projectId: eset-partners-portal-staging
+      projectId: eset-partners-portal-prod
       channel: ${{ inputs.channel }}
       branch: ${{ inputs.branch }}
     secrets:
