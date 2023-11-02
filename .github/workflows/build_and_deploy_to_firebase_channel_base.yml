@@ -30,13 +30,13 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v3
         with:
           node-version: 16.15.0
           cache: 'npm'
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.branch }}
       - run: npm ci
       - run: npm run ${{ inputs.build_env_command }}
       - uses: FirebaseExtended/action-hosting-deploy@v0
