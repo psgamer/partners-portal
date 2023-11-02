@@ -30,7 +30,7 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
-      - if: ${{ inputs.branch }} == 'live'
+      - if: ${{ inputs.branch }} != 'live'
         run: exit 1
       - uses: actions/setup-node@v3
         with:
