@@ -10,7 +10,7 @@
 import {logger} from 'firebase-functions';
 import {onRequest} from 'firebase-functions/v2/https';
 
-export const testFn = onRequest((request, response) => {
+export const reTestFn = onRequest((request, response) => {
   logger.info("Hello logs!");
   response.send("Hello from Firebase!");
 });
