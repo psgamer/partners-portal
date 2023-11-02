@@ -14,7 +14,7 @@ on:
 
 jobs:
   build_and_deploy:
-    uses: psgamer/sample-project/.github/workflows/build_and_deploy_to_firebase_channel_base.yml@master
+    uses: psgamer/partners-portal/.github/workflows/build_and_deploy_to_firebase_channel_base.yml@master
     with:
       environment: production_channel
       build_env_command: build_prod
