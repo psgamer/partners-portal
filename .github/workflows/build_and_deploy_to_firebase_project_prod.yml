@@ -1,4 +1,4 @@
-name: (prod-test) Build and deploy to firebase project
+name: (prod) Build and deploy to firebase project
 
 on:
   push:
