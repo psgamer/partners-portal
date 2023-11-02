@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "eset-partners-portal-staging",
+    "default": "eset-partners-portal-prod",
     "staging": "eset-partners-portal-staging",
     "production": "eset-partners-portal-prod"
   }

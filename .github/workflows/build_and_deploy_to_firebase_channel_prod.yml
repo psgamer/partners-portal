@@ -1,0 +1,26 @@
+name: (prod-test) Build and deploy to firebase channel
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Channel name (not 'live')
+        required: true
+        type: string
+      branch:
+        description: Target branch
+        required: true
+        type: string
+
+jobs:
+  build_and_deploy:
+    uses: psgamer/sample-project/.github/workflows/build_and_deploy_to_firebase_channel_base.yml@master
+    with:
+      environment: production_channel
+      build_env_command: build_prod
+      projectId: eset-partners-portal-staging
+      channel: ${{ inputs.channel }}
+      branch: ${{ inputs.branch }}
+    secrets:
+      firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ESET_PARTNERS_PORTAL_PROD }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

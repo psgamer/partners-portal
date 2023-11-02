@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "build_staging": "ng build --configuration staging",
     "build_prod": "ng build --configuration production",
     "emulators": "firebase emulators:start",
     "lint": "ng lint"

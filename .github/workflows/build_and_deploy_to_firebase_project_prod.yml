@@ -1,0 +1,15 @@
+name: (prod-test) Build and deploy to firebase project
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_deploy:
+    uses: psgamer/sample-project/.github/workflows/build_and_deploy_to_firebase_project_base.yml@master
+    with:
+      environment: production
+      build_env_command: build_prod
+      project: eset-partners-portal-prod
+    secrets: inherit
