@@ -26,7 +26,7 @@ import {
   connectFirestoreEmulator,
   enableMultiTabIndexedDbPersistence,
   getFirestore,
-  provideFirestore
+  provideFirestore,
 } from '@angular/fire/firestore';
 
 // env
@@ -102,8 +102,10 @@ const firebaseUiAuthConfig: firebaseui.auth.Config = {
       const firestore = getFirestore();
       if (environment.useEmulators) {
         connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
-        // TODO investigate this
-        enableMultiTabIndexedDbPersistence(firestore);
+        // TODO investigate this, probably refactor as recommended after version upgrade
+        enableMultiTabIndexedDbPersistence(firestore)
+          .then(e => console.log('enabled multi-tab db persistence'))
+          .catch(e => console.error('failed to enable multi-tab db persistence', e));
       }
       return firestore;
     }),
