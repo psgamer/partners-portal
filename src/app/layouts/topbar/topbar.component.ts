@@ -1,12 +1,11 @@
-import {Component, EventEmitter, Inject, Output, ViewChild} from '@angular/core';
-import {DOCUMENT} from '@angular/common';
-import {EventService} from 'src/app/core/services/event.service';
-import {LanguageService} from 'src/app/core/services/language.service';
-import {CookieService} from 'ngx-cookie-service';
-import {AuthenticationService} from 'src/app/core/services/auth.service';
-import {Router} from '@angular/router';
-import {ModalDirective} from 'ngx-bootstrap/modal';
-import {cartList, notification} from './data';
+import { DOCUMENT } from '@angular/common';
+import { Component, EventEmitter, Inject, Output, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import { ModalDirective } from 'ngx-bootstrap/modal';
+import { CookieService } from 'ngx-cookie-service';
+import { AuthenticationService } from 'src/app/core/services/auth.service';
+import { EventService } from 'src/app/core/services/event.service';
+import { cartList, notification } from './data';
 
 @Component({
   selector: 'app-topbar',
@@ -49,7 +48,6 @@ export class TopbarComponent {
 
   constructor(@Inject(DOCUMENT) private document: any,
     private eventService: EventService,
-    public languageService: LanguageService,
     private authService: AuthenticationService,
     private router: Router,
     public _cookiesService: CookieService) { }
@@ -170,16 +168,6 @@ export class TopbarComponent {
     { text: 'français', flag: 'assets/images/flags/french.svg', lang: 'fr' },
     { text: 'Arabic', flag: 'assets/images/flags/ae.svg', lang: 'ar' },
   ];
-
-  /***
-  * Language Value Set
-  */
-  setLanguage(text: string, lang: string, flag: string) {
-    this.countryName = text;
-    this.flagvalue = flag;
-    this.cookieValue = lang;
-    this.languageService.setLanguage(lang);
-  }
 
   /**
    * Toggle the menu bar when having mobile screen

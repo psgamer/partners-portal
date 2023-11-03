@@ -1,9 +1,8 @@
-import {Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { MENU } from './menu';
 
-import {MenuItem} from './menu.model';
-import {MENU} from './menu';
-import {NavigationEnd, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
+import { MenuItem } from './menu.model';
 
 @Component({
   selector: 'app-sidebar',
@@ -17,9 +16,7 @@ export class SidebarComponent {
   @ViewChild('sideMenu') sideMenu!: ElementRef;
   @Output() mobileMenuButtonClicked = new EventEmitter();
 
-  constructor(private router: Router, public translate: TranslateService) {
-    translate.setDefaultLang('en');
-  }
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
     // Menu Items

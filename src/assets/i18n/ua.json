@@ -4,7 +4,7 @@
       "TEXT": "MENU"
     },
     "DASHBOARD": {
-      "TEXT": "Dashboards",
+      "TEXT": "Дашборд",
       "LIST": {
         "ANALYTICS": "Analytics",
         "CRM": "CRM",
@@ -12,6 +12,18 @@
         "LEARNING": "Learning",
         "REALESTATE": "Real Estate"
       }
+    },
+    "PROJECTS":{
+      "TEXT": "Проекти"
+    },
+    "ORDERS": {
+      "TEXT": "Замовлення"
+    },
+    "NOTIFICATIONS": {
+      "TEXT": "Повідомлення"
+    },
+    "NEWS": {
+      "TEXT": "Новини"
     },
     "APPS": {
       "TEXT": "Apps",
@@ -236,6 +248,14 @@
           }
         }
       }
+    }
+  },
+  "USER": {
+    "PANEL": {
+      "MESSAGES": "Повідомлення",
+      "HELP": "Допомога",
+      "SETTINGS": "Налаштування",
+      "LOGOUT": "Вийти"
     }
   }
 }
