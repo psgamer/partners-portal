@@ -27,6 +27,7 @@ import { NgxEchartsModule } from 'ngx-echarts';
 // Simplebar
 import { SimplebarAngularModule } from 'simplebar-angular';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { NgbdIndexsSortableHeader } from './dashboard/dashboard-sortable.directive';
 
 // component
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -35,29 +36,31 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { DashboardsRoutingModule } from './dashboards-routing.module';
 
 @NgModule({
-  declarations: [
-    DashboardComponent,
-  ],
-  imports: [
-    CommonModule,
-    DashboardsRoutingModule,
-    SharedModule,
-    BsDropdownModule,
-    CountUpModule,
-    NgApexchartsModule,
-    TabsModule.forRoot(),
-    TooltipModule.forRoot(),
-    PaginationModule.forRoot(),
-    FormsModule,
-    ReactiveFormsModule,
-    SimplebarAngularModule,
-    ProgressbarModule.forRoot(),
-    LeafletModule,
-    NgxEchartsModule.forRoot({ echarts }),
-    ModalModule.forRoot(),
-    BsDatepickerModule.forRoot(),
-    FlatpickrModule.forRoot()
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    declarations: [
+        DashboardComponent,
+        NgbdIndexsSortableHeader
+    ],
+    imports: [
+        CommonModule,
+        DashboardsRoutingModule,
+        SharedModule,
+        BsDropdownModule,
+        CountUpModule,
+        NgApexchartsModule,
+        TabsModule.forRoot(),
+        TooltipModule.forRoot(),
+        PaginationModule.forRoot(),
+        FormsModule,
+        ReactiveFormsModule,
+        SimplebarAngularModule,
+        ProgressbarModule.forRoot(),
+        LeafletModule,
+        NgxEchartsModule.forRoot({ echarts }),
+        ModalModule.forRoot(),
+        BsDatepickerModule.forRoot(),
+        FlatpickrModule.forRoot()
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class DashboardsModule { }
+export class DashboardsModule {
+}

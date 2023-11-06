@@ -1,0 +1,283 @@
+<div class="row">
+    <div class="col-xl-4">
+        <div class="card card-height-100 border-0 overflow-hidden">
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    <div class="col-md-6">
+                        <!-- card -->
+                        <div class="card shadow-none border-end-md border-bottom rounded-0 mb-0">
+                            <div class="card-body">
+                                <div dropdown container="body" class="dropdown float-end">
+                                    <a dropdownToggle class="text-reset dropdown-btn" href="javascript:void(0);">
+                                        <span class="text-muted fs-lg"><i class="mdi mdi-dots-vertical align-middle"></i></span>
+                                    </a>
+                                    <div *bsDropdownMenu class="dropdown-menu dropdown-menu-end">
+                                        <a class="dropdown-item" href="javascript:void(0);">Today</a>
+                                        <a class="dropdown-item" href="javascript:void(0);">Last Week</a>
+                                        <a class="dropdown-item" href="javascript:void(0);">Last Month</a>
+                                        <a class="dropdown-item" href="javascript:void(0);">Current Year</a>
+                                    </div>
+                                </div>
+                                <div class="avatar-sm">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-3">
+                                        <i class="ph-wallet"></i>
+                                    </span>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-uppercase fw-medium text-muted text-truncate fs-sm">Total Revenue</p>
+                                    <h4 class="fw-semibold mb-3">$<span class="counter-value" [countUp]="750.36">0</span>M </h4>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h5 class="text-success fs-xs mb-0">
+                                            <i class="ri-arrow-right-up-line fs-sm align-middle"></i> +19.07 %
+                                        </h5>
+                                        <p class="text-muted mb-0">than last week</p>
+                                    </div>
+                                </div>
+                            </div><!-- end card body -->
+                        </div><!-- end card -->
+                    </div><!-- end col -->
+                    <div class="col-md-6">
+                        <!-- card -->
+                        <div class="card shadow-none border-bottom rounded-0 mb-0">
+                            <div class="card-body">
+                                <div dropdown class="dropdown float-end">
+                                    <a dropdownToggle class="text-reset dropdown-btn" href="javascript:void(0);">
+                                        <span class="text-muted fs-lg"><i class="mdi mdi-dots-vertical align-middle"></i></span>
+                                    </a>
+                                    <div *bsDropdownMenu class="dropdown-menu dropdown-menu-end">
+                                        <a class="dropdown-item" href="javascript:void(0);">Today</a>
+                                        <a class="dropdown-item" href="javascript:void(0);">Last Week</a>
+                                        <a class="dropdown-item" href="javascript:void(0);">Last Month</a>
+                                        <a class="dropdown-item" href="javascript:void(0);">Current Year</a>
+                                    </div>
+                                </div>
+                                <div class="avatar-sm">
+                                    <span class="avatar-title bg-dark-subtle text-dark rounded-circle fs-3">
+                                        <i class="ph-bag"></i>
+                                    </span>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-uppercase fw-medium text-muted text-truncate fs-sm">Orders</p>
+                                    <h4 class="fw-semibold mb-3"><span class="counter-value" [countUp]="684">0</span>
+                                    </h4>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h5 class="text-success fs-xs mb-0">
+                                            <i class="ri-arrow-right-up-line fs-sm align-middle"></i> +8.13 %
+                                        </h5>
+                                        <p class="text-muted mb-0">than last week</p>
+                                    </div>
+                                </div>
+                            </div><!-- end card body -->
+                        </div><!-- end card -->
+                    </div><!-- end col -->
+                </div> <!-- end row-->
+            </div>
+        </div>
+    </div><!--end col-->
+</div><!--end row-->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card" id="contactList">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">Latest Orders</h4>
+                <div class="flex-shrink-0">
+                    <div dropdown class="dropdown card-header-dropdown sortble-dropdown">
+                        <a dropdownToggle class="text-reset dropdown-btn" href="javascript:void(0);">
+                            <span class="fw-semibold text-uppercase fs-xs">Sort by:
+                            </span><span class="text-muted dropdown-title">{{sortValue}}</span> <i class="mdi mdi-chevron-down ms-1"></i>
+                        </a>
+                        <div *bsDropdownMenu class="dropdown-menu dropdown-menu-end">
+                            <button class="dropdown-item sort" Ordersortable="date" (Ordersort)="sortBy($event,'Order Date')">Order Date</button>
+                            <button class="dropdown-item sort" Ordersortable="orderId" (Ordersort)="sortBy($event,'Order ID')">Order ID</button>
+                            <button class="dropdown-item sort" Ordersortable="amount" (Ordersort)="sortBy($event,'Amount')">Amount</button>
+                            <button class="dropdown-item sort" Ordersortable="status" (Ordersort)="sortBy($event,'Status')">Status</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless table-centered align-middle table-nowrap mb-0">
+                        <thead class="text-muted table-light">
+                        <tr>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="date" (Ordersort)="onSort($event)">Order Date</th>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="orderId" (Ordersort)="onSort($event)">Order ID</th>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="shop" (Ordersort)="onSort($event)">Shop</th>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="customer" (Ordersort)="onSort($event)">Customers</th>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="product" (Ordersort)="onSort($event)">Products</th>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="amount" (Ordersort)="onSort($event)">Amount</th>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="status" (Ordersort)="onSort($event)">Status</th>
+                            <th scope="col" class="sort cursor-pointer" Ordersortable="rating" (Ordersort)="onSort($event)">Rating</th>
+                        </tr>
+                        </thead>
+                        <tbody class="list">
+                        <tr *ngFor="let data of orderList;">
+                            <td class="order_date">
+                                {{data.date}}
+                            </td>
+                            <td class="order_id">
+                                <a routerLink="/ecommerce/order-overview" class="fw-medium link-primary">{{data.orderId}}</a>
+                            </td>
+                            <td class="shop">
+                                <img src="{{data.shop}}" alt="" class="avatar-xxs rounded-circle">
+                            </td>
+                            <td class="customer">
+                                {{data.customer}}
+                            </td>
+                            <td class="products">{{data.product}}</td>
+                            <td class="amount">
+                                <span class="fw-medium">{{data.amount}}</span>
+                            </td>
+                            <td class="status">
+                                    <span class="badge" [ngClass]="{'bg-secondary-subtle text-secondary': data.status === 'New',
+                                    'bg-warning-subtle text-warning': data.status === 'Pending',
+                                    'bg-danger-subtle text-danger': data.status === 'Out of Delivered',
+                                    'bg-primary-subtle text-primary': data.status === 'Shipping',
+                                    'bg-success-subtle text-success': data.status === 'Delivered'}">{{data.status}}</span>
+                            </td>
+                            <td class="rating">
+                                <h5 *ngIf="data.rating" class="fs-md fw-medium mb-0">
+                                    <i class="ph-star align-baseline text-warning"></i>
+                                    {{data.rating}}
+                                </h5>
+                                <h5 *ngIf="!data.rating" class="fs-md fw-medium mb-0">-</h5>
+                            </td>
+                        </tr><!-- end tr -->
+                        </tbody><!-- end tbody -->
+                    </table><!-- end table -->
+                    <div class="noresult" style="display: none">
+                        <div class="text-center">
+                            <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" colors="primary:#405189,secondary:#0ab39c" style="width:75px;height:75px"></lord-icon>
+                            <h5 class="mt-2">Sorry! No Result Found</h5>
+                            <p class="text-muted mb-0">We've searched more than 150+ transactions We did not find any
+                                transactions for you search.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!--end col-->
+</div><!--end row-->
+<div class="row">
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h5 class="card-title mb-0 flex-grow-1">Orders Status</h5>
+                <div dropdown class="dropdown card-header-dropdown">
+                    <a dropdownToggle class="text-reset dropdown-btn" href="javascript:void(0);">
+                        <i class="ph-dots-three-outline-vertical"></i>
+                    </a>
+                    <div *bsDropdownMenu class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="javascript:void(0);">Current Years</a>
+                        <a class="dropdown-item" href="javascript:void(0);">Last Years</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 pb-1 text-center">
+                    <h6 class="mb-0">01 Jan, 2022 - 01 Jan, 2023</h6>
+                </div>
+
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-4">
+                        <div class="hstack gap-2">
+                            <p class="mb-0 flex-grow-1">New</p>
+                            <h6 class="mb-0">307</h6>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+
+                        <div class="animated-progress">
+                            <progressbar [value]="50" [striped]="true" [animate]="true"></progressbar>
+                        </div>
+                    </div><!--end col-->
+                </div><!--end row-->
+
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-4">
+                        <div class="hstack gap-2">
+                            <p class="mb-0 flex-grow-1">Pending</p>
+                            <h6 class="mb-0">177</h6>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="animated-progress">
+                            <progressbar [value]="37" type="warning" [striped]="true" [animate]="true"></progressbar>
+                        </div>
+                    </div><!--end col-->
+                </div><!--end row-->
+
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-4">
+                        <div class="hstack gap-2">
+                            <p class="mb-0 flex-grow-1">Rejected</p>
+                            <h6 class="mb-0">39</h6>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+
+                        <div class="animated-progress">
+                            <progressbar [value]="12" type="danger" [striped]="true" [animate]="true"></progressbar>
+                        </div>
+                    </div><!--end col-->
+                </div><!--end row-->
+
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-4">
+                        <div class="hstack gap-2">
+                            <p class="mb-0 flex-grow-1">Returns</p>
+                            <h6 class="mb-0">17</h6>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="animated-progress">
+                            <progressbar [value]="3" type="danger" [striped]="true" [animate]="true"></progressbar>
+                        </div>
+                    </div><!--end col-->
+                </div><!--end row-->
+
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-4">
+                        <div class="hstack gap-2">
+                            <p class="mb-0 flex-grow-1">Dispatched</p>
+                            <h6 class="mb-0">661</h6>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="animated-progress">
+                            <progressbar [value]="57" type="info" [striped]="true" [animate]="true"></progressbar>
+                        </div>
+                    </div><!--end col-->
+                </div><!--end row-->
+
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-4">
+                        <div class="hstack gap-2">
+                            <p class="mb-0 flex-grow-1">Delivered</p>
+                            <h6 class="mb-0">1320</h6>
+                        </div>
+                    </div><!--end col-->
+                    <div class="col-lg-8">
+                        <div class="animated-progress">
+                            <progressbar [value]="86" type="success" [striped]="true" [animate]="true"></progressbar>
+                        </div>
+                    </div><!--end col-->
+                </div><!--end row-->
+
+                <div class="row align-items-center">
+                    <div class="col-lg-4">
+                        <div class="hstack gap-2">
+                            <p class="mb-0 flex-grow-1">Cancelled</p>
+                            <h6 class="mb-0">74</h6>
+                        </div>
+                    </div><!--end col-->
+                    <div class="col-lg-8">
+                        <div class="animated-progress">
+                            <progressbar [value]="13" type="danger" [striped]="true" [animate]="true"></progressbar>
+                        </div>
+                    </div><!--end col-->
+                </div><!--end row-->
+            </div>
+        </div>
+    </div><!--end col-->
+</div><!--end row-->
