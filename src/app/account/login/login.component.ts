@@ -99,6 +99,15 @@ export class LoginComponent {
           });
   }
 
+    loginWithTwitter() {
+        this.authenticationService.loginWithTwitter().then((res: any) => {
+            this.router.navigate(['/']);
+        })
+            .catch(error => {
+                this.error = error ? error : '';
+            });
+    }
+
   /**
    * Password Hide/Show
    */

@@ -1,6 +1,6 @@
 import {
     createUserWithEmailAndPassword, FacebookAuthProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword,
-    signInWithPopup, signOut
+    signInWithPopup, signOut, TwitterAuthProvider
 } from '@angular/fire/auth';
 import { Auth } from '@firebase/auth';
 
@@ -61,15 +61,15 @@ class FirebaseAuthBackend {
   loginWithFb = () => {
     const provider = new FacebookAuthProvider();
     // TODO maybe move some of the configs
-      provider.setDefaultLanguage('uk_UA');// TODO move
-      provider.setCustomParameters({
-          'auth_type': 'reauthenticate',
-          'display': 'popup',
-      });
+    //   provider.setDefaultLanguage('uk_UA');// TODO move
+      // provider.setCustomParameters({
+      //     'auth_type': 'reauthenticate',
+      //     'display': 'popup',
+      // });
       provider.addScope('public_profile');
       provider.addScope('email');
-      provider.addScope('user_likes');
-      provider.addScope('user_friends');
+      // provider.addScope('user_likes');
+      // provider.addScope('user_friends');
 
       return new Promise((resolve, reject) => {
           signInWithPopup(this.auth, provider).then((result: any) => {
@@ -89,10 +89,44 @@ class FirebaseAuthBackend {
 
               resolve(user);
           }, (error: any) => {
+              console.log(error);
               reject(this._handleError(error));
           });
       });
   }
+
+    loginWithTwitter = () => {
+        const provider = new TwitterAuthProvider();
+
+        provider.setCustomParameters({'lang': 'uk'});// TODO
+
+        return new Promise((resolve, reject) => {
+            signInWithPopup(this.auth, provider).then((result: any) => {
+                // eslint-disable-next-line no-redeclare
+                var user: any = this.auth.currentUser;
+
+                const credential = TwitterAuthProvider.credentialFromResult(result);
+                const token = credential?.accessToken;
+                const secret = credential?.secret;
+                // ...
+
+                // The signed-in user info.
+                const user2 = result.user;
+
+                console.log(
+                    credential,
+                    token,
+                    secret,
+                    user2
+                );// TODO remove
+
+                resolve(user);
+            }, (error: any) => {
+                console.log(error);
+                reject(this._handleError(error));
+            });
+        });
+    }
 
   /**
    * Logout the user

@@ -72,6 +72,13 @@ export class AuthenticationService {
         });
     }
 
+    loginWithTwitter() {
+        return getFirebaseBackend()!.loginWithTwitter().then((response: any) => {
+            const user = response;
+            return user;
+        });
+    }
+
     /**
      * Returns the current user
      */
