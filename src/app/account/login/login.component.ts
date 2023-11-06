@@ -1,10 +1,9 @@
-import {Component} from '@angular/core';
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {ActivatedRoute, Router} from '@angular/router';
-import {AuthenticationService} from 'src/app/core/services/auth.service';
-import {AuthfakeauthenticationService} from 'src/app/core/services/authfake.service';
-import {environment} from '../../../environments/environment';
-import {first} from 'rxjs/operators';
+import { Component } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthenticationService } from 'src/app/core/services/auth.service';
+import { AuthfakeauthenticationService } from 'src/app/core/services/authfake.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -81,12 +80,12 @@ export class LoginComponent {
             this.error = error ? error : '';
           });
       } else {
-        this.authFackservice.login(this.f['email'].value, this.f['password'].value).pipe(first()).subscribe(data => {
-              this.router.navigate(['/']);
-            },
-            error => {
-              this.error = error ? error : '';
-            });
+        // this.authFackservice.login(this.f['email'].value, this.f['password'].value).pipe(first()).subscribe(data => {
+        //       this.router.navigate(['/']);
+        //     },
+        //     error => {
+        //       this.error = error ? error : '';
+        //     });
       }
     }
   }

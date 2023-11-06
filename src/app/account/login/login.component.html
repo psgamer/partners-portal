@@ -79,19 +79,19 @@
                                         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" action="index.html">
 
                                             <div class="mb-3">
-                                                <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                                                 <div class="position-relative ">
-                                                    <input type="text" class="form-control  password-input" formControlName="email" id="username" [ngClass]="{ 'is-invalid': submitted && f['email'].errors }" placeholder="Enter username" required>
+                                                    <input type="text" class="form-control  password-input" formControlName="email" id="email" [ngClass]="{ 'is-invalid': submitted && f['email'].errors }" placeholder="Enter email" required>
                                                     <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
-                                                        <div *ngIf="f['email'].errors['required']">Username is required</div>
+                                                        <div *ngIf="f['email'].errors['required']">Email is required</div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div class="mb-3">
-                                                <div class="float-end">
-                                                    <a routerLink="/auth/pass-reset" class="text-muted">Forgot password?</a>
-                                                </div>
+<!--                                                <div class="float-end">-->
+<!--                                                    <a routerLink="/auth/pass-reset" class="text-muted">Forgot password?</a>-->
+<!--                                                </div>-->
                                                 <label class="form-label" for="password-input">Password <span class="text-danger">*</span></label>
                                                 <div class="position-relative auth-pass-inputgroup mb-3">
                                                     <input [type]="fieldTextType ? 'text' : 'password'" formControlName="password" [ngClass]="{ 'is-invalid': submitted && f['password'].errors }" type="password" class="form-control pe-5 password-input " placeholder="Enter password" id="password-input" required>
@@ -103,26 +103,26 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="" id="auth-remember-check">
-                                                <label class="form-check-label" for="auth-remember-check">Remember me</label>
-                                            </div>
+<!--                                            <div class="form-check">-->
+<!--                                                <input class="form-check-input" type="checkbox" value="" id="auth-remember-check">-->
+<!--                                                <label class="form-check-label" for="auth-remember-check">Remember me</label>-->
+<!--                                            </div>-->
 
                                             <div class="mt-4">
                                                 <button class="btn btn-primary w-100" type="submit">Sign In</button>
                                             </div>
 
-                                            <div class="mt-4 pt-2 text-center">
-                                                <div class="signin-other-title position-relative">
-                                                    <h5 class="fs-sm mb-4 title">Sign In with</h5>
-                                                </div>
-                                                <div class="pt-2 hstack gap-2 justify-content-center">
-                                                    <button type="button" class="btn btn-subtle-primary btn-icon"><i class="ri-facebook-fill fs-lg"></i></button>
-                                                    <button type="button" class="btn btn-subtle-danger btn-icon"><i class="ri-google-fill fs-lg"></i></button>
-                                                    <button type="button" class="btn btn-subtle-dark btn-icon"><i class="ri-github-fill fs-lg"></i></button>
-                                                    <button type="button" class="btn btn-subtle-info btn-icon"><i class="ri-twitter-fill fs-lg"></i></button>
-                                                </div>
-                                            </div>
+<!--                                            <div class="mt-4 pt-2 text-center">-->
+<!--                                                <div class="signin-other-title position-relative">-->
+<!--                                                    <h5 class="fs-sm mb-4 title">Sign In with</h5>-->
+<!--                                                </div>-->
+<!--                                                <div class="pt-2 hstack gap-2 justify-content-center">-->
+<!--                                                    <button type="button" class="btn btn-subtle-primary btn-icon"><i class="ri-facebook-fill fs-lg"></i></button>-->
+<!--                                                    <button type="button" class="btn btn-subtle-danger btn-icon"><i class="ri-google-fill fs-lg"></i></button>-->
+<!--                                                    <button type="button" class="btn btn-subtle-dark btn-icon"><i class="ri-github-fill fs-lg"></i></button>-->
+<!--                                                    <button type="button" class="btn btn-subtle-info btn-icon"><i class="ri-twitter-fill fs-lg"></i></button>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
                                         </form>
 
                                         <div class="text-center mt-5">

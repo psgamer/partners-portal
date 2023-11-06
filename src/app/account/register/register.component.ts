@@ -1,12 +1,12 @@
-import {Component} from '@angular/core';
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
-import {first} from 'rxjs/operators';
+import { Component } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { first } from 'rxjs/operators';
 
 // Register Auth
-import {AuthenticationService} from 'src/app/core/services/auth.service';
-import {UserProfileService} from 'src/app/core/services/user.service';
-import {environment} from 'src/environments/environment';
+import { AuthenticationService } from 'src/app/core/services/auth.service';
+import { UserProfileService } from 'src/app/core/services/user.service';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -64,11 +64,16 @@ export class RegisterComponent {
     //   });
 
     // stop here if form is invalid
-    // if (this.signupForm.invalid) {
-    //   return;
-    // } else {
+    if (this.signupForm.invalid) {
+      return;
+    } else {
       if (environment.defaultauth === 'firebase') {
-        this.authenticationService.register(this.f['email'].value, this.f['name'].value, this.f['password'].value).then((res: any) => {
+        this.authenticationService.register(
+            this.f['email'].value,
+            // this.f['name'].value,
+            undefined as any,// name isn't used
+            this.f['password'].value
+        ).then((res: any) => {
           this.successmsg = true;
           if (this.successmsg) {
             this.router.navigate(['']);
@@ -91,7 +96,7 @@ export class RegisterComponent {
               this.error = error ? error : '';
             });
       }
-    // }
+    }
   }
 
   /**

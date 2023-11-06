@@ -8,22 +8,22 @@ export const MENU: MenuItem[] = [
     },
     {
         label: 'MENUITEMS.PROJECTS.TEXT',
-        // icon: 'ph-gauge',
+        icon: 'ph-gauge',
         link: '/',
     },
     {
         label: 'MENUITEMS.ORDERS.TEXT',
-        // icon: 'ph-gauge',
+        icon: 'ph-gauge',
         link: '/',
     },
     {
         label: 'MENUITEMS.NOTIFICATIONS.TEXT',
-        // icon: 'ph-gauge',
+        icon: 'ph-gauge',
         link: '/',
     },
     {
         label: 'MENUITEMS.NEWS.TEXT',
-        // icon: 'ph-gauge',
+        icon: 'ph-gauge',
         link: '/',
     },
 ].map((item, index) => ({
