@@ -1,11 +1,8 @@
 import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signOut
+    createUserWithEmailAndPassword, FacebookAuthProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword,
+    signInWithPopup, signOut
 } from '@angular/fire/auth';
-import {Auth} from '@firebase/auth';
+import { Auth } from '@firebase/auth';
 
 
 class FirebaseAuthBackend {
@@ -59,6 +56,42 @@ class FirebaseAuthBackend {
         reject(this._handleError(error));
       });
     });
+  }
+
+  loginWithFb = () => {
+    const provider = new FacebookAuthProvider();
+    // TODO maybe move some of the configs
+      provider.setDefaultLanguage('uk_UA');// TODO move
+      provider.setCustomParameters({
+          'auth_type': 'reauthenticate',
+          'display': 'popup',
+      });
+      provider.addScope('public_profile');
+      provider.addScope('email');
+      provider.addScope('user_likes');
+      provider.addScope('user_friends');
+
+      return new Promise((resolve, reject) => {
+          signInWithPopup(this.auth, provider).then((result: any) => {
+              // eslint-disable-next-line no-redeclare
+              var user: any = this.auth.currentUser;
+
+
+              // The signed-in user info.
+              const user2 = result.user;
+
+              // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+              const credential = FacebookAuthProvider.credentialFromResult(result);
+              const accessToken = credential?.accessToken;
+
+              console.log(user2, credential, accessToken);// TODO remove
+
+
+              resolve(user);
+          }, (error: any) => {
+              reject(this._handleError(error));
+          });
+      });
   }
 
   /**

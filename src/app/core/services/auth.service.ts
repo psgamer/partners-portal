@@ -1,8 +1,8 @@
-import {Injectable} from '@angular/core';
-import {getFirebaseBackend} from '../../authUtils';
-import {User} from '../models/auth.models';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {GlobalComponent} from "../../global-component";
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { getFirebaseBackend } from '../../authUtils';
+import { GlobalComponent } from "../../global-component";
+import { User } from '../models/auth.models';
 
 const AUTH_API = GlobalComponent.AUTH_API;
 
@@ -63,6 +63,13 @@ export class AuthenticationService {
         //     email,
         //     password
         //   }, httpOptions);
+    }
+
+    loginWithFb() {
+        return getFirebaseBackend()!.loginWithFb().then((response: any) => {
+            const user = response;
+            return user;
+        });
     }
 
     /**

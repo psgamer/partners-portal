@@ -90,6 +90,15 @@ export class LoginComponent {
     }
   }
 
+  loginWithFb() {
+      this.authenticationService.loginWithFb().then((res: any) => {
+          this.router.navigate(['/']);
+      })
+          .catch(error => {
+              this.error = error ? error : '';
+          });
+  }
+
   /**
    * Password Hide/Show
    */
