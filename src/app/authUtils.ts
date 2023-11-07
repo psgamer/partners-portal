@@ -72,7 +72,7 @@ class FirebaseAuthBackend {
       // provider.addScope('user_friends');
 
       return new Promise((resolve, reject) => {
-          signInWithPopup(this.auth, provider).then((result: any) => {
+          signInWithPopup(this.auth, provider).then((result) => {
               // eslint-disable-next-line no-redeclare
               var user: any = this.auth.currentUser;
 

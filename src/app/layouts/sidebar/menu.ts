@@ -14,7 +14,7 @@ export const MENU: MenuItem[] = [
     {
         label: 'MENUITEMS.ORDERS.TEXT',
         icon: 'ph-clipboard',
-        link: '/',
+        link: '/orders',
     },
     {
         label: 'MENUITEMS.NOTIFICATIONS.TEXT',

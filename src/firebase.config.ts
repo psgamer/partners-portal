@@ -24,5 +24,6 @@ interface Config {
   appId: string
 }
 
-export type FirebaseConfig = Readonly<Config>;
-export {firebaseStagingConfig, firebaseProdConfig};
+type FirebaseConfig = Readonly<Config>;
+
+export {FirebaseConfig, firebaseStagingConfig, firebaseProdConfig};

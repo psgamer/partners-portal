@@ -2,8 +2,8 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import {firebaseStagingConfig} from '../firebase.config';
-import {EnvironmentConfig} from './environment.types';
+import { firebaseStagingConfig } from '../firebase.config';
+import { EnvironmentConfig } from './environment.types';
 
 export const environment: EnvironmentConfig = {
   production: false,

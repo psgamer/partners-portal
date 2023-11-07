@@ -1,4 +1,4 @@
-import {FirebaseConfig} from '../firebase.config';
+import { FirebaseConfig } from '../firebase.config';
 
 export type EnvironmentConfig = Readonly<{
   production: boolean,
