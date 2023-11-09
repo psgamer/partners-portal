@@ -1,3 +1,6 @@
+import { QueryDocumentSnapshot } from '@firebase/firestore';
+
+
 type FirebaseDoc<T> = Omit<T, 'id'>;
 
 type Paths<T> = T extends object
@@ -6,8 +9,28 @@ type Paths<T> = T extends object
     }[keyof T]
     : never;
 
-const extractByPath = <T extends {[key: string]: any}>(path: Paths<T>, obj: T) => path
+const getExtractByPath = <T extends {[key: string]: any}>() => <R = any>(obj: T, path: Paths<T>): R => path
     .split('.')
-    .reduce((acc, pathPiece) => acc[pathPiece], obj);
+    .reduce((acc, pathPiece) => acc[pathPiece], obj as any);
 
-export {FirebaseDoc, Paths, extractByPath};
+// const getBaseConverter = <T extends {id: any}>(): FirestoreDataConverter<T> => ({
+//     toFirestore({id, ...rest}: WithFieldValue<T>): DocumentData {
+//         return {
+//             ...rest,
+//         };
+//     },
+//     fromFirestore(snapshot: QueryDocumentSnapshot<T>, options: SnapshotOptions): T {
+//         return ({
+//             ...snapshot.data() as FirebaseDoc<T>,
+//             id: snapshot.id,
+//         }) as T;
+//     },
+// });
+// TODO test converter and maybe use
+
+const fromFirebaseSnapshot = <T extends object>(doc: QueryDocumentSnapshot<FirebaseDoc<T>>): T => ({
+    ...doc.data() as FirebaseDoc<T>,
+    id: doc.id,
+}) as T;
+
+export {FirebaseDoc, Paths, getExtractByPath, fromFirebaseSnapshot};

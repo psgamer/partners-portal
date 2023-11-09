@@ -1,10 +1,11 @@
 import { Directive, EventEmitter, Input, Output } from '@angular/core';
+import { OrderByDirection } from '@angular/fire/firestore';
 import { Paths } from '../../../core/models/util.models';
 import { Order } from './order.model';
 
-export type SortColumn = Paths<Order> | '';
-export type SortDirection = 'asc' | 'desc' | '';
-const rotate: { [key: string]: SortDirection } = { 'asc': 'desc', 'desc': '', '': 'asc' };
+export type SortColumn = Paths<Order>;
+export type SortDirection = OrderByDirection;
+const rotate: { [key: string]: SortDirection } = { 'asc': 'desc', 'desc': 'asc', '': 'asc' };
 
 export interface listSortEvent {
   column: SortColumn;
@@ -20,13 +21,12 @@ export interface listSortEvent {
   }
 })
 export class NgbdListSortableHeader {
+  @Input() listsortable: SortColumn = 'createdDate';
+  @Input() direction: SortDirection | '' = 'desc';
 
-  @Input() listsortable: SortColumn = '';
-  @Input() direction: SortDirection = '';
   @Output() sort = new EventEmitter<listSortEvent>();
 
   rotate() {
-    this.direction = rotate[this.direction];
-    this.sort.emit({ column: this.listsortable, direction: this.direction });
+    this.sort.emit({ column: this.listsortable, direction: rotate[this.direction] });
   }
 }

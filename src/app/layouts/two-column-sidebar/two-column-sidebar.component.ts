@@ -1,9 +1,11 @@
-import {Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core';
-import {MenuItem} from './menu.model';
-import {NavigationEnd, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {MENU} from './menu';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslateService } from '@ngx-translate/core';
+import { MENU } from './menu';
+import { MenuItem } from './menu.model';
 
+@UntilDestroy()
 @Component({
   selector: 'app-two-column-sidebar',
   templateUrl: './two-column-sidebar.component.html',
@@ -24,7 +26,7 @@ export class TwoColumnSidebarComponent {
 
     // Menu Items
     this.menuItems = MENU;
-    this.router.events.subscribe((event) => {
+    this.router.events.pipe(untilDestroyed(this)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.initActiveMenu();
       }

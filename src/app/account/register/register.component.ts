@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { first } from 'rxjs/operators';
 
 // Register Auth
@@ -8,7 +9,7 @@ import { AuthenticationService } from 'src/app/core/services/auth.service';
 import { UserProfileService } from 'src/app/core/services/user.service';
 import { environment } from 'src/environments/environment';
 
-
+@UntilDestroy()
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
@@ -84,7 +85,7 @@ export class RegisterComponent {
           });
       } else {
         this.userService.register(this.signupForm.value)
-          .pipe(first())
+          .pipe(first(), untilDestroyed(this))
           .subscribe(
             (data: any) => {
               this.successmsg = true;

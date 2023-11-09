@@ -88,7 +88,8 @@
     "rxjs": "7.8.1",
     "tslib": "2.6.2",
     "zone.js": "0.13.3",
-    "rxfire": "6.0.3"
+    "rxfire": "6.0.3",
+    "@ngneat/until-destroy": "10.0.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "16.2.2",

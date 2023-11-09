@@ -64,7 +64,8 @@
               "lottie-web",
               "sweetalert2",
               "polylabel",
-              "dialog-polyfill"
+              "dialog-polyfill",
+              "dropzone"
             ]
           },
           "configurations": {

@@ -68,7 +68,9 @@ enum OrderOperationType {
 
 enum OrderStatus {
     NEW = 'NEW',
-    ACTIVE = 'ACTIVE',
+    PENDING = 'PENDING',
+    CANCELLED = 'CANCELLED',
+    COMPLETED = 'COMPLETED',
 }
 
 export { Order, OrderOperationType, OrderStatus }

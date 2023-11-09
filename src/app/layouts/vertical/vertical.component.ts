@@ -1,19 +1,12 @@
-import {Component} from '@angular/core';
-import {ActivatedRoute, NavigationEnd, Router,} from '@angular/router';
+import { Component } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router, } from '@angular/router';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import {
-  DATA_PRELOADER,
-  LAYOUT,
-  LAYOUT_MODE,
-  LAYOUT_POSITION,
-  LAYOUT_THEME,
-  LAYOUT_WIDTH,
-  SIDEBAR_COLOR,
-  SIDEBAR_IMAGE,
-  SIDEBAR_SIZE,
-  SIDEBAR_VIEW,
-  TOPBAR
+    DATA_PRELOADER, LAYOUT, LAYOUT_MODE, LAYOUT_POSITION, LAYOUT_THEME, LAYOUT_WIDTH, SIDEBAR_COLOR, SIDEBAR_IMAGE, SIDEBAR_SIZE,
+    SIDEBAR_VIEW, TOPBAR
 } from '../layout.model';
 
+@UntilDestroy()
 @Component({
   selector: 'app-vertical',
   templateUrl: './vertical.component.html',
@@ -45,7 +38,7 @@ export class VerticalComponent {
 
 
 
-    this.router.events.subscribe((event: any) => {
+    this.router.events.pipe(untilDestroyed(this)).subscribe((event: any) => {
       if (document.documentElement.getAttribute('data-preloader') == 'enable') {
         if (event instanceof NavigationEnd) {
           // Update the attribute state based on the current route or any other conditions

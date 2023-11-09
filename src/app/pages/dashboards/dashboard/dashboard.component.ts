@@ -1,10 +1,12 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, QueryList, ViewChildren } from '@angular/core';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Observable } from 'rxjs';
 import { NgbdIndexsSortableHeader, OrderSortEvent } from './dashboard-sortable.directive';
 import { ordersModel } from './dashboard.model';
 import { DashboardService } from './dashboard.service';
 
+@UntilDestroy()
 @Component({
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss'],
@@ -23,7 +25,7 @@ export class DashboardComponent {
 
     ngOnInit(): void {
         setTimeout(() => {
-            this.LatestOrders.subscribe(x => {
+            this.LatestOrders.pipe(untilDestroyed(this)).subscribe(x => {
                 this.orderList = Object.assign([], x);
             });
             document.getElementById('elmLoader')?.classList.add('d-none')

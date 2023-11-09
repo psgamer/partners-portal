@@ -1,9 +1,11 @@
 import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MENU } from './menu';
 
 import { MenuItem } from './menu.model';
 
+@UntilDestroy()
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
@@ -22,7 +24,7 @@ export class SidebarComponent {
     // Menu Items
     this.menuItems = MENU;
 
-    this.router.events.subscribe((event) => {
+    this.router.events.pipe(untilDestroyed(this)).subscribe((event) => {
       if (document.documentElement.getAttribute('data-layout') == 'vertical' || document.documentElement.getAttribute('data-layout') == 'horizontal') {
         if (event instanceof NavigationEnd) {
           this.initActiveMenu();

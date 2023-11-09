@@ -1,6 +1,9 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DATE_PIPE_DEFAULT_OPTIONS, registerLocaleData } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { NgModule } from '@angular/core';
+
+// lang
+import localeUk from '@angular/common/locales/uk';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { Auth, connectAuthEmulator, getAuth, provideAuth } from '@angular/fire/auth';
 import { FIREBASE_OPTIONS } from '@angular/fire/compat';
@@ -33,6 +36,7 @@ import { DEFAULT_LANGUAGE } from './core/models/language.models';
 import { PageTitleStrategy } from './core/page-title-strategy';
 import { LayoutsModule } from './layouts/layouts.module';
 
+registerLocaleData(localeUk, 'ua');
 
 export function createTranslateLoader(http: HttpClient): any {
     return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -152,6 +156,11 @@ const firebaseUiAuthConfig: firebaseui.auth.Config = {
     }, {
         provide: TitleStrategy,
         useClass: PageTitleStrategy
+    }, {
+        provide: LOCALE_ID, useValue: 'ua'
+    }, {
+        provide: DATE_PIPE_DEFAULT_OPTIONS,
+        useValue: {dateFormat: 'short'}
     }],
     bootstrap: [AppComponent]
 })

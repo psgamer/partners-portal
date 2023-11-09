@@ -1,14 +1,17 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { User } from '@firebase/auth';
+import { Observable, of, take } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { getFirebaseBackend } from '../../authUtils';
 import { GlobalComponent } from "../../global-component";
-import { User } from '../models/auth.models';
+import { Contractor } from '../models/all.models';
 
 const AUTH_API = GlobalComponent.AUTH_API;
 
 const httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-  };
+};
 
 
 @Injectable({ providedIn: 'root' })
@@ -17,95 +20,45 @@ const httpOptions = {
  * Auth-service Component
  */
 export class AuthenticationService {
-
-    user!: User;
-    currentUserValue: any;
-
-    // private currentUserSubject: BehaviorSubject<User>;
-    // public currentUser: Observable<User> | undefined;
-
-    constructor(private http: HttpClient) {
-        // this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')!));
-        // this.currentUser = this.currentUserSubject.asObservable();
-     }
-
-    /**
-     * Performs the register
-     * @param email email
-     * @param password password
-     */
     register(email: string, first_name: string, password: string) {
-        return getFirebaseBackend()!.registerUser(email, password).then((response: any) => {
-            const user = response;
-            return user;
-        });
-
-        // Register Api
-        // return this.http.post(AUTH_API + 'signup', {
-        //     email,
-        //     first_name,
-        //     password,
-        //   }, httpOptions);
+        return getFirebaseBackend()!.registerUser(email, password);
     }
 
-    /**
-     * Performs the auth
-     * @param email email of user
-     * @param password password of user
-     */
     login(email: string, password: string) {
-        return getFirebaseBackend()!.loginUser(email, password).then((response: any) => {
-            const user = response;
-            return user;
-        });
-
-        // return this.http.post(AUTH_API + 'signin', {
-        //     email,
-        //     password
-        //   }, httpOptions);
+        return getFirebaseBackend()!.loginUser(email, password);
     }
 
     loginWithFb() {
-        return getFirebaseBackend()!.loginWithFb().then((response: any) => {
-            const user = response;
-            return user;
-        });
+        return getFirebaseBackend()!.loginWithFb();
     }
 
     loginWithTwitter() {
-        return getFirebaseBackend()!.loginWithTwitter().then((response: any) => {
-            const user = response;
-            return user;
-        });
+        return getFirebaseBackend()!.loginWithTwitter();
     }
 
-    /**
-     * Returns the current user
-     */
-    public currentUser(): any {
+    currentUser(): Observable<User | null> {
+        // TODO refactor to return after init
         return getFirebaseBackend()!.getAuthenticatedUser();
     }
 
-    /**
-     * Logout the user
-     */
-    logout() {
-        // logout the user
-        return getFirebaseBackend()!.logout();
-        // localStorage.removeItem('currentUser');
-        // localStorage.removeItem('token');
-        // this.currentUserSubject.next(null!);
+    currentUserContractorId() {
+        return this
+            .currentUser()
+            .pipe(
+                take(1),
+                switchMap(user => user
+                    ? user.getIdTokenResult().then(({ claims: { contractorId } }) => contractorId as Contractor['id'])
+                    : of(null)
+                ),
+            );
     }
 
-    /**
-     * Reset password
-     * @param email email
-     */
+    logout() {
+        return getFirebaseBackend()!.logout();
+    }
+
     resetPassword(email: string) {
-        return getFirebaseBackend()!.forgetPassword(email).then((response: any) => {
-            const message = response.data;
-            return message;
-        });
+        return getFirebaseBackend()!.forgetPassword(email).then((response: any) => response.data);
     }
 
 }
