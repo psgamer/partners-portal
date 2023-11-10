@@ -80,7 +80,7 @@ class FirebaseAuthBackend {
     loginWithTwitter = () => {
         const provider = new TwitterAuthProvider();
 
-        provider.setCustomParameters({ 'lang': 'uk' });// TODO
+        provider.setCustomParameters({ 'lang': 'uk' });// TODO move this 'uk' to lang service
 
         return new Promise((resolve, reject) => {
             signInWithPopup(this.auth, provider).then((result: any) => {

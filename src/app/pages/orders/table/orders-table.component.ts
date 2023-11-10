@@ -1,11 +1,28 @@
 import { Component, QueryList, ViewChildren } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { map } from 'rxjs/operators';
 import { getExtractByPath, Paths } from '../../../core/models/util.models';
-import { Order, OrderStatus } from './order.model';
-import { OrderService } from './order.service';
+import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
+import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
+import { Order, OrderOperationType, OrderStatus } from './order.model';
+import { FiltersState, OrderService } from './order.service';
 
 import { listSortEvent, NgbdListSortableHeader } from './orders-table-sortable.directive';
+
+interface Form {
+    amountRange: FormGroup<{
+        from: FormControl<number | undefined>,
+        to: FormControl<number | undefined>,
+    }>,
+    operations: FormGroup<{
+        [value in OrderOperationType]: FormControl<boolean>
+    }>,
+    statuses: FormGroup<{
+        [value in OrderStatus]: FormControl<boolean>
+    }>,
+    localSolutionId: FormControl<LocalSolution['id'] | ''>,
+}
 
 @UntilDestroy()
 @Component({
@@ -13,7 +30,6 @@ import { listSortEvent, NgbdListSortableHeader } from './orders-table-sortable.d
     styleUrls: ['./orders-table.component.scss'],
     providers: [OrderService]
 })
-
 // List Component
 export class OrdersTableComponent {
     readonly tableColsToRender: Paths<Order>[] = [
@@ -42,7 +58,23 @@ export class OrdersTableComponent {
     readonly loading$ = this.orderService.loading$;
     readonly totalRecords$ = this.orderService.totalRecords$;
     readonly orders$ = this.orderService.orders$;
+    readonly statuses = Object.values(OrderStatus);
+    readonly operationTypes = Object.values(OrderOperationType);
+    readonly localSolutions$ = this.localSolutionService.findAll();
     checkboxItems: {[key: Order['id']]: boolean} = {};
+    searchForm: FormGroup<Form> = this.fb.group<Form>({
+        amountRange: this.fb.group({
+            from: this.fb.control(undefined as number | undefined, {nonNullable: true}),
+            to: this.fb.control(undefined as number | undefined, {nonNullable: true})
+        }),
+        operations: this.fb.group(<{[value in OrderOperationType]: FormControl<boolean>}>Object
+            .fromEntries(this.operationTypes
+                .map(operation => [operation, this.fb.control(false, {nonNullable: true})]))),
+        statuses: this.fb.group(<{[value in OrderStatus]: FormControl<boolean>}>Object
+            .fromEntries(this.statuses
+                .map(status => [status, this.fb.control(false, {nonNullable: true})]))),
+        localSolutionId: this.fb.control('', {nonNullable: true}),
+    });
 
     @ViewChildren(NgbdListSortableHeader) tableHeaders!: QueryList<NgbdListSortableHeader>;
     // @ViewChild('addCourse', { static: false }) addCourse?: ModalDirective;
@@ -74,8 +106,18 @@ export class OrdersTableComponent {
         return Object.values(this.checkboxItems).some(checked => checked);
     }
 
-    constructor(private orderService: OrderService) {
-        this.orderService.search();
+    constructor(private orderService: OrderService, private fb: FormBuilder, private localSolutionService: LocalSolutionService) {
+        this.orderService.filtersState$
+            .pipe(
+                untilDestroyed(this),
+                map((filters, i) => {
+                    this.updateForm(filters);
+                    if (i === 0) {
+                        // first time got filters state
+                        this.search();
+                    }
+                }))
+            .subscribe();
     }
 
     ngOnInit(): void {
@@ -94,6 +136,44 @@ export class OrdersTableComponent {
         //     fees: ['', [Validators.required]],
         //     status: ['', [Validators.required]]
         // });
+    }
+
+    reset() {
+        this.searchForm.reset();
+        this.search();
+    }
+
+    search() {
+        this.closeoffcanvas();
+        this.orderService.search(this.parseFilters());
+    }
+
+    private parseFilters(): FiltersState {
+        const {
+            amountRange: { from, to },
+            operations,
+            statuses,
+            localSolutionId,
+        } = this.searchForm.getRawValue();
+
+        return {
+            amountRange: {
+                from: from ? parseInt(`${from}`) : undefined,
+                to: to ? parseInt(`${to}`) : undefined,
+            },
+            operations: this.operationTypes.filter(operation => operations[operation]),
+            statuses: this.statuses.filter(status => statuses[status]),
+            localSolutionId,
+        }
+    }
+
+    private updateForm({operations, amountRange, statuses, localSolutionId}: FiltersState) {
+        this.searchForm.reset({
+            amountRange: {...amountRange},
+            operations: Object.fromEntries(this.operationTypes.map(operation => [operation, operations.includes(operation)])),
+            statuses: Object.fromEntries(this.statuses.map(status => [status, statuses.includes(status)])),
+            localSolutionId,
+        });
     }
 
     //  Filter Offcanvas Set

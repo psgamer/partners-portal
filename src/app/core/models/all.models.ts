@@ -1,4 +1,5 @@
 import { Timestamp } from '@angular/fire/firestore';
+import { LocalSolution } from '../../shared/local-solution/local-solution.model';
 
 interface Contractor {
     id: string;
@@ -59,11 +60,6 @@ interface Client {
     name: string;
 }
 
-interface LocalSolution {
-    id: string;
-    name: string;
-}
-
 interface Period {
     count: number;
     type: PeriodType;
@@ -101,5 +97,5 @@ interface NewsArticle {
 
 export {
     Contractor, Client, License, LicensePassword, LicensePrivateKey, Period, PeriodType, UserNotificationType, UserNotification, Payer,
-    NewsArticle, LocalSolution,
+    NewsArticle,
 }

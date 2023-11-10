@@ -1,5 +1,6 @@
 import { Timestamp } from "@angular/fire/firestore";
-import { Client, Contractor, License, LocalSolution, Payer, Period } from "src/app/core/models/all.models";
+import { Client, Contractor, License, Payer, Period } from "src/app/core/models/all.models";
+import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 
 export interface OrderModel {
     id?: any;

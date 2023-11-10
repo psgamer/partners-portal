@@ -287,148 +287,67 @@
 <!--    </div>&lt;!&ndash; /.modal-dialog &ndash;&gt;-->
 <!--</div>&lt;!&ndash; /deleteRecordModal &ndash;&gt;-->
 
-<!--TODO filters-->
-<!--<div class="custom-offcanvas" id="courseFilters">-->
-<!--    <div class="offcanvas-header border-bottom p-3">-->
-<!--        <h5 class="offcanvas-title" id="courseFiltersLabel">Course Filters</h5>-->
-<!--        <button type="button" class="btn-close" (click)="closeoffcanvas()"></button>-->
-<!--    </div>-->
-<!--    <div class="offcanvas-body">-->
-<!--        <form action="#!">-->
-<!--            <div class="row">-->
-<!--                <div class="col-lg-12">-->
-<!--                    <div class="mb-3">-->
-<!--                        <label class="select-category-filter form-label fs-md mb-3 text-decoration-underline">Price</label>-->
-<!--                        <div id="product-price-range" data-slider-color="secondary"></div>-->
-<!--                        <div class="formCost d-flex gap-2 align-items-center mt-4">-->
-<!--                            <input class="form-control" type="text" id="minCost" value="0"> <span class="fw-semibold text-muted">to</span> <input class="form-control" type="text" id="maxCost" value="1000">-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <div class="col-lg-12">-->
-<!--                    <div class="mb-3">-->
-<!--                        <label class="select-category-filter form-label fs-md mb-3 text-decoration-underline">Courses-->
-<!--                            category</label>-->
-<!--                        <div class="vstack gap-2">-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="courses-category-all">-->
-<!--                                <label class="form-check-label" for="courses-category-all">-->
-<!--                                    Select All-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="courses-category-filter2">-->
-<!--                                <label class="form-check-label" for="courses-category-filter2">-->
-<!--                                    Data Science-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="courses-category-filter3">-->
-<!--                                <label class="form-check-label" for="courses-category-filter3">-->
-<!--                                    IT & Software-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="courses-category-filter4">-->
-<!--                                <label class="form-check-label" for="courses-category-filter4">-->
-<!--                                    Engineering-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="courses-category-filter5">-->
-<!--                                <label class="form-check-label" for="courses-category-filter5">-->
-<!--                                    Web Development-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="courses-category-filter6">-->
-<!--                                <label class="form-check-label" for="courses-category-filter6">-->
-<!--                                    Finance & Banking-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="courses-category-filter7">-->
-<!--                                <label class="form-check-label" for="courses-category-filter7">-->
-<!--                                    Management-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <div class="col-lg-12">-->
-<!--                    <div class="mb-3">-->
-<!--                        <label class="select-category-filter form-label fs-md mb-3 text-decoration-underline">Ratings</label>-->
-<!--                        <div class="vstack gap-2">-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="rating-all">-->
-<!--                                <label class="form-check-label" for="rating-all">-->
-<!--                                    Select All-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="rating-filter1">-->
-<!--                                <label class="form-check-label text-warning" for="rating-filter1">-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="rating-filter2">-->
-<!--                                <label class="form-check-label text-warning" for="rating-filter2">-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <span class="ms-1 text-muted">4 & Up</span>-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="rating-filter3">-->
-<!--                                <label class="form-check-label text-warning" for="rating-filter3">-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <span class="ms-1 text-muted">3 & Up</span>-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="rating-filter4">-->
-<!--                                <label class="form-check-label text-warning" for="rating-filter4">-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <span class="ms-1 text-muted">2 & Up</span>-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="form-check">-->
-<!--                                <input class="form-check-input" type="checkbox" value="" id="rating-filter5">-->
-<!--                                <label class="form-check-label text-warning" for="rating-filter5">-->
-<!--                                    <i class="bi bi-star-fill"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <i class="bi bi-star-fill text-muted"></i>-->
-<!--                                    <span class="ms-1 text-muted">1 & Up</span>-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </form>-->
-<!--    </div>-->
-<!--    <div class="offcanvas-header htsack gap-2 border-top p-3">-->
-<!--        <button class="btn btn-subtle-danger w-100"><i class="bi bi-x-lg align-baseline me-1"></i> Reset</button>-->
-<!--        <button class="btn btn-secondary w-100"><i class="bi bi-funnel align-baseline me-1"></i> Filters</button>-->
-<!--    </div>-->
-<!--</div>-->
+<div class="custom-offcanvas" id="courseFilters">
+    <div class="offcanvas-header border-bottom p-3">
+        <h5 class="offcanvas-title" id="courseFiltersLabel">{{'ORDER.LABELS.SEARCH' | translate}}</h5>
+        <button type="button" class="btn-close" (click)="closeoffcanvas()"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form action="#!" [formGroup]="searchForm">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="mb-3">
+                        <label class="form-label fs-md mb-3 text-decoration-underline">{{'ORDER.FIELDS.amountTotal' | translate}}</label>
+                        <div class="formCost d-flex gap-2 align-items-center">
+                            <input class="form-control" type="text" [formControl]="searchForm.controls.amountRange.controls.from"> <span class="fw-semibold text-muted">-</span> <input class="form-control" type="text" [formControl]="searchForm.controls.amountRange.controls.to">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="mb-3">
+                        <label class="form-label fs-md mb-3 text-decoration-underline">{{'ORDER.FIELDS.operation' | translate}}</label>
+                        <div class="vstack gap-2">
+                            <div *ngFor="let operation of operationTypes" class="form-check">
+                                <input class="form-check-input" type="checkbox" [formControl]="searchForm.controls.operations.controls[operation]" [id]="'order_operation_filter_' + operation">
+                                <label class="form-check-label" [for]="'order_operation_filter_' + operation">
+                                    {{('ORDER.OPERATION.' + operation) | translate}}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="mb-3">
+                        <label for="order_local_solution_filter" class="form-label">{{'ORDER.FIELDS.localSolutionRes.name' | translate}}</label>
+
+                        <select class="form-select" id="order_local_solution_filter" [formControl]="searchForm.controls.localSolutionId">
+                            <option value="">{{'ORDER.LABELS.UNSET' | translate}}</option>
+                            <ng-container *ngIf="localSolutions$ | async as localSolutions">
+                                <option *ngFor="let localSolution of localSolutions" [value]="localSolution.id">{{localSolution.name}}</option>
+                            </ng-container>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="mb-3">
+                        <label class="form-label fs-md mb-3 text-decoration-underline">{{'ORDER.FIELDS.status' | translate}}</label>
+                        <div class="vstack gap-2">
+                            <div *ngFor="let status of statuses" class="form-check">
+                                <input class="form-check-input" type="checkbox" [formControl]="searchForm.controls.statuses.controls[status]" [id]="'order_status_filter_' + status">
+                                <label class="form-check-label" [for]="'order_status_filter_' + status">
+                                    {{('ORDER.STATUS.' + status) | translate}}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="offcanvas-header htsack gap-2 border-top p-3">
+        <button class="btn btn-subtle-danger w-100" (click)="reset()"><i class="bi bi-x-lg align-baseline me-1"></i>{{'ORDER.LABELS.RESET' | translate}}</button>
+        <button class="btn btn-secondary w-100" (click)="search()"><i class="bi bi-funnel align-baseline me-1"></i>{{'ORDER.LABELS.SHOW' | translate}}</button>
+    </div>
+</div>
 
 <div class="offcanvas-backdrop fade backdrop3" id="backdrop" (click)="closeoffcanvas()"></div>
