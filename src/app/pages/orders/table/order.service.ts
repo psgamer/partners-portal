@@ -8,7 +8,7 @@ import { DocumentSnapshot, QueryConstraint } from '@firebase/firestore';
 import { BehaviorSubject, Observable, Subject, throwError, zip } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { Contractor } from '../../../core/models/all.models';
-import { FirebaseDoc, fromFirebaseSnapshot, Paths } from '../../../core/models/util.models';
+import { FirebaseDoc, getBaseConverter, Paths } from '../../../core/models/util.models';
 import { AuthenticationService } from '../../../core/services/auth.service';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 
@@ -211,12 +211,12 @@ export class OrderService {
                     // pageSize
                     constraints.push(limit(pageSize));
 
-                    const collQuery = query(collRef, ...constraints);
+                    const collQuery = query(collRef, ...constraints).withConverter(getBaseConverter<Order>());
 
                     return [
                         collQuery,
                         countQuery
-                    ];
+                    ] as const;
                 }),
                 switchMap(([collQuery, countQuery]) => {
                     return zip([
@@ -245,7 +245,7 @@ export class OrderService {
                             statuses,
                             localSolutionId,
                         },
-                        orders: docs.map(fromFirebaseSnapshot),
+                        orders: docs.map(doc => doc.data()),
                         totalRecords,
                     };
 

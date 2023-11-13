@@ -1,4 +1,4 @@
-import { QueryDocumentSnapshot } from '@firebase/firestore';
+import { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions, WithFieldValue } from '@angular/fire/firestore';
 
 
 type FirebaseDoc<T> = Omit<T, 'id'>;
@@ -13,24 +13,18 @@ const getExtractByPath = <T extends {[key: string]: any}>() => <R = any>(obj: T,
     .split('.')
     .reduce((acc, pathPiece) => acc[pathPiece], obj as any);
 
-// const getBaseConverter = <T extends {id: any}>(): FirestoreDataConverter<T> => ({
-//     toFirestore({id, ...rest}: WithFieldValue<T>): DocumentData {
-//         return {
-//             ...rest,
-//         };
-//     },
-//     fromFirestore(snapshot: QueryDocumentSnapshot<T>, options: SnapshotOptions): T {
-//         return ({
-//             ...snapshot.data() as FirebaseDoc<T>,
-//             id: snapshot.id,
-//         }) as T;
-//     },
-// });
-// TODO test converter and maybe use
+const getBaseConverter = <T extends {id: any}>(): FirestoreDataConverter<T> => ({
+    toFirestore({id, ...rest}: WithFieldValue<T>): DocumentData {
+        return {
+            ...rest,
+        };
+    },
+    fromFirestore(snapshot: QueryDocumentSnapshot<T>, options: SnapshotOptions): T {
+        return ({
+            ...snapshot.data() as FirebaseDoc<T>,
+            id: snapshot.id,
+        }) as T;
+    },
+});
 
-const fromFirebaseSnapshot = <T extends object>(doc: QueryDocumentSnapshot<FirebaseDoc<T>>): T => ({
-    ...doc.data() as FirebaseDoc<T>,
-    id: doc.id,
-}) as T;
-
-export {FirebaseDoc, Paths, getExtractByPath, fromFirebaseSnapshot};
+export {FirebaseDoc, Paths, getExtractByPath, getBaseConverter};
