@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
-import { Injectable } from '@angular/core';
+import { ChangeDetectorRef, Injectable } from '@angular/core';
 import {
     collection, CollectionReference, endBefore, Firestore, getCountFromServer, getDocs, limit, orderBy, query, startAfter, where
 } from '@angular/fire/firestore';
@@ -37,6 +37,8 @@ interface PrivateState {
     lastDocSnap?: DocumentSnapshot<FirebaseDoc<Order>>;
 }
 
+type SearchRequest = Partial<State & FiltersState>;
+
 interface SearchResult {
     state: State,
     privateState: PrivateState,
@@ -59,44 +61,36 @@ export class OrderService {
         localSolutionId: '',
     });
     private readonly _loading$ = new BehaviorSubject<boolean>(true);
-    private readonly _searchRequest$ = new Subject<Partial<State & FiltersState>>();
+    private readonly _searchRequest$ = new Subject<SearchRequest>();
 
-    private state: State = {
+    private readonly _state$ = new BehaviorSubject<State>({
         page: 1,
-        pageSize: 10,
+        pageSize: 1,// TODO change to 10
         sortColumn: 'createdDate',
         sortDirection: 'desc',
-    };
+    });
 
     private privateState: PrivateState = {
         firstDocSnap: undefined,
         lastDocSnap: undefined,
     }
 
-    constructor(private db: Firestore, private auth: AuthenticationService) {
+    constructor(private db: Firestore, private auth: AuthenticationService, private cd: ChangeDetectorRef) {
         this._searchRequest$.pipe(
             tap(() => this._loading$.next(true)),
             switchMap(state => this.getOrders(state)),
             tap(() => this._loading$.next(false)),
             tap(({ state, privateState, orders, totalRecords }) => {
-                this.state = state;
                 this.privateState = privateState;
+
+                this._state$.next(state);
 
                 this._orders$.next(orders);
                 this._totalRecords$.next(totalRecords);
+
+                this.cd.markForCheck();
             }),
         ).subscribe();
-    }
-
-    get tableState() {
-        const {page, pageSize, sortColumn, sortDirection} = this.state;
-
-        return {
-            page,
-            pageSize,
-            sortColumn,
-            sortDirection,
-        }
     }
 
     get orders$() {
@@ -115,24 +109,23 @@ export class OrderService {
         return this._filtersState$.asObservable();
     }
 
+    get state$() {
+        return this._state$.asObservable();
+    }
+
     sort({ column, direction }: listSortEvent) {
         this._search({ sortColumn: column, sortDirection: direction });
     }
 
-    toFirstPage() {
-        this._search({ page: 1 });
-    }
-
-    toPrevPage() {
-        this._search({ page: this.state.page - 1 });
-    }
-
-    toNextPage() {
-        this._search({ page: this.state.page + 1 });
+    gotoPage(page: State['page']) {
+        this._search({ page });
     }
 
     search(changes: Partial<FiltersState> = {}) {
-        this._searchRequest$.next(changes);
+        this._searchRequest$.next({
+            ...changes,
+            page: 1,
+        });
     }
 
     private _search(changes: Partial<State> = {}) {
@@ -143,7 +136,7 @@ export class OrderService {
         return collection(this.db, 'contractors', contractorId, 'orders') as CollectionReference<FirebaseDoc<Order>>;
     }
 
-    private getOrders(changes: Partial<State & FiltersState>): Observable<SearchResult> {
+    private getOrders(changes: SearchRequest): Observable<SearchResult> {
         const {
             firstDocSnap,
             lastDocSnap,
@@ -151,13 +144,7 @@ export class OrderService {
 
         const {
             page: oldPage,
-        } = this.state;
-        const {
-            amountRange: oldAmountRange,
-            operations: oldOperations,
-            statuses: oldStatuses,
-            localSolutionId: oldLocalSolutionId
-        } = this._filtersState$.value;
+        } = this._state$.value;
 
         let {
             page,
@@ -181,18 +168,6 @@ export class OrderService {
                 map(collRef => {
                     const constraints: QueryConstraint[] = [];
 
-                    // filters
-                    // TODO rewrite func
-                    const isSameElementsArrays = <T>(arr1: T[], arr2:T[]) => [...arr1].sort().join(',') === [...arr2].sort().join(',');
-
-                    if (amountRange.from !== oldAmountRange.from || amountRange.to !== oldAmountRange.to
-                        || !isSameElementsArrays(operations, oldOperations)
-                        || !isSameElementsArrays(statuses, oldStatuses)
-                        || localSolutionId !== oldLocalSolutionId) {
-                        // reset page, different search
-                        page = 1;
-                    }
-
                     if (amountRange.from || amountRange.to) {
                         if (amountRange.from) {
                             constraints.push(where('amountTotal' as Paths<Order>, '>=', amountRange.from));
@@ -201,8 +176,7 @@ export class OrderService {
                             constraints.push(where('amountTotal' as Paths<Order>, '<=', amountRange.to));
                         }
 
-                        // TODO look for workarounds? probably one query for 10 docs, then docId in (10 docIds)
-                        // TODD reset paging on new query
+                        // TODO rework this, probably through tags
                         sortColumn = 'amountTotal' as Paths<Order>;
                         sortDirection = 'asc';
                     }
@@ -219,6 +193,8 @@ export class OrderService {
                     // ordering
                     constraints.push(orderBy(sortColumn, sortDirection));
 
+                    const countQuery = query(collRef, ...constraints);
+
                     // page
                     if (!(page === oldPage || page === 1)) {
                         if (page === oldPage - 1) {
@@ -226,19 +202,26 @@ export class OrderService {
                         } else if (page === oldPage + 1) {
                             constraints.push(startAfter(lastDocSnap));
                         } else {
-                            throwError(() => new Error('jump of 2 pages or more'));
+                            const text = 'jump of 2 pages or more';
+                            console.error(text);
+                            throwError(() => new Error(text));
                         }
                     }
 
                     // pageSize
                     constraints.push(limit(pageSize));
 
-                    return query(collRef, ...constraints);
+                    const collQuery = query(collRef, ...constraints);
+
+                    return [
+                        collQuery,
+                        countQuery
+                    ];
                 }),
-                switchMap(collQuery => {
+                switchMap(([collQuery, countQuery]) => {
                     return zip([
                         getDocs(collQuery).then(({docs}) => docs),
-                        getCountFromServer(collQuery).then(result => result.data().count),
+                        getCountFromServer(countQuery).then(result => result.data().count),
                     ]);
                 }),
                 map(([docs, totalRecords]) => {
@@ -282,7 +265,7 @@ export class OrderService {
             sortColumn: oldSortColumn,
             sortDirection: oldSortDirection,
             page: oldPage,
-        } = this.state;
+        } = this._state$.value;
 
         return {
             page: page || oldPage,

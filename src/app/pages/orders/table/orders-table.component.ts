@@ -1,6 +1,7 @@
 import { Component, QueryList, ViewChildren } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { PageChangedEvent } from 'ngx-bootstrap/pagination';
 import { map } from 'rxjs/operators';
 import { getExtractByPath, Paths } from '../../../core/models/util.models';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
@@ -54,7 +55,7 @@ export class OrdersTableComponent {
     // files: File[] = [];
 
     // Table data
-    readonly state = this.orderService.tableState;
+    readonly state$ = this.orderService.state$;
     readonly loading$ = this.orderService.loading$;
     readonly totalRecords$ = this.orderService.totalRecords$;
     readonly orders$ = this.orderService.orders$;
@@ -82,11 +83,10 @@ export class OrdersTableComponent {
 
     // deleteID: any;
 
-    readonly getSortDirection = (colPath: Paths<Order>) => {
-        const { sortColumn, sortDirection } = this.orderService.tableState;
-
-        return colPath === sortColumn ? sortDirection : '';
+    readonly getSortDirection$ = (colPath: Paths<Order>) => {
+        return this.state$.pipe(map(({ sortColumn, sortDirection }) => colPath === sortColumn ? sortDirection : ''));
     }
+
     readonly getStatusClass = (status: OrderStatus): string => {
         switch (status) {
             case OrderStatus.NEW:
@@ -146,6 +146,10 @@ export class OrdersTableComponent {
     search() {
         this.closeoffcanvas();
         this.orderService.search(this.parseFilters());
+    }
+
+    onPageChange({page}: PageChangedEvent) {
+        this.orderService.gotoPage(page);
     }
 
     private parseFilters(): FiltersState {

@@ -39,7 +39,7 @@
                                     </div>
                                 </th>
 
-                                <th *ngFor="let col of tableColsToRender" scope="col" class="sort cursor-pointer" [listsortable]="col" [direction]="getSortDirection(col)" (sort)="onSort($event)">
+                                <th *ngFor="let col of tableColsToRender" scope="col" class="sort cursor-pointer" [listsortable]="col" [direction]="(getSortDirection$(col) | async)!" (sort)="onSort($event)">
                                     {{('ORDER.FIELDS.' + col) | translate}}
                                 </th>
 
@@ -123,10 +123,9 @@
                         <div class="text-muted text-center text-sm-start"
                              [innerHTML]="'TABLE.AMOUNT_TEXT' | translate: { current: (orders$ | async)!.length, total: totalRecords$ | async }"></div>
                     </div><!--end col-->
-                    <!--TODO paging-->
-<!--                    <div class="col-sm-auto mt-3 mt-sm-0">-->
-<!--                        <pagination class="pagination-wrap hstack gap-2 justify-content-center" [totalItems]="(total | async)!" [(ngModel)]="service.page" [itemsPerPage]="service.pageSize"></pagination>-->
-<!--                    </div>&lt;!&ndash;end col&ndash;&gt;-->
+                    <div class="col-sm-auto mt-3 mt-sm-0">
+                        <pagination class="pagination-wrap hstack gap-2 justify-content-center" [totalItems]="(totalRecords$ | async)!" [itemsPerPage]="(state$ | async)!.pageSize" [maxSize]="1" [ngModel]="(state$ | async)!.page" (pageChanged)="onPageChange($event)"></pagination>
+                    </div><!--end col-->
                 </div><!--end row-->
             </div>
         </div><!--end card-->
