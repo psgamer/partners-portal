@@ -2,13 +2,13 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 // Component
-import { DashboardComponent } from './dashboard/dashboard.component';
+import { IndexComponent } from './index/index.component';
 
 
 const routes: Routes = [
     {
         path: "",
-        component: DashboardComponent,
+        component: IndexComponent,
         title: 'MENUITEMS.DASHBOARD.TEXT',
     }
 ];

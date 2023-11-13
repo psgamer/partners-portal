@@ -27,17 +27,17 @@ import { NgxEchartsModule } from 'ngx-echarts';
 // Simplebar
 import { SimplebarAngularModule } from 'simplebar-angular';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { NgbdIndexsSortableHeader } from './dashboard/dashboard-sortable.directive';
-
-// component
-import { DashboardComponent } from './dashboard/dashboard.component';
 
 // Page route
 import { DashboardsRoutingModule } from './dashboards-routing.module';
+import { NgbdIndexsSortableHeader } from './index/index-sortable.directive';
+
+// component
+import { IndexComponent } from './index/index.component';
 
 @NgModule({
     declarations: [
-        DashboardComponent,
+        IndexComponent,
         NgbdIndexsSortableHeader
     ],
     imports: [

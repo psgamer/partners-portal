@@ -1,5 +1,5 @@
 import { Directive, EventEmitter, Input, Output } from '@angular/core';
-import { ordersModel } from './dashboard.model';
+import { ordersModel } from './index.model';
 
 export type SortColumn = keyof ordersModel | '';
 export type SortDirection = 'asc' | 'desc' | '';

@@ -2,24 +2,24 @@ import { DecimalPipe } from '@angular/common';
 import { Component, QueryList, ViewChildren } from '@angular/core';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Observable } from 'rxjs';
-import { NgbdIndexsSortableHeader, OrderSortEvent } from './dashboard-sortable.directive';
-import { ordersModel } from './dashboard.model';
-import { DashboardService } from './dashboard.service';
+import { NgbdIndexsSortableHeader, OrderSortEvent } from './index-sortable.directive';
+import { ordersModel } from './index.model';
+import { IndexService } from './index.service';
 
 @UntilDestroy()
 @Component({
-    templateUrl: './dashboard.component.html',
-    styleUrls: ['./dashboard.component.scss'],
-    providers: [DecimalPipe, DashboardService]
+    templateUrl: './index.component.html',
+    styleUrls: ['./index.component.scss'],
+    providers: [DecimalPipe, IndexService]
 })
-export class DashboardComponent {
+export class IndexComponent {
     sortValue: any = 'Order Date';
     LatestOrders!: Observable<ordersModel[]>;
     orderList: ordersModel[] = [];
 
     @ViewChildren(NgbdIndexsSortableHeader) headers!: QueryList<NgbdIndexsSortableHeader>;
 
-    constructor(private service: DashboardService) {
+    constructor(private service: IndexService) {
         this.LatestOrders = service.countries$;
     }
 

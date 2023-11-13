@@ -4,10 +4,10 @@ import { DecimalPipe } from '@angular/common';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { debounceTime, delay, switchMap, tap } from 'rxjs/operators';
-import { SortColumn, SortDirection } from './dashboard-sortable.directive';
-import { orders } from './dashboard.data';
+import { SortColumn, SortDirection } from './index-sortable.directive';
+import { orders } from './index.data';
 
-import { ordersModel } from './dashboard.model';
+import { ordersModel } from './index.model';
 
 interface SearchResult {
   countries: ordersModel[];
@@ -32,7 +32,7 @@ function sort(countries: ordersModel[], column: SortColumn, direction: string): 
 }
 
 @Injectable({ providedIn: 'root' })
-export class DashboardService {
+export class IndexService {
   private _loading$ = new BehaviorSubject<boolean>(true);
   private _search$ = new Subject<void>();
   private _countries$ = new BehaviorSubject<ordersModel[]>([]);
