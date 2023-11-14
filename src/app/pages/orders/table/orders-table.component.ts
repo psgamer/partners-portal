@@ -6,16 +6,14 @@ import { map } from 'rxjs/operators';
 import { getExtractByPath, Paths } from '../../../core/models/util.models';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
-import { Order, OrderOperationType, OrderStatus } from './order.model';
+import { OrderAmountRangeService } from './order-amount-range.service';
+import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
 import { FiltersState, OrderService } from './order.service';
 
 import { listSortEvent, NgbdListSortableHeader } from './orders-table-sortable.directive';
 
 interface Form {
-    amountRange: FormGroup<{
-        from: FormControl<number | undefined>,
-        to: FormControl<number | undefined>,
-    }>,
+    amountRange: FormControl<OrderAmountRange['id'] | ''>,
     operations: FormGroup<{
         [value in OrderOperationType]: FormControl<boolean>
     }>,
@@ -29,7 +27,7 @@ interface Form {
 @Component({
     templateUrl: './orders-table.component.html',
     styleUrls: ['./orders-table.component.scss'],
-    providers: [OrderService]
+    providers: [OrderService, OrderAmountRangeService]
 })
 // List Component
 export class OrdersTableComponent {
@@ -59,15 +57,13 @@ export class OrdersTableComponent {
     readonly loading$ = this.orderService.loading$;
     readonly totalRecords$ = this.orderService.totalRecords$;
     readonly orders$ = this.orderService.orders$;
+    readonly orderAmountRanges$ = this.orderAmountTotalService.orderAmountRanges$;
     readonly statuses = Object.values(OrderStatus);
     readonly operationTypes = Object.values(OrderOperationType);
     readonly localSolutions$ = this.localSolutionService.findAll();
     checkboxItems: {[key: Order['id']]: boolean} = {};
     searchForm: FormGroup<Form> = this.fb.group<Form>({
-        amountRange: this.fb.group({
-            from: this.fb.control(undefined as number | undefined, {nonNullable: true}),
-            to: this.fb.control(undefined as number | undefined, {nonNullable: true})
-        }),
+        amountRange: this.fb.control('', {nonNullable: true}),
         operations: this.fb.group(<{[value in OrderOperationType]: FormControl<boolean>}>Object
             .fromEntries(this.operationTypes
                 .map(operation => [operation, this.fb.control(false, {nonNullable: true})]))),
@@ -106,7 +102,10 @@ export class OrdersTableComponent {
         return Object.values(this.checkboxItems).some(checked => checked);
     }
 
-    constructor(private orderService: OrderService, private fb: FormBuilder, private localSolutionService: LocalSolutionService) {
+    constructor(
+        private orderService: OrderService, private fb: FormBuilder, private localSolutionService: LocalSolutionService,
+        private orderAmountTotalService: OrderAmountRangeService,
+    ) {
         this.orderService.filtersState$
             .pipe(
                 untilDestroyed(this),
@@ -154,17 +153,14 @@ export class OrdersTableComponent {
 
     private parseFilters(): FiltersState {
         const {
-            amountRange: { from, to },
+            amountRange,
             operations,
             statuses,
             localSolutionId,
         } = this.searchForm.getRawValue();
 
         return {
-            amountRange: {
-                from: from ? parseInt(`${from}`) : undefined,
-                to: to ? parseInt(`${to}`) : undefined,
-            },
+            amountRange,
             operations: this.operationTypes.filter(operation => operations[operation]),
             statuses: this.statuses.filter(status => statuses[status]),
             localSolutionId,
@@ -173,7 +169,7 @@ export class OrdersTableComponent {
 
     private updateForm({operations, amountRange, statuses, localSolutionId}: FiltersState) {
         this.searchForm.reset({
-            amountRange: {...amountRange},
+            amountRange,
             operations: Object.fromEntries(this.operationTypes.map(operation => [operation, operations.includes(operation)])),
             statuses: Object.fromEntries(this.statuses.map(status => [status, statuses.includes(status)])),
             localSolutionId,

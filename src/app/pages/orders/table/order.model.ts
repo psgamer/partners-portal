@@ -36,6 +36,7 @@ interface Order {
     };
     licenseId: License['id'];
     amountTotal: number;
+    amountTotalRanges: OrderAmountRange['id'][];
     operation: OrderOperationType;
     status: OrderStatus;
     createdDate: Timestamp;
@@ -62,6 +63,12 @@ interface Order {
     };
 }
 
+interface OrderAmountRange {
+    id: string;
+    from: number | null;
+    to: number | null;
+}
+
 enum OrderOperationType {
     NEW_PURCHASE = 'NEW_PURCHASE',
     PROLONGATION = 'PROLONGATION',
@@ -74,4 +81,4 @@ enum OrderStatus {
     COMPLETED = 'COMPLETED',
 }
 
-export { Order, OrderOperationType, OrderStatus }
+export { Order, OrderOperationType, OrderStatus, OrderAmountRange }

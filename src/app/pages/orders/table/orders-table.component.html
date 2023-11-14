@@ -124,7 +124,16 @@
                              [innerHTML]="'TABLE.AMOUNT_TEXT' | translate: { current: (orders$ | async)!.length, total: totalRecords$ | async }"></div>
                     </div><!--end col-->
                     <div class="col-sm-auto mt-3 mt-sm-0">
-                        <pagination class="pagination-wrap hstack gap-2 justify-content-center" [totalItems]="(totalRecords$ | async)!" [itemsPerPage]="(state$ | async)!.pageSize" [maxSize]="1" [ngModel]="(state$ | async)!.page" (pageChanged)="onPageChange($event)"></pagination>
+                        <pagination
+                                class="pagination-wrap hstack gap-2 justify-content-center"
+                                [totalItems]="(totalRecords$ | async)!"
+                                [itemsPerPage]="(state$ | async)!.pageSize"
+                                [maxSize]="1"
+                                [ngModel]="(state$ | async)!.page"
+                                (pageChanged)="onPageChange($event)"
+                                [previousText]="'<<'"
+                                [nextText]="'>>'"
+                        ></pagination>
                     </div><!--end col-->
                 </div><!--end row-->
             </div>
@@ -296,10 +305,24 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="mb-3">
-                        <label class="form-label fs-md mb-3 text-decoration-underline">{{'ORDER.FIELDS.amountTotal' | translate}}</label>
-                        <div class="formCost d-flex gap-2 align-items-center">
-                            <input class="form-control" type="text" [formControl]="searchForm.controls.amountRange.controls.from"> <span class="fw-semibold text-muted">-</span> <input class="form-control" type="text" [formControl]="searchForm.controls.amountRange.controls.to">
-                        </div>
+                        <label for="order_amount_filter" class="form-label">{{'ORDER.FIELDS.amountTotal' | translate}}</label>
+
+                        <select class="form-select" id="order_amount_filter" [formControl]="searchForm.controls.amountRange">
+                            <option value="">{{'ORDER.LABELS.UNSET' | translate}}</option>
+                            <ng-container *ngIf="orderAmountRanges$ | async as orderAmountRanges">
+                                <option *ngFor="let range of orderAmountRanges" [value]="range.id">
+                                    <ng-container *ngIf="range.to === null">
+                                        >= {{range.from}}
+                                    </ng-container>
+                                    <ng-container *ngIf="range.from === null">
+                                        <= {{range.to}}
+                                    </ng-container>
+                                    <ng-container *ngIf="range.from && range.to">
+                                        {{range.from}} >= {{'ORDER.FIELDS.amountTotal' | translate}} >= {{range.to}}
+                                    </ng-container>
+                                </option>
+                            </ng-container>
+                        </select>
                     </div>
                 </div>
                 <div class="col-lg-12">

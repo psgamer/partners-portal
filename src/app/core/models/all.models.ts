@@ -58,6 +58,7 @@ interface Client {
     id: string;
     taxCode: number;
     name: string;
+    contractorIds: Contractor['id'][];
 }
 
 interface Period {

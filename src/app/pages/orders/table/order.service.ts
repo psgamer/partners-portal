@@ -12,7 +12,7 @@ import { FirebaseDoc, getBaseConverter, Paths } from '../../../core/models/util.
 import { AuthenticationService } from '../../../core/services/auth.service';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 
-import { Order, OrderOperationType, OrderStatus } from './order.model';
+import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
 import { listSortEvent, SortColumn, SortDirection } from './orders-table-sortable.directive';
 
 interface State {
@@ -24,10 +24,7 @@ interface State {
 
 export interface FiltersState {
     localSolutionId: LocalSolution['id'] | '';
-    amountRange: {
-        from: number | undefined,
-        to: number | undefined,
-    };
+    amountRange: OrderAmountRange['id'] | '';
     operations: OrderOperationType[];
     statuses: OrderStatus[];
 }
@@ -52,10 +49,7 @@ export class OrderService {
     private readonly _orders$ = new BehaviorSubject<Order[]>([]);
     private readonly _totalRecords$ = new BehaviorSubject<number>(0);
     private readonly _filtersState$ = new BehaviorSubject<FiltersState>({
-        amountRange: {
-            from: undefined,
-            to: undefined,
-        },
+        amountRange: '',
         operations: [],
         statuses: [],
         localSolutionId: '',
@@ -168,17 +162,8 @@ export class OrderService {
                 map(collRef => {
                     const constraints: QueryConstraint[] = [];
 
-                    if (amountRange.from || amountRange.to) {
-                        if (amountRange.from) {
-                            constraints.push(where('amountTotal' as Paths<Order>, '>=', amountRange.from));
-                        }
-                        if (amountRange.to) {
-                            constraints.push(where('amountTotal' as Paths<Order>, '<=', amountRange.to));
-                        }
-
-                        // TODO rework this, probably through tags
-                        sortColumn = 'amountTotal' as Paths<Order>;
-                        sortDirection = 'asc';
+                    if (amountRange !== '') {
+                        constraints.push(where('amountTotalRanges' as Paths<Order>, 'array-contains', amountRange));
                     }
                     if (!!operations.length && operations.length !== Object.values(OrderOperationType).length) {
                         constraints.push(where('operation' as Paths<Order>, 'in', operations));
@@ -289,7 +274,7 @@ export class OrderService {
         } = this._filtersState$.value;
 
         return {
-            amountRange: amountRange || oldAmountRange,
+            amountRange: amountRange !== undefined ? amountRange : oldAmountRange,
             operations: operations || oldOperations,
             statuses: statuses || oldStatuses,
             localSolutionId: localSolutionId !== undefined ? localSolutionId : oldLocalSolutionId,

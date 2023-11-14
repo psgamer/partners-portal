@@ -50,3 +50,4 @@ Thumbs.db
 *-debug*.log
 .runtimeconfig.json
 /emulators-data/
+/firebase-export-*/

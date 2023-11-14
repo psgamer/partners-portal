@@ -3,7 +3,38 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      // refuse all unspecified by default
+      allow read, write: if false;
+    }
+
+  	function isAuthorized() {
+      return request.auth.uid != null;
+    }
+    function hasMatchingContractorId(contractorId) {
+      return isAuthorized() && request.auth.token.contractorId == contractorId;
+    }
+
+    match /clients/{clientId} {
+    	allow read: if isAuthorized() && request.auth.token.contractorId in resource.data.contractorIds;
+    }
+    match /local-solutions/{localSolutionId} {
+    	allow read: if isAuthorized();
+    }
+    match /order-amount-ranges/{rangeId} {
+    	allow read: if true;
+    }
+    match /contractors/{contractorId} {
+      allow read: if hasMatchingContractorId(contractorId);
+
+      match /payers/{payerId} {
+      	allow read: if hasMatchingContractorId(contractorId);
+      }
+      match /orders/{orderId} {
+      	allow read: if hasMatchingContractorId(contractorId);
+        // allow create: if hasMatchingContractorId(contractorId) && ;
+        // allow update: if hasMatchingContractorId(contractorId) && ;
+        // allow delete: if hasMatchingContractorId(contractorId) && ;
+      }
     }
   }
 }
