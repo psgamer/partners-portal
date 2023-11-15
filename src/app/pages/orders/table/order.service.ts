@@ -1,19 +1,30 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
-import { ChangeDetectorRef, Injectable } from '@angular/core';
+import {ChangeDetectorRef, Injectable} from '@angular/core';
 import {
-    collection, CollectionReference, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, orderBy, query,
-    QueryConstraint, startAfter, where,
+    collection,
+    CollectionReference,
+    DocumentSnapshot,
+    endBefore,
+    Firestore,
+    getCountFromServer,
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    QueryConstraint,
+    startAfter,
+    where,
 } from '@angular/fire/firestore';
 
-import { BehaviorSubject, Observable, Subject, throwError, zip } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
-import { Contractor } from '../../../core/models/all.models';
-import { FirebaseDoc, getBaseConverter, Paths } from '../../../core/models/util.models';
-import { AuthenticationService } from '../../../core/services/auth.service';
-import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
+import {BehaviorSubject, Observable, of, Subject, take, throwError, zip} from 'rxjs';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
+import {Contractor} from '../../../core/models/all.models';
+import {FirebaseDoc, getBaseConverter, Paths} from '../../../core/models/util.models';
+import {AuthenticationService} from '../../../core/services/auth.service';
+import {LocalSolution} from '../../../shared/local-solution/local-solution.model';
 
-import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
-import { listSortEvent, SortColumn, SortDirection } from './orders-table-sortable.directive';
+import {Order, OrderAmountRange, OrderOperationType, OrderStatus} from './order.model';
+import {listSortEvent, SortColumn, SortDirection} from './orders-table-sortable.directive';
 
 interface State {
     page: number;
@@ -279,5 +290,87 @@ export class OrderService {
             statuses: statuses || oldStatuses,
             localSolutionId: localSolutionId !== undefined ? localSolutionId : oldLocalSolutionId,
         }
+    }
+
+    private runAllPossibleQueriesForIndexes() {
+        type paramType = Parameters<typeof this.getOrders>[0];
+
+        const getSearchObj = (params: Omit<paramType, 'page' | 'pageSize'>): paramType => ({
+            ...params,
+            page: 1,
+            pageSize: 1,
+        });
+
+        const sortCols: paramType['sortColumn'][] = [
+            'createdDate',
+            'number',
+            'localSolutionRes.name',
+            'operation',
+            'localSolutionRes.count',
+            'amountTotal',
+            'contractor.name',
+            'client.name',
+            'status',
+        ];
+        const sortDirs: paramType['sortDirection'][] = [
+            'asc',
+            'desc',
+        ];
+        const statusesArr: paramType['statuses'][] = [
+            [],
+            [OrderStatus.NEW],
+        ];
+        const opTypes: paramType['operations'][] = [
+            [],
+            [OrderOperationType.NEW_PURCHASE],
+        ];
+        const amountRangesArr: paramType['amountRange'][] = [
+            '',
+            '3N8ZkaAkqTxZFGPwzxXa',
+        ];
+        const locSolutionsArr: paramType['localSolutionId'][] = [
+            '',
+            'localSolution2Id',
+        ];
+
+        const searches: paramType[] = [];
+
+        for (let sortColumn of sortCols) {
+            for (let sortDirection of sortDirs) {
+                for (let statuses of statusesArr) {
+                    for (let operations of opTypes) {
+                        for (let amountRange of amountRangesArr) {
+                            for (let localSolutionId of locSolutionsArr) {
+                                searches.push(getSearchObj({
+                                    sortColumn,
+                                    sortDirection: sortDirection as any,
+                                    statuses: statuses as any,
+                                    operations: operations as any,
+                                    amountRange,
+                                    localSolutionId,
+                                }));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        const obs = zip(
+            searches
+                .map(search => this.getOrders(search).pipe(
+                    map(() => undefined),
+                    catchError((err, obs) => {
+                        console.error(err);
+                        return of(undefined);
+                    })),
+                )
+        ).pipe(
+            take(1),
+            tap(() => console.timeEnd('requests')),
+        );
+
+        console.time('requests');
+        obs.subscribe();
     }
 }
