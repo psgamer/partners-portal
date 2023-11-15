@@ -7,18 +7,65 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import { firestore } from 'firebase-admin';
-import { initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { App } from 'firebase-admin/lib/app/core';
-import { logger } from 'firebase-functions';
-import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { onRequest } from 'firebase-functions/v2/https';
-import Firestore = firestore.Firestore;
+import {initializeApp} from 'firebase-admin/app';
+import {Firestore, getFirestore} from 'firebase-admin/firestore';
+import {getAuth} from 'firebase-admin/auth';
+import {App} from 'firebase-admin/lib/app/core';
+import {logger} from 'firebase-functions';
+import {DocumentSnapshot, onDocumentWritten} from 'firebase-functions/v2/firestore';
+import {onCall, onRequest} from 'firebase-functions/v2/https';
+import {Auth} from "firebase-admin/lib/auth/auth";
+
+const app: () => App = (() => {
+    let app: App | undefined;
+
+    return () => {
+        if (!app) {
+            app = initializeApp();
+        }
+        return app;
+    }
+})();
+const auth: () => Auth = (() => {
+    let auth: Auth | undefined;
+
+    return () => {
+        if (!auth) {
+            auth = getAuth(app());
+        }
+        return auth;
+    }
+})();
+const db: () => Firestore = (() => {
+    let db: Firestore | undefined;
+
+    return () => {
+        if (!db) {
+            db = getFirestore(app());
+        }
+        return db;
+    }
+})();
 
 export const reTestFn = onRequest((request, response) => {
-  logger.info("Hello logs!");
-  response.send("Hello from Firebase!");
+    logger.info("Hello logs!");
+    response.send("Hello from Firebase!");
+});
+
+/**
+ * TODO
+ * do NOT pass auth and just use event.auth
+ * https://github.com/firebase/firebase-tools/issues/5210
+ */
+export const assignContractorToUser = onCall<_Payload, Promise<boolean>>({cors: true}, async ({data}) => {
+    logger.info('assignContractorToUser args passed', data);
+    if (!(data && data.uid && data.contractorId)) {
+        return false;
+    }
+
+    const {uid, contractorId} = data;
+
+    return await auth().setCustomUserClaims(uid, {contractorId}).then(() => true);
 });
 
 /**
@@ -66,27 +113,6 @@ export const onOrderWritten = onDocumentWritten('contractors/{contractorId}/orde
         return;
     }
 
-    const getApp: () => App = (() => {
-        let app: App | undefined;
-
-        return () => {
-            if (!app) {
-                app = initializeApp();
-            }
-            return app;
-        }
-    })();
-    const getDb: () => Firestore = (() => {
-        let db: Firestore | undefined;
-
-        return () => {
-            if (!db) {
-                db = getFirestore(getApp());
-            }
-            return db;
-        }
-    })();
-
     const docChanges: Partial<_Order> = {};
 
     if (operations.assign_number) {
@@ -95,14 +121,14 @@ export const onOrderWritten = onDocumentWritten('contractors/{contractorId}/orde
     if (operations.assign_amountTotalRanges) {
         const currentAmountTotal = (documentSnap.data() as _Order).amountTotal;
 
-        docChanges.amountTotalRanges = await getDb()
+        docChanges.amountTotalRanges = await db()
             .collection('order-amount-ranges')
             .get()
-            .then(({ docs }) => docs.filter(doc => {
-                const { from, to } = doc.data() as _OrderAmountRange;
+            .then(({docs}) => docs.filter(doc => {
+                const {from, to} = doc.data() as _OrderAmountRange;
 
                 return (from === undefined || from <= currentAmountTotal) && (to === undefined || currentAmountTotal <= to);
-            }).map(({ id }) => id));
+            }).map(({id}) => id));
     }
 
     if (!Object.keys(docChanges).length) {
@@ -121,4 +147,9 @@ interface _Order {
 interface _OrderAmountRange {
     from: number | null;
     to: number | null;
+}
+
+interface _Payload {
+    uid: string;
+    contractorId: string;
 }

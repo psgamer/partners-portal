@@ -1,40 +1,47 @@
-import { CommonModule, DATE_PIPE_DEFAULT_OPTIONS, registerLocaleData } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import {CommonModule, DATE_PIPE_DEFAULT_OPTIONS, registerLocaleData} from '@angular/common';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
 
 // lang
 import localeUk from '@angular/common/locales/uk';
-import { LOCALE_ID, NgModule } from '@angular/core';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { Auth, connectAuthEmulator, getAuth, provideAuth } from '@angular/fire/auth';
-import { FIREBASE_OPTIONS } from '@angular/fire/compat';
-import { connectFirestoreEmulator, enableMultiTabIndexedDbPersistence, getFirestore, provideFirestore, } from '@angular/fire/firestore';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { TitleStrategy } from '@angular/router';
+import {LOCALE_ID, NgModule} from '@angular/core';
+import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
+import {Auth, connectAuthEmulator, getAuth, provideAuth} from '@angular/fire/auth';
+import {FIREBASE_OPTIONS} from '@angular/fire/compat';
+import {
+    connectFirestoreEmulator,
+    enableMultiTabIndexedDbPersistence,
+    getFirestore,
+    provideFirestore,
+} from '@angular/fire/firestore';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {BrowserModule} from '@angular/platform-browser';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {TitleStrategy} from '@angular/router';
 
 // Laguage
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 
 // firebase
-import { firebase, FirebaseUIModule } from 'firebaseui-angular-i18n';
-import { firebaseui } from 'firebaseui-angular-i18n/lib/firebaseui-angular-library.helper';
-import { ToastrModule } from 'ngx-toastr';
+import {firebase, FirebaseUIModule} from 'firebaseui-angular-i18n';
+import {firebaseui} from 'firebaseui-angular-i18n/lib/firebaseui-angular-library.helper';
+import {ToastrModule} from 'ngx-toastr';
 
 // env
-import { environment } from '../environments/environment';
+import {environment} from '../environments/environment';
 
 // Page Route
-import { AppRoutingModule } from './app-routing.module';
+import {AppRoutingModule} from './app-routing.module';
 
 // component
-import { AppComponent } from './app.component';
-import { AuthlayoutComponent } from './authlayout/authlayout.component';
-import { initFirebaseBackend } from './authUtils';
-import { DEFAULT_LANGUAGE } from './core/models/language.models';
-import { PageTitleStrategy } from './core/page-title-strategy';
-import { LayoutsModule } from './layouts/layouts.module';
+import {AppComponent} from './app.component';
+import {AuthlayoutComponent} from './authlayout/authlayout.component';
+import {initFirebaseBackend} from './authUtils';
+import {DEFAULT_LANGUAGE} from './core/models/language.models';
+import {PageTitleStrategy} from './core/page-title-strategy';
+import {LayoutsModule} from './layouts/layouts.module';
+import {connectFunctionsEmulator, getFunctions, provideFunctions} from "@angular/fire/functions";
+import {connectStorageEmulator, getStorage, provideStorage} from "@angular/fire/storage";
 
 registerLocaleData(localeUk, 'ua');
 
@@ -118,13 +125,13 @@ const firebaseUiAuthConfig: firebaseui.auth.Config = {
         //   }
         //   return database;
         // }),
-        // provideFunctions(() => {
-        //   const functions = getFunctions();
-        //   if (environment.useEmulators) {
-        //     connectFunctionsEmulator(functions, "127.0.0.1", 5001);
-        //   }
-        //   return functions;
-        // }),
+        provideFunctions(() => {
+            const functions = getFunctions();
+            if (environment.useEmulators) {
+                connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+            }
+            return functions;
+        }),
         // provideMessaging(() => getMessaging()),
         // provideRemoteConfig(() => {
         //   const remoteConfig = getRemoteConfig();
@@ -133,13 +140,13 @@ const firebaseUiAuthConfig: firebaseui.auth.Config = {
         //   }
         //   return remoteConfig;
         // }),
-        // provideStorage(() => {
-        //   const storage = getStorage();
-        //   if (environment.useEmulators) {
-        //     connectStorageEmulator(storage, "127.0.0.1", 9199);
-        //   }
-        //   return storage;
-        // }),
+        provideStorage(() => {
+            const storage = getStorage();
+            if (environment.useEmulators) {
+                connectStorageEmulator(storage, "127.0.0.1", 9199);
+            }
+            return storage;
+        }),
         FirebaseUIModule.forRoot(firebaseUiAuthConfig),
         HttpClientModule,
         BrowserModule,

@@ -1,11 +1,11 @@
-import { HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { User } from '@angular/fire/auth';
-import { Observable, of, take } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-import { getFirebaseBackend } from '../../authUtils';
-import { GlobalComponent } from "../../global-component";
-import { Contractor } from '../models/all.models';
+import {HttpHeaders} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {User} from '@angular/fire/auth';
+import {Observable, of, take} from 'rxjs';
+import {switchMap} from 'rxjs/operators';
+import {getFirebaseBackend} from '../../authUtils';
+import {GlobalComponent} from "../../global-component";
+import {Contractor} from '../models/all.models';
 
 const AUTH_API = GlobalComponent.AUTH_API;
 
@@ -41,13 +41,13 @@ export class AuthenticationService {
         return getFirebaseBackend()!.getAuthenticatedUser();
     }
 
-    currentUserContractorId() {
+    currentUserContractorId(forceTokenRefresh = false) {
         return this
             .currentUser()
             .pipe(
                 take(1),
                 switchMap(user => user
-                    ? user.getIdTokenResult().then(({ claims: { contractorId } }) => contractorId as Contractor['id'])
+                    ? user.getIdTokenResult(forceTokenRefresh).then(({ claims: { contractorId } }) => contractorId as Contractor['id'])
                     : of(null)
                 ),
             );
