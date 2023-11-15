@@ -33,7 +33,7 @@ interface Form {
 export class OrdersTableComponent {
     readonly tableColsToRender: Paths<Order>[] = [
         'createdDate',
-        'id',
+        'number',
         'localSolutionRes.name',
         'operation',
         'localSolutionRes.count',

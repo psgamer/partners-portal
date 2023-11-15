@@ -58,7 +58,7 @@
                                 <ng-container *ngFor="let col of tableColsToRender">
                                     <ng-container [ngSwitch]="col">
                                         <td *ngSwitchCase="'createdDate'">{{extractByPath(item, col).toDate() | date }}</td>
-                                        <td *ngSwitchCase="'id'"><a routerLink="/learning/grid" class="text-reset">{{extractByPath(item, col)}}</a></td>
+                                        <td *ngSwitchCase="'number'"><a routerLink="/learning/grid" class="text-reset">{{extractByPath(item, col)}}</a></td>
                                         <td *ngSwitchCase="'status'"><span [class]="'badge ' + getStatusClass(extractByPath(item, col))">{{('ORDER.STATUS.' + extractByPath(item, col)) | translate}}</span></td>
                                         <td *ngSwitchCase="'operation'">{{('ORDER.OPERATION.' + extractByPath(item, col)) | translate}}</td>
                                         <td *ngSwitchDefault>{{extractByPath(item, col)}}</td>
@@ -114,9 +114,7 @@
                     </div>
                 </div>
                 <div *ngIf="loading$ | async" id="elmLoader">
-                    <div class="spinner-border text-primary avatar-sm" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+                    <div class="spinner-border text-primary avatar-sm" role="status"></div>
                 </div>
                 <div *ngIf="!!(orders$ | async)?.length" class="row align-items-center mt-4 pt-2" id="pagination-element">
                     <div class="col-sm">

@@ -1,9 +1,9 @@
 import { Directive, EventEmitter, Input, Output } from '@angular/core';
 import { OrderByDirection } from '@angular/fire/firestore';
-import { Paths } from '../../../core/models/util.models';
+import { FirebaseDoc, Paths } from '../../../core/models/util.models';
 import { Order } from './order.model';
 
-export type SortColumn = Paths<Order>;
+export type SortColumn = Paths<FirebaseDoc<Order>>;
 export type SortDirection = OrderByDirection;
 const rotate: { [key: string]: SortDirection } = { 'asc': 'desc', 'desc': 'asc', '': 'asc' };
 

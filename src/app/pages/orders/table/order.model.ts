@@ -18,6 +18,7 @@ export interface OrderModel {
 
 interface Order {
     id: string;
+    number: Order['id'];
     contractor: {
         id: Contractor['id'];
         name: Contractor['name'];

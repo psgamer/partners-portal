@@ -1,6 +1,6 @@
 import { HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { User } from '@firebase/auth';
+import { User } from '@angular/fire/auth';
 import { Observable, of, take } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { getFirebaseBackend } from '../../authUtils';

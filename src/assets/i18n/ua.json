@@ -284,7 +284,7 @@
     },
     "FIELDS" : {
       "createdDate": "Дата створення",
-      "id": "Номер замовлення",
+      "number": "Номер замовлення",
       "localSolutionRes.name":  "Наше рішення",
       "operation": "Тип операції",
       "localSolutionRes.count":  "Кількість",

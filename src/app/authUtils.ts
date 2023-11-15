@@ -1,8 +1,7 @@
 import {
     Auth, createUserWithEmailAndPassword, FacebookAuthProvider, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword,
-    signInWithPopup, signOut, TwitterAuthProvider
+    signInWithPopup, signOut, TwitterAuthProvider, User,
 } from '@angular/fire/auth';
-import { User } from '@firebase/auth';
 import { BehaviorSubject, map, Observable, skipWhile, take } from 'rxjs';
 
 

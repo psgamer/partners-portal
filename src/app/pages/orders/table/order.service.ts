@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import { ChangeDetectorRef, Injectable } from '@angular/core';
 import {
-    collection, CollectionReference, endBefore, Firestore, getCountFromServer, getDocs, limit, orderBy, query, startAfter, where
+    collection, CollectionReference, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, orderBy, query,
+    QueryConstraint, startAfter, where,
 } from '@angular/fire/firestore';
-import { DocumentSnapshot, QueryConstraint } from '@firebase/firestore';
 
 import { BehaviorSubject, Observable, Subject, throwError, zip } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
@@ -140,7 +140,7 @@ export class OrderService {
             page: oldPage,
         } = this._state$.value;
 
-        let {
+        const {
             page,
             pageSize,
             sortColumn,
