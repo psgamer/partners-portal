@@ -7,14 +7,12 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import {initializeApp} from 'firebase-admin/app';
-import {Firestore, getFirestore} from 'firebase-admin/firestore';
-import {getAuth} from 'firebase-admin/auth';
-import {App} from 'firebase-admin/lib/app/core';
-import {logger} from 'firebase-functions';
-import {DocumentSnapshot, onDocumentWritten} from 'firebase-functions/v2/firestore';
-import {onCall, onRequest} from 'firebase-functions/v2/https';
-import {Auth} from "firebase-admin/lib/auth/auth";
+import { App, initializeApp } from 'firebase-admin/app';
+import { Auth, getAuth } from 'firebase-admin/auth';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions';
+import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onCall, onRequest } from 'firebase-functions/v2/https';
 
 const app: () => App = (() => {
     let app: App | undefined;
