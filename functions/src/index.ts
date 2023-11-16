@@ -7,48 +7,27 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import { App, initializeApp } from 'firebase-admin/app';
-import { Auth, getAuth } from 'firebase-admin/auth';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { onCall, onRequest } from 'firebase-functions/v2/https';
+import { onCall } from 'firebase-functions/v2/https';
 
-const app: () => App = (() => {
-    let app: App | undefined;
-
-    return () => {
-        if (!app) {
-            app = initializeApp();
-        }
-        return app;
-    }
-})();
-const auth: () => Auth = (() => {
-    let auth: Auth | undefined;
+const memoize = <T>(initializer: () => T): () => T => {
+    let instance: T | undefined;
 
     return () => {
-        if (!auth) {
-            auth = getAuth(app());
+        if (!instance) {
+            instance = initializer();
         }
-        return auth;
-    }
-})();
-const db: () => Firestore = (() => {
-    let db: Firestore | undefined;
+        return instance;
+    };
+}
 
-    return () => {
-        if (!db) {
-            db = getFirestore(app());
-        }
-        return db;
-    }
-})();
-
-export const reTestFn = onRequest((request, response) => {
-    logger.info("Hello logs!");
-    response.send("Hello from Firebase!");
-});
+const app = memoize(initializeApp);
+const auth = memoize(() => getAuth(app()));
+const db = memoize(() => getFirestore(app()));
 
 /**
  * TODO
@@ -56,14 +35,22 @@ export const reTestFn = onRequest((request, response) => {
  * https://github.com/firebase/firebase-tools/issues/5210
  */
 export const assignContractorToUser = onCall<_Payload, Promise<boolean>>({cors: true}, async ({data}) => {
-    logger.info('assignContractorToUser args passed', data);
     if (!(data && data.uid && data.contractorId)) {
+        logger.error('Insufficient data to assign contractorId to user, listing args', data);
         return false;
     }
 
     const {uid, contractorId} = data;
 
-    return await auth().setCustomUserClaims(uid, {contractorId}).then(() => true);
+    return await auth().setCustomUserClaims(uid, { contractorId })
+        .then(() => {
+            logger.info(`Assigned contractorId of ${contractorId} to user with uid ${uid}`);
+            return true;
+        })
+        .catch(e => {
+            logger.error(`Failed to assign contractorId of ${contractorId} to user with uid ${uid}`, e);
+            return false;
+        });
 });
 
 /**
