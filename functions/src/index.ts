@@ -81,7 +81,7 @@ export const onOrderWritten = onDocumentWritten('contractors/{contractorId}/orde
             operations.assign_number = true;
             operations.assign_amountTotalRanges = true;
             break;
-        case "update":
+        case "update": {
             const documentData = documentSnap.data() as _Order;
             const oldDocumentData = oldDocumentSnap.data() as _Order;
             const getRangesSortedAsString = (docData: _Order): string => [...docData.amountTotalRanges].sort().join(',');
@@ -90,6 +90,7 @@ export const onOrderWritten = onDocumentWritten('contractors/{contractorId}/orde
                 operations.assign_amountTotalRanges = true;
             }
             break;
+        }
         default:
             break;
     }
