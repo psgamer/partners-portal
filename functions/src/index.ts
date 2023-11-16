@@ -13,6 +13,9 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onCall } from 'firebase-functions/v2/https';
+import { SupportedRegion } from 'firebase-functions/v2/options';
+
+const region: SupportedRegion = 'europe-west1';
 
 const memoize = <T>(initializer: () => T): () => T => {
     let instance: T | undefined;
@@ -34,13 +37,13 @@ const db = memoize(() => getFirestore(app()));
  * do NOT pass auth and just use event.auth
  * https://github.com/firebase/firebase-tools/issues/5210
  */
-export const assignContractorToUser = onCall<_Payload, Promise<boolean>>({cors: true}, async ({data}) => {
+export const assignContractorToUser = onCall<_Payload, Promise<boolean>>({ cors: true, region }, async ({ data }) => {
     if (!(data && data.uid && data.contractorId)) {
         logger.error('Insufficient data to assign contractorId to user, listing args', data);
         return false;
     }
 
-    const {uid, contractorId} = data;
+    const { uid, contractorId } = data;
 
     return await auth().setCustomUserClaims(uid, { contractorId })
         .then(() => {
@@ -57,7 +60,7 @@ export const assignContractorToUser = onCall<_Payload, Promise<boolean>>({cors: 
  * 1. assigns amountTotalRanges on create or if amountTotal has changed on update
  * 2. assigns number = documentId
  */
-export const onOrderWritten = onDocumentWritten('contractors/{contractorId}/orders/{orderId}', async (event) => {
+export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contractorId}/orders/{orderId}', region }, async (event) => {
     const documentSnap = event.data.after as DocumentSnapshot;
     const oldDocumentSnap = event.data.before as DocumentSnapshot;
 
@@ -110,11 +113,11 @@ export const onOrderWritten = onDocumentWritten('contractors/{contractorId}/orde
         docChanges.amountTotalRanges = await db()
             .collection('order-amount-ranges')
             .get()
-            .then(({docs}) => docs.filter(doc => {
-                const {from, to} = doc.data() as _OrderAmountRange;
+            .then(({ docs }) => docs.filter(doc => {
+                const { from, to } = doc.data() as _OrderAmountRange;
 
                 return (from === undefined || from <= currentAmountTotal) && (to === undefined || currentAmountTotal <= to);
-            }).map(({id}) => id));
+            }).map(({ id }) => id));
     }
 
     if (!Object.keys(docChanges).length) {
