@@ -14,25 +14,10 @@ interface Payer {
 
 interface License {
     id: string;
-    contractor: {
-        id: Contractor['id'];
-        name: Contractor['name'];
-    };
-    distributor: {
-        id: Contractor['id'];
-        name: Contractor['name'];
-    };
-    contractorPayer: {
-        id: Payer['id'];
-        name: Payer['name'];
-    };
-    distributorPayer: {
-        id: Payer['id'];
-        name: Payer['name'];
-    };
     expirationDate: Timestamp;
     login: string;
     publicKey: string;
+    ordersContractorIds: Contractor['id'][];
     localSolution: {
         id: LocalSolution['id'];
         count: number;
@@ -46,6 +31,7 @@ interface License {
 
 interface LicensePrivateKey {
     id: string;
+    licenseId: License['id'];
     privateKey: string;
 }
 

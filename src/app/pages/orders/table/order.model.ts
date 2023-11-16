@@ -45,7 +45,7 @@ interface Order {
         id: LocalSolution['id'];
         count: number;
         expirationDate: Timestamp;
-    };
+    } | undefined;
     localSolutionRes: {
         id: LocalSolution['id'];
         name: LocalSolution['name'];

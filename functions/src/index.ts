@@ -99,7 +99,7 @@ export const onOrderWritten = onDocumentWritten('contractors/{contractorId}/orde
             const oldDocumentData = oldDocumentSnap.data() as _Order;
             const getRangesSortedAsString = (docData: _Order): string => [...docData.amountTotalRanges].sort().join(',');
 
-            if (getRangesSortedAsString(oldDocumentData) === getRangesSortedAsString(documentData)) {
+            if (getRangesSortedAsString(oldDocumentData) !== getRangesSortedAsString(documentData)) {
                 operations.assign_amountTotalRanges = true;
             }
             break;

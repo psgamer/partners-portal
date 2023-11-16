@@ -10,9 +10,6 @@ service cloud.firestore {
   	function isAuthorized() {
       return request.auth.uid != null;
     }
-    function hasMatchingContractorId(contractorId) {
-      return isAuthorized() && request.auth.token.contractorId == contractorId;
-    }
 
     match /clients/{clientId} {
     	allow read: if isAuthorized() && request.auth.token.contractorId in resource.data.contractorIds;
@@ -24,16 +21,20 @@ service cloud.firestore {
     	allow read: if true;
     }
     match /contractors/{contractorId} {
-      allow read: if hasMatchingContractorId(contractorId);
+      function isCurrentUserContractor() {
+        return isAuthorized() && request.auth.token.contractorId == contractorId;
+      }
+      function isCurrentUserContractorsDistributor() {
+        return isAuthorized() && request.auth.token.contractorId in resource.data.contractorIds;
+      }
+
+      allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
 
       match /payers/{payerId} {
-      	allow read: if hasMatchingContractorId(contractorId);
+      	allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
       }
       match /orders/{orderId} {
-      	allow read: if hasMatchingContractorId(contractorId);
-        // allow create: if hasMatchingContractorId(contractorId) && ;
-        // allow update: if hasMatchingContractorId(contractorId) && ;
-        // allow delete: if hasMatchingContractorId(contractorId) && ;
+      	allow read: if isAuthorized() && isCurrentUserContractor();
       }
     }
   }
