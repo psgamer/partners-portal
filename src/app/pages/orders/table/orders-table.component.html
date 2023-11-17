@@ -1,6 +1,7 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="card" id="coursesList">
+            <div style="height: 100px;font-size: 60px;display: block;background: red" (click)="runMe()">run all queries</div>
             <div class="card-body">
                 <div class="row align-items-center g-2">
                     <div class="col-lg-3 me-auto">
@@ -39,8 +40,12 @@
                                     </div>
                                 </th>
 
-                                <th *ngFor="let col of tableColsToRender" scope="col" class="sort cursor-pointer" [listsortable]="col" [direction]="(getSortDirection$(col) | async)!" (sort)="onSort($event)">
-                                    {{('ORDER.FIELDS.' + col) | translate}}
+<!--                                <th *ngFor="let colConfig of colConfigs" scope="col" class="sort cursor-pointer" [listsortable]="colConfig.column" [direction]="(getSortDirection$(colConfig.column) | async)!" (sort)="onSort($event)">-->
+<!--                                    {{('ORDER.FIELDS.' + colConfig.column) | translate}}-->
+<!--                                </th>-->
+                                <!--TODO finish disable sort by some ways-->
+                                <th *ngFor="let colConfig of colConfigs" scope="col" class="sort cursor-pointer">
+                                    {{('ORDER.FIELDS.' + colConfig.column) | translate}}
                                 </th>
 
                                 <th scope="col">{{'ORDER.LABELS.ACTION.TEXT' | translate}}</th>
@@ -55,13 +60,13 @@
                                     </div>
                                 </td>
 
-                                <ng-container *ngFor="let col of tableColsToRender">
-                                    <ng-container [ngSwitch]="col">
-                                        <td *ngSwitchCase="'createdDate'">{{extractByPath(item, col).toDate() | date }}</td>
-                                        <td *ngSwitchCase="'number'"><a routerLink="/learning/grid" class="text-reset">{{extractByPath(item, col)}}</a></td>
-                                        <td *ngSwitchCase="'status'"><span [class]="'badge ' + getStatusClass(extractByPath(item, col))">{{('ORDER.STATUS.' + extractByPath(item, col)) | translate}}</span></td>
-                                        <td *ngSwitchCase="'operation'">{{('ORDER.OPERATION.' + extractByPath(item, col)) | translate}}</td>
-                                        <td *ngSwitchDefault>{{extractByPath(item, col)}}</td>
+                                <ng-container *ngFor="let colConfig of colConfigs">
+                                    <ng-container [ngSwitch]="colConfig.column">
+                                        <td *ngSwitchCase="'createdDate'">{{extractByPath(item, colConfig.column).toDate() | date }}</td>
+                                        <td *ngSwitchCase="'number'"><a routerLink="/learning/grid" class="text-reset">{{extractByPath(item, colConfig.column)}}</a></td>
+                                        <td *ngSwitchCase="'status'"><span [class]="'badge ' + getStatusClass(extractByPath(item, colConfig.column))">{{('ORDER.STATUS.' + extractByPath(item, colConfig.column)) | translate}}</span></td>
+                                        <td *ngSwitchCase="'operation'">{{('ORDER.OPERATION.' + extractByPath(item, colConfig.column)) | translate}}</td>
+                                        <td *ngSwitchDefault>{{extractByPath(item, colConfig.column)}}</td>
                                     </ng-container>
                                 </ng-container>
 

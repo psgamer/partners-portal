@@ -1,30 +1,19 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
-import {ChangeDetectorRef, Injectable} from '@angular/core';
+import { ChangeDetectorRef, Injectable } from '@angular/core';
 import {
-    collection,
-    CollectionReference,
-    DocumentSnapshot,
-    endBefore,
-    Firestore,
-    getCountFromServer,
-    getDocs,
-    limit,
-    orderBy,
-    query,
-    QueryConstraint,
-    startAfter,
-    where,
+    collection, CollectionReference, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, limitToLast, orderBy,
+    query, QueryConstraint, startAfter, where,
 } from '@angular/fire/firestore';
 
-import {BehaviorSubject, Observable, of, Subject, take, throwError, zip} from 'rxjs';
-import {catchError, map, switchMap, tap} from 'rxjs/operators';
-import {Contractor} from '../../../core/models/all.models';
-import {FirebaseDoc, getBaseConverter, Paths} from '../../../core/models/util.models';
-import {AuthenticationService} from '../../../core/services/auth.service';
-import {LocalSolution} from '../../../shared/local-solution/local-solution.model';
+import { BehaviorSubject, concat, finalize, Observable, Subject, throwError, zip } from 'rxjs';
+import { catchError, map, switchMap, takeWhile, tap } from 'rxjs/operators';
+import { Contractor } from '../../../core/models/all.models';
+import { FirebaseDoc, getBaseConverter, Paths } from '../../../core/models/util.models';
+import { AuthenticationService } from '../../../core/services/auth.service';
+import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 
-import {Order, OrderAmountRange, OrderOperationType, OrderStatus} from './order.model';
-import {listSortEvent, SortColumn, SortDirection} from './orders-table-sortable.directive';
+import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
+import { listSortEvent, SortColumn, SortDirection } from './orders-table-sortable.directive';
 
 interface State {
     page: number;
@@ -78,6 +67,10 @@ export class OrderService {
     private privateState: PrivateState = {
         firstDocSnap: undefined,
         lastDocSnap: undefined,
+    }
+
+    runMe = () => {
+        this.runAllPossibleQueriesForIndexes();
     }
 
     constructor(private db: Firestore, private auth: AuthenticationService, private cd: ChangeDetectorRef) {
@@ -174,7 +167,7 @@ export class OrderService {
                     const constraints: QueryConstraint[] = [];
 
                     if (amountRange !== '') {
-                        constraints.push(where('amountTotalRanges' as Paths<Order>, 'array-contains', amountRange));
+                        constraints.push(where(`amountTotalRanges.${amountRange}` as Paths<Order>, '==', true));
                     }
                     if (!!operations.length && operations.length !== Object.values(OrderOperationType).length) {
                         constraints.push(where('operation' as Paths<Order>, 'in', operations));
@@ -195,17 +188,18 @@ export class OrderService {
                     if (!(page === oldPage || page === 1)) {
                         if (page === oldPage - 1) {
                             constraints.push(endBefore(firstDocSnap));
+                            constraints.push(limitToLast(pageSize));
                         } else if (page === oldPage + 1) {
                             constraints.push(startAfter(lastDocSnap));
+                            constraints.push(limit(pageSize));
                         } else {
                             const text = 'jump of 2 pages or more';
                             console.error(text);
                             throwError(() => new Error(text));
                         }
+                    } else if (page === 1) {
+                        constraints.push(limit(pageSize));
                     }
-
-                    // pageSize
-                    constraints.push(limit(pageSize));
 
                     const collQuery = query(collRef, ...constraints).withConverter(getBaseConverter<Order>());
 
@@ -356,21 +350,36 @@ export class OrderService {
             }
         }
 
-        const obs = zip(
-            searches
+        let errEncountered = false;
+        let counter = 0;
+
+        console.log(searches[0], searches[1]);
+
+        const obs = concat(
+            ...searches
                 .map(search => this.getOrders(search).pipe(
-                    map(() => undefined),
+                    // map(() => undefined),
+                    takeWhile(() => !errEncountered),
                     catchError((err, obs) => {
+                        errEncountered = true;
                         console.error(err);
-                        return of(undefined);
+                        return throwError(() => err);
                     })),
                 )
         ).pipe(
-            take(1),
-            tap(() => console.timeEnd('requests')),
+            tap(v => counter++, e => counter++),
+            finalize(() => setTimeout(() => console.log('done', counter), 100)),
+            // tap(v => console.log('req success', v), e => console.log('err encountered', e)),
+            // take(1),
+            // tap(() => console.timeEnd('requests')),
         );
 
-        console.time('requests');
-        obs.subscribe();
+        // console.time('requests');
+        // obs.subscribe();
+
+        // searches.map(search => {
+        //
+        // })
+        // TODO remove this after testing
     }
 }

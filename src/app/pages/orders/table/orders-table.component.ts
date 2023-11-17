@@ -10,7 +10,7 @@ import { OrderAmountRangeService } from './order-amount-range.service';
 import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
 import { FiltersState, OrderService } from './order.service';
 
-import { listSortEvent, NgbdListSortableHeader } from './orders-table-sortable.directive';
+import { listSortEvent, NgbdListSortableHeader, SortDirection } from './orders-table-sortable.directive';
 
 interface Form {
     amountRange: FormControl<OrderAmountRange['id'] | ''>,
@@ -23,6 +23,11 @@ interface Form {
     localSolutionId: FormControl<LocalSolution['id'] | ''>,
 }
 
+interface ColConfig {
+    column: Paths<Order>;
+    sortDirections: SortDirection[];
+}
+
 @UntilDestroy()
 @Component({
     templateUrl: './orders-table.component.html',
@@ -31,16 +36,16 @@ interface Form {
 })
 // List Component
 export class OrdersTableComponent {
-    readonly tableColsToRender: Paths<Order>[] = [
-        'createdDate',
-        'number',
-        'localSolutionRes.name',
-        'operation',
-        'localSolutionRes.count',
-        'amountTotal',
-        'contractor.name',
-        'client.name',
-        'status',
+    readonly colConfigs: ColConfig[] = [
+        { column: 'createdDate', sortDirections: ['asc', 'desc'] },
+        { column: 'number', sortDirections: ['asc', 'desc'] },
+        { column: 'localSolutionRes.name', sortDirections: ['asc', 'desc'] },
+        { column: 'operation', sortDirections: ['asc', 'desc'] },
+        { column: 'localSolutionRes.count', sortDirections: ['asc', 'desc'] },
+        { column: 'amountTotal', sortDirections: ['asc', 'desc'] },
+        { column: 'contractor.name', sortDirections: ['asc', 'desc'] },
+        { column: 'client.name', sortDirections: ['asc', 'desc'] },
+        { column: 'status', sortDirections: ['asc', 'desc'] },
     ];
     readonly extractByPath = getExtractByPath<Order>();
 
@@ -101,6 +106,8 @@ export class OrdersTableComponent {
     get showActionBar() {
         return Object.values(this.checkboxItems).some(checked => checked);
     }
+
+    readonly runMe = this.orderService.runMe;
 
     constructor(
         private orderService: OrderService, private fb: FormBuilder, private localSolutionService: LocalSolutionService,

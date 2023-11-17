@@ -87,7 +87,7 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
         case "update": {
             const documentData = documentSnap.data() as _Order;
             const oldDocumentData = oldDocumentSnap.data() as _Order;
-            const getRangesSortedAsString = (docData: _Order): string => [...docData.amountTotalRanges].sort().join(',');
+            const getRangesSortedAsString = (docData: _Order): string => Object.keys(docData.amountTotalRanges).sort().join(',');
 
             if (getRangesSortedAsString(oldDocumentData) !== getRangesSortedAsString(documentData)) {
                 operations.assign_amountTotalRanges = true;
@@ -110,14 +110,16 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
     if (operations.assign_amountTotalRanges) {
         const currentAmountTotal = (documentSnap.data() as _Order).amountTotal;
 
-        docChanges.amountTotalRanges = await db()
+        const newOrderAmountRangesEntries = await db()
             .collection('order-amount-ranges')
             .get()
             .then(({ docs }) => docs.filter(doc => {
                 const { from, to } = doc.data() as _OrderAmountRange;
 
                 return (from === undefined || from <= currentAmountTotal) && (to === undefined || currentAmountTotal <= to);
-            }).map(({ id }) => id));
+            }).map(({ id }) => [id, true]));
+
+        docChanges.amountTotalRanges = Object.fromEntries(newOrderAmountRangesEntries);
     }
 
     if (!Object.keys(docChanges).length) {
@@ -130,7 +132,9 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
 interface _Order {
     number: string;
     amountTotal: number;
-    amountTotalRanges: string[];
+    amountTotalRanges: {
+        [key: string]: true;
+    };
 }
 
 interface _OrderAmountRange {

@@ -37,7 +37,9 @@ interface Order {
     };
     licenseId: License['id'];
     amountTotal: number;
-    amountTotalRanges: OrderAmountRange['id'][];
+    amountTotalRanges: {
+        [key: OrderAmountRange['id']]: true;
+    };
     operation: OrderOperationType;
     status: OrderStatus;
     createdDate: Timestamp;
