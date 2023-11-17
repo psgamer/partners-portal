@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { tap } from 'rxjs';
 import { first } from 'rxjs/operators';
 
 // Register Auth
@@ -38,8 +39,10 @@ export class RegisterComponent {
      */
     this.signupForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
-      name: ['', [Validators.required]],
-      password: ['', Validators.required],
+      // name: ['', [Validators.required]],
+      password: ['', [Validators.required,
+          // Validators.pattern('(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}')
+      ]],
     });
   }
 
@@ -66,6 +69,7 @@ export class RegisterComponent {
 
     // stop here if form is invalid
     if (this.signupForm.invalid) {
+        console.error(Object.values(this.signupForm.controls).map(c => c.errors));
       return;
     } else {
       if (environment.defaultauth === 'firebase') {
@@ -77,7 +81,15 @@ export class RegisterComponent {
         ).then((res: any) => {
           this.successmsg = true;
           if (this.successmsg) {
-            this.router.navigate(['']);
+              this.authenticationService.currentUserContractorId()
+                  .pipe(tap(contractorId => {
+                      if (!!contractorId) {
+                          this.router.navigate(['/']);
+                      } else {
+                          this.router.navigate(['/auth/register-contractor']);
+                      }
+                  }))
+                  .subscribe();
           }
         })
           .catch((error: string) => {

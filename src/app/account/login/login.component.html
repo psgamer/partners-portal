@@ -83,7 +83,7 @@
                                                 <div class="position-relative ">
                                                     <input type="text" class="form-control  password-input" formControlName="email" id="email" [ngClass]="{ 'is-invalid': submitted && f['email'].errors }" placeholder="Enter email" required>
                                                     <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
-                                                        <div *ngIf="f['email'].errors['required']">Email is required</div>
+                                                        Please enter valid email
                                                     </div>
                                                 </div>
                                             </div>
@@ -98,7 +98,7 @@
                                                     <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" id="password-addon"><i class="ri-eye-fill align-middle" [ngClass]="{'mdi-eye-off-outline': !fieldTextType, 'mdi-eye-outline': fieldTextType
                                                     }" (click)="toggleFieldTextType()"></i></button>
                                                     <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
-                                                        <span *ngIf="f['password'].errors['required']">Password is required</span>
+                                                        Password is required
                                                     </div>
                                                 </div>
                                             </div>

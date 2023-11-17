@@ -1,13 +1,13 @@
-import {Component} from '@angular/core';
-import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {ActivatedRoute, Router} from '@angular/router';
-import {AuthenticationService} from 'src/app/core/services/auth.service';
-import {AuthfakeauthenticationService} from 'src/app/core/services/authfake.service';
-import {environment} from '../../../environments/environment';
-import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {switchMap, tap, throwError} from "rxjs";
-import {UntilDestroy, untilDestroyed} from "@ngneat/until-destroy";
-import {catchError} from "rxjs/operators";
+import { Component } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
+import { switchMap, tap, throwError } from "rxjs";
+import { fromPromise } from "rxjs/internal/observable/innerFrom";
+import { catchError } from "rxjs/operators";
+import { AuthenticationService } from 'src/app/core/services/auth.service';
+import { AuthfakeauthenticationService } from 'src/app/core/services/authfake.service';
+import { environment } from '../../../environments/environment';
 
 @UntilDestroy()
 @Component({
@@ -43,8 +43,8 @@ export class LoginComponent {
          * Form Validatyion
          */
         this.loginForm = this.formBuilder.group({
-            email: ['admin@themesbrand.com', [Validators.required, Validators.email]],
-            password: ['123456', [Validators.required]],
+            email: ['', [Validators.required, Validators.email]],
+            password: ['', [Validators.required]],
         });
         // get return url from route parameters or default to '/'
         // this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
