@@ -40,14 +40,15 @@
                                     </div>
                                 </th>
 
-<!--                                <th *ngFor="let colConfig of colConfigs" scope="col" class="sort cursor-pointer" [listsortable]="colConfig.column" [direction]="(getSortDirection$(colConfig.column) | async)!" (sort)="onSort($event)">-->
-<!--                                    {{('ORDER.FIELDS.' + colConfig.column) | translate}}-->
-<!--                                </th>-->
-                                <!--TODO finish disable sort by some ways-->
-                                <th *ngFor="let colConfig of colConfigs" scope="col" class="sort cursor-pointer">
+                                <th *ngFor="let colConfig of colConfigs"
+                                    scope="col"
+                                    [listsortable]="colConfig.column"
+                                    [direction]="(getSortDirection$(colConfig.column) | async)!"
+                                    [availableDirections]="colConfig.sortDirections"
+                                    (sort)="onSort($event)"
+                                >
                                     {{('ORDER.FIELDS.' + colConfig.column) | translate}}
                                 </th>
-
                                 <th scope="col">{{'ORDER.LABELS.ACTION.TEXT' | translate}}</th>
                             </tr>
                         </thead>

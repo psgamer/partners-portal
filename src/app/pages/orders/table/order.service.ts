@@ -1,25 +1,26 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
-import { ChangeDetectorRef, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
-    collection, CollectionReference, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, limitToLast, orderBy,
-    query, QueryConstraint, startAfter, where,
+    and, collection, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, limitToLast, or, orderBy, query,
+    QueryCompositeFilterConstraint, QueryFieldFilterConstraint, startAfter, where
 } from '@angular/fire/firestore';
+import { QueryNonFilterConstraint } from '@firebase/firestore';
 
-import { BehaviorSubject, concat, finalize, Observable, Subject, throwError, zip } from 'rxjs';
-import { catchError, map, switchMap, takeWhile, tap } from 'rxjs/operators';
+import { BehaviorSubject, concat, finalize, Observable, of, Subject, throwError, zip } from 'rxjs';
+import { catchError, filter, map, switchMap, takeWhile, tap } from 'rxjs/operators';
 import { Contractor } from '../../../core/models/all.models';
 import { FirebaseDoc, getBaseConverter, Paths } from '../../../core/models/util.models';
 import { AuthenticationService } from '../../../core/services/auth.service';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 
 import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
-import { listSortEvent, SortColumn, SortDirection } from './orders-table-sortable.directive';
+import { OrderSortColumn, OrderSortDirection, SortEvent } from './orders-table-sortable.directive';
 
 interface State {
     page: number;
     readonly pageSize: number;
-    sortColumn: SortColumn;
-    sortDirection: SortDirection;
+    sortColumn: OrderSortColumn;
+    sortDirection: OrderSortDirection;
 }
 
 export interface FiltersState {
@@ -73,10 +74,17 @@ export class OrderService {
         this.runAllPossibleQueriesForIndexes();
     }
 
-    constructor(private db: Firestore, private auth: AuthenticationService, private cd: ChangeDetectorRef) {
+    constructor(private db: Firestore, private auth: AuthenticationService) {
         this._searchRequest$.pipe(
             tap(() => this._loading$.next(true)),
             switchMap(state => this.getOrders(state)),
+            catchError(error => {
+                console.error('An error occurred while fetching orders:', error);
+                this._loading$.next(false);
+                return of(undefined);
+            }),
+            filter(result => result !== undefined),
+            map(result => result as NonNullable<typeof result>),
             tap(() => this._loading$.next(false)),
             tap(({ state, privateState, orders, totalRecords }) => {
                 this.privateState = privateState;
@@ -85,8 +93,6 @@ export class OrderService {
 
                 this._orders$.next(orders);
                 this._totalRecords$.next(totalRecords);
-
-                this.cd.markForCheck();
             }),
         ).subscribe();
     }
@@ -111,7 +117,7 @@ export class OrderService {
         return this._state$.asObservable();
     }
 
-    sort({ column, direction }: listSortEvent) {
+    sort({ column, direction }: SortEvent) {
         this._search({ sortColumn: column, sortDirection: direction });
     }
 
@@ -131,7 +137,7 @@ export class OrderService {
     }
 
     private getOrdersCollectionRef(contractorId: Contractor['id']) {
-        return collection(this.db, 'contractors', contractorId, 'orders') as CollectionReference<FirebaseDoc<Order>>;
+        return collection(this.db, 'contractors', contractorId, 'orders').withConverter(getBaseConverter<Order>());
     }
 
     private getOrders(changes: SearchRequest): Observable<SearchResult> {
@@ -164,54 +170,60 @@ export class OrderService {
                 map(contractorId => contractorId as NonNullable<typeof contractorId>),
                 map(contractorId => this.getOrdersCollectionRef(contractorId)),
                 map(collRef => {
-                    const constraints: QueryConstraint[] = [];
+                    const fieldFilterConstraints: QueryFieldFilterConstraint[] = [];
+                    const compositeFilterConstraints: QueryCompositeFilterConstraint[] = [];
+                    const nonFilterConstraints: QueryNonFilterConstraint[] = [];
 
                     if (amountRange !== '') {
-                        constraints.push(where(`amountTotalRanges.${amountRange}` as Paths<Order>, '==', true));
+                        fieldFilterConstraints.push(where(`amountTotalRanges.${amountRange}` as Paths<Order>, '==', true));
                     }
                     if (!!operations.length && operations.length !== Object.values(OrderOperationType).length) {
-                        constraints.push(where('operation' as Paths<Order>, 'in', operations));
+                        compositeFilterConstraints.push(
+                            or(...operations.map(operation => where('operation' as Paths<Order>, '==', operation)))
+                        );
                     }
                     if (!!statuses.length && statuses.length !== Object.values(OrderStatus).length) {
-                        constraints.push(where('status' as Paths<Order>, 'in', statuses));
+                        compositeFilterConstraints.push(
+                            or(...statuses.map(status => where('status' as Paths<Order>, '==', status)))
+                        );
                     }
                     if (localSolutionId !== '') {
-                        constraints.push(where('localSolutionRes.id' as Paths<Order>, '==', localSolutionId));
+                        fieldFilterConstraints.push(where('localSolutionRes.id' as Paths<Order>, '==', localSolutionId));
                     }
 
                     // ordering
-                    constraints.push(orderBy(sortColumn, sortDirection));
+                    nonFilterConstraints.push(orderBy(sortColumn, sortDirection));
 
-                    const countQuery = query(collRef, ...constraints);
+                    const docsQuery = query(collRef, and(...fieldFilterConstraints, ...compositeFilterConstraints));
 
                     // page
                     if (!(page === oldPage || page === 1)) {
                         if (page === oldPage - 1) {
-                            constraints.push(endBefore(firstDocSnap));
-                            constraints.push(limitToLast(pageSize));
+                            nonFilterConstraints.push(endBefore(firstDocSnap));
+                            nonFilterConstraints.push(limitToLast(pageSize));
                         } else if (page === oldPage + 1) {
-                            constraints.push(startAfter(lastDocSnap));
-                            constraints.push(limit(pageSize));
+                            nonFilterConstraints.push(startAfter(lastDocSnap));
+                            nonFilterConstraints.push(limit(pageSize));
                         } else {
                             const text = 'jump of 2 pages or more';
                             console.error(text);
                             throwError(() => new Error(text));
                         }
                     } else if (page === 1) {
-                        constraints.push(limit(pageSize));
+                        nonFilterConstraints.push(limit(pageSize));
                     }
 
-                    const collQuery = query(collRef, ...constraints).withConverter(getBaseConverter<Order>());
+                    const pagedDocsQuery = query(docsQuery, ...nonFilterConstraints);
 
                     return [
-                        collQuery,
-                        countQuery
+                        pagedDocsQuery,
+                        docsQuery
                     ] as const;
                 }),
-                switchMap(([collQuery, countQuery]) => {
+                switchMap(([pagedDocsQuery, docsQuery]) => {
                     return zip([
-                        getDocs(collQuery).then(({docs}) => docs),
-                        getCountFromServer(countQuery).then(result => result.data().count),
+                        getDocs(pagedDocsQuery).then(({docs}) => docs),
+                        getCountFromServer(docsQuery).then(result => result.data().count),
                     ]);
                 }),
                 map(([docs, totalRecords]) => {
@@ -295,21 +307,13 @@ export class OrderService {
             pageSize: 1,
         });
 
-        const sortCols: paramType['sortColumn'][] = [
-            'createdDate',
-            'number',
-            'localSolutionRes.name',
-            'operation',
-            'localSolutionRes.count',
-            'amountTotal',
-            'contractor.name',
-            'client.name',
-            'status',
+        const sorts: [paramType['sortColumn'], paramType['sortDirection']][] = [
+            ['createdDate', 'asc'],
+            ['createdDate', 'desc'],
+            ['localSolutionRes.count', 'desc'],
+            ['amountTotal', 'desc'],
         ];
-        const sortDirs: paramType['sortDirection'][] = [
-            'asc',
-            'desc',
-        ];
+
         const statusesArr: paramType['statuses'][] = [
             [],
             [OrderStatus.NEW],
@@ -320,7 +324,7 @@ export class OrderService {
         ];
         const amountRangesArr: paramType['amountRange'][] = [
             '',
-            '3N8ZkaAkqTxZFGPwzxXa',
+            'first',
         ];
         const locSolutionsArr: paramType['localSolutionId'][] = [
             '',
@@ -329,21 +333,19 @@ export class OrderService {
 
         const searches: paramType[] = [];
 
-        for (let sortColumn of sortCols) {
-            for (let sortDirection of sortDirs) {
-                for (let statuses of statusesArr) {
-                    for (let operations of opTypes) {
-                        for (let amountRange of amountRangesArr) {
-                            for (let localSolutionId of locSolutionsArr) {
-                                searches.push(getSearchObj({
-                                    sortColumn,
-                                    sortDirection: sortDirection as any,
-                                    statuses: statuses as any,
-                                    operations: operations as any,
-                                    amountRange,
-                                    localSolutionId,
-                                }));
-                            }
+        for (let sort of sorts) {
+            for (let statuses of statusesArr) {
+                for (let operations of opTypes) {
+                    for (let amountRange of amountRangesArr) {
+                        for (let localSolutionId of locSolutionsArr) {
+                            searches.push(getSearchObj({
+                                sortColumn: sort[0],
+                                sortDirection: sort[1],
+                                statuses: statuses,
+                                operations: operations,
+                                amountRange,
+                                localSolutionId,
+                            }));
                         }
                     }
                 }
@@ -352,8 +354,6 @@ export class OrderService {
 
         let errEncountered = false;
         let counter = 0;
-
-        console.log(searches[0], searches[1]);
 
         const obs = concat(
             ...searches
@@ -368,18 +368,12 @@ export class OrderService {
                 )
         ).pipe(
             tap(v => counter++, e => counter++),
-            finalize(() => setTimeout(() => console.log('done', counter), 100)),
-            // tap(v => console.log('req success', v), e => console.log('err encountered', e)),
-            // take(1),
-            // tap(() => console.timeEnd('requests')),
+            finalize(() => setTimeout(() => console.log('finished all order request, count', counter), 100)),
+            tap({error: e => console.log('err encountered', e)}),
         );
 
-        // console.time('requests');
-        // obs.subscribe();
+        console.time('allOrderRequests');
 
-        // searches.map(search => {
-        //
-        // })
-        // TODO remove this after testing
+        obs.subscribe({complete: () => console.timeEnd('allOrderRequests')});
     }
 }

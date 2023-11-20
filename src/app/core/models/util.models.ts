@@ -13,11 +13,11 @@ const getExtractByPath = <T extends {[key: string]: any}>() => <R = any>(obj: T,
     .split('.')
     .reduce((acc, pathPiece) => acc[pathPiece], obj as any);
 
-const getBaseConverter = <T extends {id: any}>(): FirestoreDataConverter<T> => ({
-    toFirestore({id, ...rest}: WithFieldValue<T>): DocumentData {
+const getBaseConverter = <T extends ({id: any} & DocumentData)>(): FirestoreDataConverter<T, FirebaseDoc<T>> => ({
+    toFirestore({id, ...rest}: WithFieldValue<T>): WithFieldValue<FirebaseDoc<T>> {
         return {
             ...rest,
-        };
+        } as FirebaseDoc<T>;
     },
     fromFirestore(snapshot: QueryDocumentSnapshot<T>, options: SnapshotOptions): T {
         return ({

@@ -1,4 +1,453 @@
 {
-  "indexes": [],
-  "fieldOverrides": []
+  "indexes" : [
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.first",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.second",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.third",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fourth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fifth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "operation",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "status",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "localSolutionRes.id",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.first",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.second",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.third",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fourth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fifth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "operation",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "status",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "localSolutionRes.id",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "createdDate",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.first",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.second",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.third",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fourth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fifth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "operation",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "status",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "localSolutionRes.id",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "localSolutionRes.count",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.first",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.second",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.third",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fourth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "amountTotalRanges.fifth",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "operation",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "status",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "localSolutionRes.id",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides" : []
 }
