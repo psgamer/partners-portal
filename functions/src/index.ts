@@ -32,25 +32,28 @@ const app = memoize(initializeApp);
 const auth = memoize(() => getAuth(app()));
 const db = memoize(() => getFirestore(app()));
 
-export const generateOrderAmountRanges = onCall<void, Promise<void>>({ cors: true, region }, async (event) => {
-    const docs: { [key: string]: _OrderAmountRange } = {
-        first: {
-            from: null,
-            to: 999,
-        }, second: {
-            from: 1000,
-            to: 9999,
-        }, third: {
-            from: 10000,
-            to: 99999,
-        }, fourth: {
-            from: 100000,
-            to: 999999,
-        }, fifth: {
-            from: 1000000,
-            to: null,
-        }
-    };
+export const generateOrderAmountRanges = onCall<void, Promise<void>>({ cors: true, region }, async ({auth}) => {
+    if (!(auth && auth.uid && auth.token.contractorId)) {
+        logger.error('Insufficient permissions to generateOrderAmountRanges, should never happen, listing auth arg', auth);
+        return;
+    }
+
+    const docs: _OrderAmountRange[] = [{
+        from: null,
+        to: 999,
+    }, {
+        from: 1000,
+        to: 9999,
+    }, {
+        from: 10000,
+        to: 99999,
+    }, {
+        from: 100000,
+        to: 999999,
+    }, {
+        from: 1000000,
+        to: null,
+    }];
 
     const collRef = db().collection('order-amount-ranges');
     const empty = await collRef.get().then(({ empty }) => empty);
@@ -62,7 +65,7 @@ export const generateOrderAmountRanges = onCall<void, Promise<void>>({ cors: tru
 
     const batch = db().batch();
 
-    Object.entries(docs).map(([id, doc]) => batch.create(collRef.doc(id), doc));
+    docs.map(doc => batch.create(collRef.doc(), doc));
 
     await batch.commit();
 
@@ -156,9 +159,9 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
                 const { from, to } = doc.data() as _OrderAmountRange;
 
                 return (from === undefined || from <= currentAmountTotal) && (to === undefined || currentAmountTotal <= to);
-            }).map(({ id }) => [id, true]));
+            }).map(({ id }) => id));
 
-        docChanges.amountTotalRanges = Object.fromEntries(newOrderAmountRangesEntries);
+        docChanges.amountTotalRanges = newOrderAmountRangesEntries;
     }
 
     if (!Object.keys(docChanges).length) {
@@ -171,9 +174,7 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
 interface _Order {
     number: string;
     amountTotal: number;
-    amountTotalRanges: {
-        [key: string]: true;
-    };
+    amountTotalRanges: string[];
 }
 
 interface _OrderAmountRange {

@@ -175,7 +175,7 @@ export class OrderService {
                     const nonFilterConstraints: QueryNonFilterConstraint[] = [];
 
                     if (amountRange !== '') {
-                        fieldFilterConstraints.push(where(`amountTotalRanges.${amountRange}` as Paths<Order>, '==', true));
+                        fieldFilterConstraints.push(where('amountTotalRanges' as Paths<Order>, 'array-contains', amountRange));
                     }
                     if (!!operations.length && operations.length !== Object.values(OrderOperationType).length) {
                         compositeFilterConstraints.push(
