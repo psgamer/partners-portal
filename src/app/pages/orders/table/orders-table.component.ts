@@ -1,6 +1,7 @@
-import { Component, QueryList, ViewChildren } from '@angular/core';
+import { Component, Predicate, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { ModalDirective } from 'ngx-bootstrap/modal';
 import { PageChangedEvent } from 'ngx-bootstrap/pagination';
 import { map } from 'rxjs/operators';
 import { getExtractByPath, Paths } from '../../../core/models/util.models';
@@ -28,6 +29,8 @@ interface ColConfig {
     sortDirections: OrderSortDirection[];
 }
 
+const canCancelOrderStatuses = [OrderStatus.NEW, OrderStatus.PENDING];
+
 @UntilDestroy()
 @Component({
     templateUrl: './orders-table.component.html',
@@ -51,6 +54,7 @@ export class OrdersTableComponent {
         sortDirections: allowedOrderSorts.filter(sort => sort.column === column).map(({ direction }) => direction),
     }));
     readonly extractByPath = getExtractByPath<Order>();
+    readonly canCancelOrder: Predicate<Order> = ({status}) => canCancelOrderStatuses.includes(status);
 
     // bread crumb items
     // breadCrumbItems!: Array<{}>;
@@ -82,10 +86,9 @@ export class OrdersTableComponent {
     });
 
     @ViewChildren(NgbdListSortableHeader) tableHeaders!: QueryList<NgbdListSortableHeader>;
-    // @ViewChild('addCourse', { static: false }) addCourse?: ModalDirective;
-    // @ViewChild('deleteRecordModal', { static: false }) deleteRecordModal?: ModalDirective;
-
-    // deleteID: any;
+    // @ViewChild('addCourse') addCourse?: ModalDirective;
+    @ViewChild('cancelModal') cancelDialog?: ModalDirective;
+    @ViewChild('deleteModal') deleteDialog?: ModalDirective;
 
     readonly getSortDirection$ = (colPath: Paths<Order>) => {
         return this.state$.pipe(map(({ sortColumn, sortDirection }) => colPath === sortColumn ? sortDirection : ''));
@@ -154,6 +157,8 @@ export class OrdersTableComponent {
 
     search() {
         this.closeoffcanvas();
+        this.checkboxItems = {};
+        this.headerCheckboxSelected = false;
         this.orderService.search(this.parseFilters());
     }
 
@@ -310,25 +315,22 @@ export class OrdersTableComponent {
         }
     }
 
-    // Delete Product
-    // removeItem(id: any) {
-    //     this.deleteID = id
-    //     this.deleteRecordModal?.show()
-    // }
-    //
-    // confirmDelete() {
-    //     if (this.deleteID) {
-    //         this.service.products = this.service.products.filter((product: any) => {
-    //             return this.deleteID != product.id;
-    //         });
-    //         this.deleteID = ''
-    //     } else {
-    //         this.service.products = this.service.products.filter((product: any) => {
-    //             return !this.checkedValGet.includes(product.id);
-    //         });
-    //     }
-    //     this.deleteRecordModal?.hide()
-    //     this.masterSelected = false;
-    // }
+    cancelOrder({id}: Order) {
+        this.cancelDialog!.config = { initialState: { id } };
+        this.cancelDialog!.show();
+    }
 
+    confirmCancelOrder() {
+        const orderId = this.cancelDialog!.config.initialState!['id'] as Order['id'];
+        this.cancelDialog!.hide();
+
+        this.orderService.cancelOrder(orderId)
+            .subscribe({
+                next: () => {
+                    console.log("Successfully cancelled for id", orderId);
+                    this.search();
+                },
+                error: e => console.error("Failed to cancel order", e)
+            });
+    }
 }

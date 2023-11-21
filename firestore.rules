@@ -10,9 +10,18 @@ service cloud.firestore {
   	function isAuthorized() {
       return request.auth.uid != null;
     }
+  	function currentDoc() {
+      return resource.data;
+    }
+  	function futureDoc() {
+      return request.resource.data;
+    }
+  	function diffMap() {
+      return futureDoc().diff(currentDoc());
+    }
 
     match /clients/{clientId} {
-    	allow read: if isAuthorized() && request.auth.token.contractorId in resource.data.contractorIds;
+    	allow read: if isAuthorized() && request.auth.token.contractorId in currentDoc().contractorIds;
     }
     match /local-solutions/{localSolutionId} {
     	allow read: if isAuthorized();
@@ -25,7 +34,7 @@ service cloud.firestore {
         return isAuthorized() && request.auth.token.contractorId == contractorId;
       }
       function isCurrentUserContractorsDistributor() {
-        return isAuthorized() && request.auth.token.contractorId in resource.data.contractorIds;
+        return isAuthorized() && request.auth.token.contractorId in currentDoc().contractorIds;
       }
 
       allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
@@ -34,7 +43,21 @@ service cloud.firestore {
       	allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
       }
       match /orders/{orderId} {
+        function isValidCancelOperation() {
+          return diffMap().affectedKeys().hasOnly(['status'])
+            && futureDoc().status == 'CANCELLED'
+            && currentDoc().status in ['NEW', 'PENDING'];
+        }
+        function isValidDeleteOperation() {
+          return currentDoc().status == 'NEW';
+        }
+        function isValidUpdateOperation() {
+          return false;
+        }
+
       	allow read: if isAuthorized() && isCurrentUserContractor();
+        allow update: if isAuthorized() && isCurrentUserContractor() && (isValidCancelOperation() || isValidUpdateOperation());
+        allow delete: if isAuthorized() && isCurrentUserContractor() && isValidDeleteOperation();
       }
     }
   }

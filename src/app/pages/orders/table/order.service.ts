@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import { Injectable } from '@angular/core';
 import {
-    and, collection, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, limitToLast, or, orderBy, query,
-    QueryCompositeFilterConstraint, QueryFieldFilterConstraint, startAfter, where
+    and, collection, doc, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, limitToLast, or, orderBy, query,
+    QueryCompositeFilterConstraint, QueryFieldFilterConstraint, setDoc, startAfter, where
 } from '@angular/fire/firestore';
 import { QueryNonFilterConstraint } from '@firebase/firestore';
 
 import { BehaviorSubject, concat, finalize, Observable, of, Subject, throwError, zip } from 'rxjs';
 import { catchError, filter, map, switchMap, takeWhile, tap } from 'rxjs/operators';
-import { Contractor } from '../../../core/models/all.models';
 import { FirebaseDoc, getBaseConverter, Paths } from '../../../core/models/util.models';
 import { AuthenticationService } from '../../../core/services/auth.service';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
@@ -60,7 +59,7 @@ export class OrderService {
 
     private readonly _state$ = new BehaviorSubject<State>({
         page: 1,
-        pageSize: 1,// TODO change to 10
+        pageSize: 10,
         sortColumn: 'createdDate',
         sortDirection: 'desc',
     });
@@ -68,6 +67,15 @@ export class OrderService {
     private privateState: PrivateState = {
         firstDocSnap: undefined,
         lastDocSnap: undefined,
+    }
+
+    private get collRef() {
+        return this.auth
+            .currentUserContractorId()
+            .pipe(
+                map(contractorId => contractorId as NonNullable<typeof contractorId>),
+                map(contractorId => collection(this.db, 'contractors', contractorId, 'orders').withConverter(getBaseConverter<Order>()))
+            );
     }
 
     runMe = () => {
@@ -132,12 +140,15 @@ export class OrderService {
         });
     }
 
-    private _search(changes: Partial<State> = {}) {
-        this._searchRequest$.next(changes);
+    cancelOrder(id: Order['id']) {
+        return this.collRef.pipe(
+            map(collRef => doc(collRef, id)),
+            switchMap(docRef => setDoc(docRef, { status: OrderStatus.CANCELLED }, { merge: true })),
+        );
     }
 
-    private getOrdersCollectionRef(contractorId: Contractor['id']) {
-        return collection(this.db, 'contractors', contractorId, 'orders').withConverter(getBaseConverter<Order>());
+    private _search(changes: Partial<State> = {}) {
+        this._searchRequest$.next(changes);
     }
 
     private getOrders(changes: SearchRequest): Observable<SearchResult> {
@@ -164,11 +175,8 @@ export class OrderService {
             localSolutionId,
         } = this.mergeFilters(changes);
 
-        return this.auth
-            .currentUserContractorId()
+        return this.collRef
             .pipe(
-                map(contractorId => contractorId as NonNullable<typeof contractorId>),
-                map(contractorId => this.getOrdersCollectionRef(contractorId)),
                 map(collRef => {
                     const fieldFilterConstraints: QueryFieldFilterConstraint[] = [];
                     const compositeFilterConstraints: QueryCompositeFilterConstraint[] = [];

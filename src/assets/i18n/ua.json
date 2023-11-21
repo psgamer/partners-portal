@@ -282,6 +282,11 @@
         "DELETE" : "Видалити"
       }
     },
+    "CONFIRM": {
+      "CANCEL": {
+        "TEXT": "Замовлення буде анульовано"
+      }
+    },
     "FIELDS" : {
       "createdDate": "Дата створення",
       "number": "Номер замовлення",
@@ -306,5 +311,14 @@
   },
   "TABLE": {
     "AMOUNT_TEXT": "Показано <span class=\"fw-semibold\">{{current}}</span> з <span class=\"fw-semibold\">{{total}}</span> результатів"
+  },
+  "LABELS": {
+    "CONFIRM": {
+      "TITLE": "Ви впевнені?"
+    }
+  },
+  "BUTTONS": {
+    "CLOSE": "Закрити",
+    "PROCEED": "Продовжити"
   }
 }
