@@ -15,8 +15,7 @@
 <!--                    </div>&lt;!&ndash;end col&ndash;&gt;-->
                     <div class="col-lg-auto">
                         <div class="hstack flex-wrap gap-2">
-                            <!--TODO delete-->
-<!--                            <button class="btn btn-subtle-danger" *ngIf="showActionBar" (click)="deleteRecordModal.show()"><i class="ri-delete-bin-2-line"></i></button>-->
+                            <button class="btn btn-subtle-danger" *ngIf="canDeleteCheckedOrders$ | async" (click)="deleteCheckedOrders()"><i class="ri-delete-bin-2-line"></i></button>
                             <!--TODO add-->
 <!--                            <a href="javascript:void(0);" (click)="addCourse.show()" class="btn btn-secondary"><i class="bi bi-plus-circle align-baseline me-1"></i>{{'ORDER.LABELS.CREATE' | translate}}</a>-->
                             <div>
@@ -97,16 +96,16 @@
 
                                 <td>
                                     <ul class="d-flex gap-2 list-unstyled mb-0">
-                                        <!--TODO actions-->
+                                        <!--TODO edit-->
 <!--                                        <li>-->
 <!--                                            <a href="javascript:void(0);" [title]="'ORDER.LABELS.ACTION.EDIT' | translate" (click)="editList(i)" class="btn btn-subtle-primary btn-icon btn-sm edit-item-btn"><i class="ph-pencil"></i></a>-->
 <!--                                        </li>-->
-                                        <li>
-                                            <a *ngIf="canCancelOrder(item)" href="javascript:void(0);" [title]="'ORDER.LABELS.ACTION.CANCEL' | translate" (click)="cancelOrder(item)" class="btn btn-subtle-secondary btn-icon btn-sm"><i class="ph-stop-circle"></i></a>
+                                        <li *ngIf="canCancelOrder(item)">
+                                            <a href="javascript:void(0);" [title]="'ORDER.LABELS.ACTION.CANCEL' | translate" (click)="cancelOrder(item)" class="btn btn-subtle-secondary btn-icon btn-sm"><i class="ph-stop-circle"></i></a>
                                         </li>
-<!--                                        <li>-->
-<!--                                            <a href="javascript:void(0);" [title]="'ORDER.LABELS.ACTION.DELETE' | translate" (click)="removeItem(item.id)" class="btn btn-subtle-danger btn-icon btn-sm remove-item-btn"><i class="ph-trash"></i></a>-->
-<!--                                        </li>-->
+                                        <li *ngIf="canDeleteOrder(item)">
+                                            <a href="javascript:void(0);" [title]="'ORDER.LABELS.ACTION.DELETE' | translate" (click)="deleteOrders([item])" class="btn btn-subtle-danger btn-icon btn-sm remove-item-btn"><i class="ph-trash"></i></a>
+                                        </li>
                                     </ul>
                                 </td>
                             </tr>
@@ -274,30 +273,30 @@
 <!--</div>&lt;!&ndash;end add Property modal&ndash;&gt;-->
 
 <!-- deleteModal -->
-<!--<div bsModal #deleteModal="bs-modal" id="deleteModal" class="modal fade zoomIn">-->
-<!--    <div class="modal-dialog modal-dialog-centered">-->
-<!--        <div class="modal-content">-->
-<!--            <div class="modal-header">-->
-<!--                <button type="button" class="btn-close" (click)="deleteModal.hide()"></button>-->
-<!--            </div>-->
-<!--            <div class="modal-body p-md-5">-->
-<!--                <div class="text-center">-->
-<!--                    <div class="text-danger">-->
-<!--                        <i class="bi bi-trash display-5"></i>-->
-<!--                    </div>-->
-<!--                    <div class="mt-4">-->
-<!--                        <h4 class="mb-2">Are you sure ?</h4>-->
-<!--                        <p class="text-muted mx-3 mb-0">Are you sure you want to remove this record ?</p>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <div class="d-flex gap-2 justify-content-center mt-4 pt-2 mb-2">-->
-<!--                    <button type="button" class="btn w-sm btn-light btn-hover" (click)="deleteModal.hide()">Close</button>-->
-<!--                    <button type="button" class="btn w-sm btn-danger btn-hover" (click)="confirmDelete()">Yes, Delete It!</button>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>&lt;!&ndash; /.modal-content &ndash;&gt;-->
-<!--    </div>&lt;!&ndash; /.modal-dialog &ndash;&gt;-->
-<!--</div>&lt;!&ndash; /deleteRecordModal &ndash;&gt;-->
+<div bsModal #deleteModal="bs-modal" id="deleteModal" class="modal fade zoomIn">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" (click)="deleteModal.hide()"></button>
+            </div>
+            <div class="modal-body p-md-5">
+                <div class="text-center">
+                    <div class="text-danger">
+                        <i class="bi bi-trash display-5"></i>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="mb-2">{{'LABELS.CONFIRM.TITLE' | translate}}</h4>
+                        <p class="text-muted mx-3 mb-0">{{('ORDER.CONFIRM.DELETE.TEXT' + (deleteCount > 1 ? '_MULTIPLE' : '')) | translate }}</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 justify-content-center mt-4 pt-2 mb-2">
+                    <button type="button" class="btn w-sm btn-light btn-hover" (click)="deleteModal.hide()">{{'BUTTONS.CLOSE' | translate}}</button>
+                    <button type="button" class="btn w-sm btn-danger btn-hover" (click)="confirmDeleteOrders()">{{'BUTTONS.PROCEED' | translate}}</button>
+                </div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /deleteRecordModal -->
 <!-- cancelModal -->
 <div bsModal #cancelModal="bs-modal" id="cancelModal" class="modal fade zoomIn">
     <div class="modal-dialog modal-dialog-centered">

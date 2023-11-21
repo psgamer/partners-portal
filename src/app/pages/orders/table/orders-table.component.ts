@@ -3,6 +3,7 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { PageChangedEvent } from 'ngx-bootstrap/pagination';
+import { of, take } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { getExtractByPath, Paths } from '../../../core/models/util.models';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
@@ -30,6 +31,7 @@ interface ColConfig {
 }
 
 const canCancelOrderStatuses = [OrderStatus.NEW, OrderStatus.PENDING];
+const canDeleteOrderStatuses = [OrderStatus.NEW];
 
 @UntilDestroy()
 @Component({
@@ -55,6 +57,7 @@ export class OrdersTableComponent {
     }));
     readonly extractByPath = getExtractByPath<Order>();
     readonly canCancelOrder: Predicate<Order> = ({status}) => canCancelOrderStatuses.includes(status);
+    readonly canDeleteOrder: Predicate<Order> = ({status}) => canDeleteOrderStatuses.includes(status);
 
     // bread crumb items
     // breadCrumbItems!: Array<{}>;
@@ -109,8 +112,32 @@ export class OrdersTableComponent {
         }
     }
 
-    get showActionBar() {
-        return Object.values(this.checkboxItems).some(checked => checked);
+    get canDeleteCheckedOrders$() {
+        const orderIds: Order['id'][] = Object.entries(this.checkboxItems)
+            .filter(([, checked]) => checked)
+            .map(([orderId]) => orderId);
+
+        if (!orderIds.length) {
+            return of(false);
+        }
+
+        return this.orders$.pipe(
+            untilDestroyed(this),
+            take(1),
+            map(orders => orders.filter(({id}) => orderIds.includes(id))),
+            map(orders => orders.length === orderIds.length && orders.every(this.canDeleteOrder))
+        );
+    }
+    get deleteCount() {
+        const state = this.deleteDialog?.config.initialState;
+
+        if (!state) {
+            return 0;
+        }
+
+        const ids = (state['ids'] as Order['id'][] | undefined) || [];
+
+        return ids.length;
     }
 
     readonly runMe = this.orderService.runMe;
@@ -326,11 +353,39 @@ export class OrdersTableComponent {
 
         this.orderService.cancelOrder(orderId)
             .subscribe({
-                next: () => {
+                complete: () => {
                     console.log("Successfully cancelled for id", orderId);
                     this.search();
                 },
                 error: e => console.error("Failed to cancel order", e)
+            });
+    }
+
+    deleteCheckedOrders() {
+        const orderIds = Object.entries(this.checkboxItems)
+            .filter(([, checked]) => checked)
+            .map(([orderId]) => ({id: orderId}));
+
+        this.deleteOrders(orderIds);
+    }
+
+    deleteOrders(orders: Pick<Order, 'id'>[]) {
+        const ids = orders.map(({id}) => id);
+        this.deleteDialog!.config = { initialState: { ids } };
+        this.deleteDialog!.show();
+    }
+
+    confirmDeleteOrders() {
+        const orderIds = this.deleteDialog!.config.initialState!['ids'] as Order['id'][];
+        this.deleteDialog!.hide();
+
+        this.orderService.deleteOrder(orderIds)
+            .subscribe({
+                complete: () => {
+                    console.log("Successfully deleted for ids", orderIds);
+                    this.search();
+                },
+                error: e => console.error("Failed to delete orders", e)
             });
     }
 }

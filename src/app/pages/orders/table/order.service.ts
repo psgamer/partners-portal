@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import {
     and, collection, doc, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, limitToLast, or, orderBy, query,
-    QueryCompositeFilterConstraint, QueryFieldFilterConstraint, setDoc, startAfter, where
+    QueryCompositeFilterConstraint, QueryFieldFilterConstraint, setDoc, startAfter, where, writeBatch
 } from '@angular/fire/firestore';
 import { QueryNonFilterConstraint } from '@firebase/firestore';
 
@@ -144,6 +144,19 @@ export class OrderService {
         return this.collRef.pipe(
             map(collRef => doc(collRef, id)),
             switchMap(docRef => setDoc(docRef, { status: OrderStatus.CANCELLED }, { merge: true })),
+        );
+    }
+
+    deleteOrder(ids: Order['id'][]) {
+        return this.collRef.pipe(
+            map(collRef => ids.map(id => doc(collRef, id))),
+            switchMap(docRefs => {
+                const batch = writeBatch(this.db);
+
+                docRefs.forEach(docRef => batch.delete(docRef));
+
+                return batch.commit();
+            }),
         );
     }
 
