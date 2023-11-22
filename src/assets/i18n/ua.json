@@ -280,7 +280,12 @@
         "EDIT" : "Редагувати",
         "CANCEL" : "Анулювати",
         "DELETE" : "Видалити"
-      }
+      },
+      "REVENUE": {
+        "TOTAL": "Загальна виручка"
+      },
+      "STATUS": "Статус замовлень",
+      "LATEST": "Останні замовлення"
     },
     "CONFIRM": {
       "CANCEL": {
@@ -319,6 +324,9 @@
   "LABELS": {
     "CONFIRM": {
       "TITLE": "Ви впевнені?"
+    },
+    "TIME_PERIOD": {
+      "currentYear": "За поточний рік"
     }
   },
   "BUTTONS": {

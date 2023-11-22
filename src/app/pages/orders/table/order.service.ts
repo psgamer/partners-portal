@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import { Injectable } from '@angular/core';
 import {
-    and, collection, doc, DocumentSnapshot, endBefore, Firestore, getCountFromServer, getDocs, limit, limitToLast, or, orderBy, query,
-    QueryCompositeFilterConstraint, QueryFieldFilterConstraint, setDoc, startAfter, where, writeBatch
+    AggregateField, and, collection, count, doc, DocumentSnapshot, endBefore, Firestore, getAggregateFromServer, getCountFromServer,
+    getDocs, limit, limitToLast, or, orderBy, query, QueryCompositeFilterConstraint, QueryConstraint, QueryFieldFilterConstraint,
+    QueryNonFilterConstraint, setDoc, startAfter, sum, where, writeBatch
 } from '@angular/fire/firestore';
-import { QueryNonFilterConstraint } from '@firebase/firestore';
 
 import { BehaviorSubject, concat, finalize, Observable, of, Subject, throwError, zip } from 'rxjs';
 import { catchError, filter, map, switchMap, takeWhile, tap } from 'rxjs/operators';
@@ -28,6 +28,9 @@ export interface FiltersState {
     operations: OrderOperationType[];
     statuses: OrderStatus[];
 }
+
+export type AggregationOption = 'count' | 'amount' | OrderStatus;
+export type OrderAggregationTimePeriod = 'currentYear';
 
 interface PrivateState {
     firstDocSnap?: DocumentSnapshot<FirebaseDoc<Order>>;
@@ -138,6 +141,48 @@ export class OrderService {
             ...changes,
             page: 1,
         });
+    }
+
+    getOrdersAggregation<T extends AggregationOption>(option: T, timePeriod: OrderAggregationTimePeriod = 'currentYear') {
+        const constraints: QueryConstraint[] = [];
+
+        switch (timePeriod) {
+            case 'currentYear':
+                const startOfYear = new Date(new Date().getFullYear(), 0, 1, 0, 0, 0, 0);
+
+                constraints.push(where('createdDate' as Paths<Order>, '>=', startOfYear));
+                break;
+            default:
+                throw new Error('timePeriod not supported');
+        }
+
+        let aggregation: AggregateField<number>;
+
+        switch (option) {
+            case "count":
+                aggregation = count();
+                break;
+            case "amount":
+                aggregation = sum('amountTotal' as Paths<Order>);
+                break;
+            case OrderStatus.NEW:
+            case OrderStatus.CANCELLED:
+            case OrderStatus.COMPLETED:
+            case OrderStatus.PENDING:
+                aggregation = count();
+                constraints.push(where('status' as Paths<Order>, '==', option))
+                break;
+            default:
+                throw new Error('option not supported');
+        }
+
+        const aggregationSpec = { [option]: aggregation } as {[key in T]: AggregateField<number>};
+
+        return this.collRef.pipe(
+            map(collRef => query(collRef, ...constraints)),
+            switchMap(query => getAggregateFromServer(query, aggregationSpec)),
+            map(result => result.data()),
+        );
     }
 
     cancelOrder(id: Order['id']) {
