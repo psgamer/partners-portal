@@ -1,36 +1,5 @@
 import { Directive, EventEmitter, Input, Output } from '@angular/core';
-import { OrderByDirection } from '@angular/fire/firestore';
-import { Paths } from '../../../core/models/util.models';
-import { Order } from './order.model';
-
-export type OrderSortColumn = Paths<Order>;
-export type OrderSortDirection = OrderByDirection;
-
-export const allowedOrderSorts: Readonly<SortEvent>[] = [
-    {
-        column: 'createdDate',
-        direction: 'asc',
-    },
-    {
-        column: 'createdDate',
-        direction: 'desc',
-    },
-    {
-        column: 'localSolutionRes.count',
-        direction: 'desc',
-    },
-    {
-        column: 'amountTotal',
-        direction: 'desc',
-    },
-];
-
-export interface Sort {
-  column: OrderSortColumn;
-  direction: OrderSortDirection | '';
-}
-
-export type SortEvent = Omit<Sort, 'direction'> & {direction: OrderSortDirection};
+import { OrderSort, OrderSortColumn, OrderSortDirection, OrderSortEvent } from './order.service';
 
 @Directive({
   selector: 'th[listsortable]',
@@ -46,14 +15,14 @@ export type SortEvent = Omit<Sort, 'direction'> & {direction: OrderSortDirection
 })
 export class NgbdListSortableHeader {
   @Input() listsortable: OrderSortColumn = 'createdDate';
-  @Input() direction: Sort['direction'] = 'desc';
+  @Input() direction: OrderSort['direction'] = 'desc';
   @Input() availableDirections: OrderSortDirection[] = [];
 
-  @Output() sort = new EventEmitter<SortEvent>();
+  @Output() sort = new EventEmitter<OrderSortEvent>();
 
   rotate() {
       if (!!this.availableDirections.length) {
-          let direction: Sort['direction'] | undefined = undefined;
+          let direction: OrderSort['direction'] | undefined = undefined;
 
           switch (this.direction) {
               case "":

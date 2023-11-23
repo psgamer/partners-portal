@@ -10,9 +10,9 @@ import { LocalSolution } from '../../../shared/local-solution/local-solution.mod
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
 import { OrderAmountRangeService } from './order-amount-range.service';
 import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
-import { FiltersParams, OrderService } from './order.service';
+import { allowedOrderSorts, OrderFilterParams, OrderService, OrderSortDirection, OrderSortEvent } from './order.service';
 
-import { allowedOrderSorts, NgbdListSortableHeader, OrderSortDirection, SortEvent } from './orders-table-sortable.directive';
+import { NgbdListSortableHeader } from './orders-table-sortable.directive';
 
 interface Form {
     amountRange: FormControl<OrderAmountRange['id'] | ''>,
@@ -41,6 +41,8 @@ const canDeleteOrderStatuses = [OrderStatus.NEW];
 })
 // List Component
 export class OrdersTableComponent {
+    private readonly queryHandler = this.orderService.queryHandler;
+
     readonly colConfigs: ColConfig[] = (<Paths<Order>[]>[
         'createdDate',
         'number',
@@ -68,10 +70,10 @@ export class OrdersTableComponent {
     // files: File[] = [];
 
     // Table data
-    readonly state$ = this.orderService.searchParams$;
-    readonly loading$ = this.orderService.loading$;
-    readonly totalRecords$ = this.orderService.totalRecords$;
-    readonly orders$ = this.orderService.docs$;
+    readonly state$ = this.queryHandler.searchParams$;
+    readonly loading$ = this.queryHandler.loading$;
+    readonly totalRecords$ = this.queryHandler.totalRecords$;
+    readonly orders$ = this.queryHandler.docs$;
     readonly orderAmountRanges$ = this.orderAmountTotalService.orderAmountRanges$;
     readonly statuses = Object.values(OrderStatus);
     readonly operationTypes = Object.values(OrderOperationType);
@@ -144,7 +146,7 @@ export class OrdersTableComponent {
         private orderService: OrderService, private fb: FormBuilder, private localSolutionService: LocalSolutionService,
         private orderAmountTotalService: OrderAmountRangeService,
     ) {
-        this.orderService.filterParams$
+        this.queryHandler.filterParams$
             .pipe(
                 untilDestroyed(this),
                 map((filters, i) => {
@@ -184,14 +186,14 @@ export class OrdersTableComponent {
         this.closeoffcanvas();
         this.checkboxItems = {};
         this.headerCheckboxSelected = false;
-        this.orderService.search(this.parseFilters());
+        this.queryHandler.search(this.parseFilters());
     }
 
     onPageChange({page}: PageChangedEvent) {
-        this.orderService.gotoPage(page);
+        this.queryHandler.gotoPage(page);
     }
 
-    private parseFilters(): FiltersParams {
+    private parseFilters(): OrderFilterParams {
         const {
             amountRange,
             operations,
@@ -207,7 +209,7 @@ export class OrdersTableComponent {
         }
     }
 
-    private updateForm({operations, amountRange, statuses, localSolutionId}: FiltersParams) {
+    private updateForm({operations, amountRange, statuses, localSolutionId}: OrderFilterParams) {
         this.searchForm.reset({
             amountRange,
             operations: Object.fromEntries(this.operationTypes.map(operation => [operation, operations.includes(operation)])),
@@ -254,8 +256,8 @@ export class OrdersTableComponent {
     // }
 
     // Sort Data
-    onSort(sort: SortEvent) {
-        this.orderService.sort(sort);
+    onSort(sort: OrderSortEvent) {
+        this.queryHandler.sort(sort);
     }
 
     // Edit Data

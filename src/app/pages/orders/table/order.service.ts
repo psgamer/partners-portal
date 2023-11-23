@@ -1,75 +1,62 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import { Injectable } from '@angular/core';
 import {
-    AggregateField, and, collection, count, doc, DocumentSnapshot, endBefore, Firestore, getAggregateFromServer, getCountFromServer,
-    getDocs, limit, limitToLast, or, orderBy, query, QueryCompositeFilterConstraint, QueryConstraint, QueryFieldFilterConstraint,
-    QueryNonFilterConstraint, setDoc, startAfter, sum, where, writeBatch
+    AggregateField, collection, count, doc, Firestore, getAggregateFromServer, or, OrderByDirection, query, QueryCompositeFilterConstraint,
+    QueryConstraint, QueryFieldFilterConstraint, setDoc, sum, where, writeBatch
 } from '@angular/fire/firestore';
-
-import { BehaviorSubject, concat, finalize, Observable, of, Subject, throwError, zip } from 'rxjs';
-import { catchError, filter, map, switchMap, takeWhile, tap } from 'rxjs/operators';
-import { FirebaseDoc, getBaseConverter, Paths } from '../../../core/models/util.models';
+import { map, switchMap } from 'rxjs/operators';
+import { QueryFilterConstraints, QueryHandler, Sort, SortEvent } from '../../../core/helpers/query.handler';
+import { getBaseConverter, Paths } from '../../../core/models/util.models';
 import { AuthenticationService } from '../../../core/services/auth.service';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 
 import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
-import { OrderSortColumn, OrderSortDirection, SortEvent } from './orders-table-sortable.directive';
 
-interface SearchParams {
-    page: number;
-    pageSize: number;
-    sortColumn: OrderSortColumn;
-    sortDirection: OrderSortDirection;
-}
-
-export interface FiltersParams {
+export interface OrderFilterParams {
     localSolutionId: LocalSolution['id'] | '';
     amountRange: OrderAmountRange['id'] | '';
     operations: OrderOperationType[];
     statuses: OrderStatus[];
 }
 
+export type OrderSortColumn = Paths<Order>;
+export type OrderSortDirection = OrderByDirection;
+export type OrderSort = Sort<OrderSortColumn, OrderSortDirection>;
+export type OrderSortEvent = SortEvent<OrderSortColumn, OrderSortDirection>
+
 export type OrderAggregationOption = 'count' | 'amount' | OrderStatus;
 export type OrderAggregationTimePeriod = 'currentYear';
 
-interface PagingState {
-    firstDocSnap?: DocumentSnapshot<FirebaseDoc<Order>>;
-    lastDocSnap?: DocumentSnapshot<FirebaseDoc<Order>>;
-}
-
-type SearchRequest = Partial<SearchParams & FiltersParams>;
-
-interface SearchResult {
-    searchParams: SearchParams,
-    pagingState: PagingState,
-    filterParams: FiltersParams,
-    docs: Order[],
-    totalRecords: number,
-}
+export const allowedOrderSorts: Readonly<OrderSortEvent>[] = [
+    {
+        column: 'createdDate',
+        direction: 'asc',
+    },
+    {
+        column: 'createdDate',
+        direction: 'desc',
+    },
+    {
+        column: 'localSolutionRes.count',
+        direction: 'desc',
+    },
+    {
+        column: 'amountTotal',
+        direction: 'desc',
+    },
+];
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-    private readonly _docs$ = new BehaviorSubject<Order[]>([]);
-    private readonly _totalRecords$ = new BehaviorSubject<number>(0);
-    private readonly _filterParams$ = new BehaviorSubject<FiltersParams>({
+    private readonly defaultSort: Readonly<SortEvent<OrderSortColumn, OrderSortDirection>> = {
+        column: 'createdDate',
+        direction: 'desc',
+    };
+    private readonly defaultFilters: Readonly<OrderFilterParams> = {
         amountRange: '',
         operations: [],
         statuses: [],
         localSolutionId: '',
-    });
-    private readonly _loading$ = new BehaviorSubject<boolean>(true);
-    private readonly _searchRequest$ = new Subject<SearchRequest>();
-
-    private readonly _searchParams$ = new BehaviorSubject<SearchParams>({
-        page: 1,
-        pageSize: 10,
-        sortColumn: 'createdDate',
-        sortDirection: 'desc',
-    });
-
-    private pagingState: PagingState = {
-        firstDocSnap: undefined,
-        lastDocSnap: undefined,
     }
 
     private get collRef$() {
@@ -77,66 +64,20 @@ export class OrderService {
             .currentUserContractorId()
             .pipe(
                 map(contractorId => contractorId as NonNullable<typeof contractorId>),
-                map(contractorId => collection(this.db, 'contractors', contractorId, 'orders').withConverter(getBaseConverter<Order>()))
+                map(contractorId => collection(this.db, 'contractors', contractorId, 'orders').withConverter(getBaseConverter<Order>())),
             );
     }
 
-    constructor(private db: Firestore, private auth: AuthenticationService) {
-        this._searchRequest$.pipe(
-            tap(() => this._loading$.next(true)),
-            switchMap(state => this.getOrders(state)),
-            catchError(error => {
-                console.error('An error occurred while querying documents:', error);
-                this._loading$.next(false);
-                return of(undefined);
-            }),
-            filter(result => result !== undefined),
-            map(result => result as NonNullable<typeof result>),
-            tap(() => this._loading$.next(false)),
-            tap(({ searchParams, pagingState, docs, totalRecords }) => {
-                this.pagingState = pagingState;
+    constructor(private db: Firestore, private auth: AuthenticationService) {}
 
-                this._searchParams$.next(searchParams);
-
-                this._docs$.next(docs);
-                this._totalRecords$.next(totalRecords);
-            }),
-        ).subscribe();
-    }
-
-    get docs$() {
-        return this._docs$.asObservable();
-    }
-
-    get totalRecords$() {
-        return this._totalRecords$.asObservable();
-    }
-
-    get loading$() {
-        return this._loading$.asObservable();
-    }
-
-    get filterParams$() {
-        return this._filterParams$.asObservable();
-    }
-
-    get searchParams$() {
-        return this._searchParams$.asObservable();
-    }
-
-    sort({ column, direction }: SortEvent) {
-        this._search({ sortColumn: column, sortDirection: direction });
-    }
-
-    gotoPage(page: SearchParams['page']) {
-        this._search({ page });
-    }
-
-    search(changes: Partial<FiltersParams> = {}) {
-        this._searchRequest$.next({
-            ...changes,
-            page: 1,
-        });
+    get queryHandler() {
+        return new QueryHandler<Order, OrderSortColumn, OrderSortDirection, OrderFilterParams>(
+            this.collRef$,
+            this.defaultSort,
+            this.defaultFilters,
+            this.mergeFilters,
+            this.buildQueryConstraints,
+        );
     }
 
     getOrdersAggregation<T extends OrderAggregationOption>(option: T, timePeriod: OrderAggregationTimePeriod = 'currentYear') {
@@ -172,7 +113,7 @@ export class OrderService {
                 throw new Error('aggregation option not supported');
         }
 
-        const aggregationSpec = { [option]: aggregation } as {[key in T]: AggregateField<number>};
+        const aggregationSpec = { [option]: aggregation } as { [key in T]: AggregateField<number> };
 
         return this.collRef$.pipe(
             map(collRef => query(collRef, ...constraints)),
@@ -201,241 +142,132 @@ export class OrderService {
         );
     }
 
-    private _search(changes: Partial<SearchParams> = {}) {
-        this._searchRequest$.next(changes);
-    }
-
-    private getOrders(changes: SearchRequest): Observable<SearchResult> {
-        const {
-            firstDocSnap,
-            lastDocSnap,
-        } = this.pagingState;
-
-        const {
-            page: oldPage,
-        } = this._searchParams$.value;
-
-        const {
-            page,
-            pageSize,
-            sortColumn,
-            sortDirection,
-        } = this.mergeState(changes);
-
-        const {
-            amountRange,
-            operations,
-            statuses,
-            localSolutionId,
-        } = this.mergeFilters(changes);
-
-        return this.collRef$
-            .pipe(
-                map(collRef => {
-                    const fieldFilterConstraints: QueryFieldFilterConstraint[] = [];
-                    const compositeFilterConstraints: QueryCompositeFilterConstraint[] = [];
-                    const nonFilterConstraints: QueryNonFilterConstraint[] = [];
-
-                    if (amountRange !== '') {
-                        fieldFilterConstraints.push(where('amountTotalRanges' as Paths<Order>, 'array-contains', amountRange));
-                    }
-                    if (!!operations.length && operations.length !== Object.values(OrderOperationType).length) {
-                        compositeFilterConstraints.push(
-                            or(...operations.map(operation => where('operation' as Paths<Order>, '==', operation)))
-                        );
-                    }
-                    if (!!statuses.length && statuses.length !== Object.values(OrderStatus).length) {
-                        compositeFilterConstraints.push(
-                            or(...statuses.map(status => where('status' as Paths<Order>, '==', status)))
-                        );
-                    }
-                    if (localSolutionId !== '') {
-                        fieldFilterConstraints.push(where('localSolutionRes.id' as Paths<Order>, '==', localSolutionId));
-                    }
-
-                    // ordering
-                    nonFilterConstraints.push(orderBy(sortColumn, sortDirection));
-
-                    const docsQuery = query(collRef, and(...fieldFilterConstraints, ...compositeFilterConstraints));
-
-                    // page
-                    if (!(page === oldPage || page === 1)) {
-                        if (page === oldPage - 1) {
-                            nonFilterConstraints.push(endBefore(firstDocSnap));
-                            nonFilterConstraints.push(limitToLast(pageSize));
-                        } else if (page === oldPage + 1) {
-                            nonFilterConstraints.push(startAfter(lastDocSnap));
-                            nonFilterConstraints.push(limit(pageSize));
-                        } else {
-                            const text = 'jump of 2 pages or more';
-                            console.error(text);
-                            throwError(() => new Error(text));
-                        }
-                    } else if (page === 1) {
-                        nonFilterConstraints.push(limit(pageSize));
-                    }
-
-                    const pagedDocsQuery = query(docsQuery, ...nonFilterConstraints);
-
-                    return [
-                        pagedDocsQuery,
-                        docsQuery
-                    ] as const;
-                }),
-                switchMap(([pagedDocsQuery, docsQuery]) => {
-                    return zip([
-                        getDocs(pagedDocsQuery).then(({docs}) => docs),
-                        getCountFromServer(docsQuery).then(result => result.data().count),
-                    ]);
-                }),
-                map(([docs, totalRecords]) => {
-                    const firstDocSnap = docs[0];
-                    const lastDocSnap = docs[docs.length-1];
-
-                    const result: SearchResult = {
-                        searchParams: {
-                            page,
-                            pageSize,
-                            sortDirection,
-                            sortColumn,
-                        },
-                        pagingState: {
-                            firstDocSnap,
-                            lastDocSnap,
-                        },
-                        filterParams: {
-                            amountRange,
-                            operations,
-                            statuses,
-                            localSolutionId,
-                        },
-                        docs: docs.map(doc => doc.data()),
-                        totalRecords,
-                    };
-
-                    return result;
-                }),
-            );
-    }
-
-    private mergeState({
-        page,
-        pageSize,
-        sortColumn,
-        sortDirection,
-    }: Partial<SearchParams>): SearchParams {
-        const {
-            pageSize: oldPageSize,
-            sortColumn: oldSortColumn,
-            sortDirection: oldSortDirection,
-            page: oldPage,
-        } = this._searchParams$.value;
-
-        return {
-            page: page || oldPage,
-            sortDirection: sortDirection || oldSortDirection,
-            sortColumn: sortColumn || oldSortColumn,
-            pageSize: pageSize || oldPageSize,
-        }
-    }
-
-    private mergeFilters({
+    private readonly mergeFilters = ({
         amountRange,
         operations,
         statuses,
         localSolutionId
-    }: Partial<FiltersParams>): FiltersParams {
-        const {
-            amountRange: oldAmountRange,
-            operations: oldOperations,
-            statuses: oldStatuses,
-            localSolutionId: oldLocalSolutionId
-        } = this._filterParams$.value;
-
-        return {
-            amountRange: amountRange !== undefined ? amountRange : oldAmountRange,
+    }: Partial<OrderFilterParams>, {
+        amountRange: oldAmountRange,
+        operations: oldOperations,
+        statuses: oldStatuses,
+        localSolutionId: oldLocalSolutionId
+    }: OrderFilterParams): OrderFilterParams => ({
+        amountRange: amountRange !== undefined ? amountRange : oldAmountRange,
             operations: operations || oldOperations,
             statuses: statuses || oldStatuses,
             localSolutionId: localSolutionId !== undefined ? localSolutionId : oldLocalSolutionId,
+    });
+
+    private readonly buildQueryConstraints = ({
+        amountRange,
+        operations,
+        statuses,
+        localSolutionId
+    }: OrderFilterParams): QueryFilterConstraints => {
+        const fieldFilterConstraints: QueryFieldFilterConstraint[] = [];
+        const compositeFilterConstraints: QueryCompositeFilterConstraint[] = [];
+
+        if (amountRange !== '') {
+            fieldFilterConstraints.push(where('amountTotalRanges' as Paths<Order>, 'array-contains', amountRange));
+        }
+        if (!!operations.length && operations.length !== Object.values(OrderOperationType).length) {
+            compositeFilterConstraints.push(
+                or(...operations.map(operation => where('operation' as Paths<Order>, '==', operation)))
+            );
+        }
+        if (!!statuses.length && statuses.length !== Object.values(OrderStatus).length) {
+            compositeFilterConstraints.push(
+                or(...statuses.map(status => where('status' as Paths<Order>, '==', status)))
+            );
+        }
+        if (localSolutionId !== '') {
+            fieldFilterConstraints.push(where('localSolutionRes.id' as Paths<Order>, '==', localSolutionId));
+        }
+
+        return {
+            fieldFilterConstraints,
+            compositeFilterConstraints,
         }
     }
 
-    private runAllPossibleQueriesForIndexes() {
-        type paramType = Parameters<typeof this.getOrders>[0];
-
-        const getSearchObj = (params: Omit<paramType, 'page' | 'pageSize'>): paramType => ({
-            ...params,
-            page: 1,
-            pageSize: 1,
-        });
-
-        const sorts: [paramType['sortColumn'], paramType['sortDirection']][] = [
-            ['createdDate', 'asc'],
-            ['createdDate', 'desc'],
-            ['localSolutionRes.count', 'desc'],
-            ['amountTotal', 'desc'],
-        ];
-
-        const statusesArr: paramType['statuses'][] = [
-            [],
-            [OrderStatus.NEW],
-        ];
-        const opTypes: paramType['operations'][] = [
-            [],
-            [OrderOperationType.NEW_PURCHASE],
-        ];
-        const amountRangesArr: paramType['amountRange'][] = [
-            '',
-            'first',
-        ];
-        const locSolutionsArr: paramType['localSolutionId'][] = [
-            '',
-            'localSolution2Id',
-        ];
-
-        const searches: paramType[] = [];
-
-        for (let sort of sorts) {
-            for (let statuses of statusesArr) {
-                for (let operations of opTypes) {
-                    for (let amountRange of amountRangesArr) {
-                        for (let localSolutionId of locSolutionsArr) {
-                            searches.push(getSearchObj({
-                                sortColumn: sort[0],
-                                sortDirection: sort[1],
-                                statuses: statuses,
-                                operations: operations,
-                                amountRange,
-                                localSolutionId,
-                            }));
-                        }
-                    }
-                }
-            }
-        }
-
-        let errEncountered = false;
-        let counter = 0;
-
-        const obs = concat(
-            ...searches
-                .map(search => this.getOrders(search).pipe(
-                    // map(() => undefined),
-                    takeWhile(() => !errEncountered),
-                    catchError((err, obs) => {
-                        errEncountered = true;
-                        console.error(err);
-                        return throwError(() => err);
-                    })),
-                )
-        ).pipe(
-            tap(v => counter++, e => counter++),
-            finalize(() => setTimeout(() => console.log('finished all order request, count', counter), 100)),
-            tap({error: e => console.log('err encountered', e)}),
-        );
-
-        console.time('allOrderRequests');
-
-        obs.subscribe({complete: () => console.timeEnd('allOrderRequests')});
-    }
+    // TODO sample code to test for new indexes
+    // private runAllPossibleQueriesForIndexes() {
+    //     type paramType = Parameters<typeof this.getOrders>[0];
+    //
+    //     const getSearchObj = (params: Omit<paramType, 'page' | 'pageSize'>): paramType => ({
+    //         ...params,
+    //         page: 1,
+    //         pageSize: 1,
+    //     });
+    //
+    //     const sorts: [paramType['sortColumn'], paramType['sortDirection']][] = [
+    //         ['createdDate', 'asc'],
+    //         ['createdDate', 'desc'],
+    //         ['localSolutionRes.count', 'desc'],
+    //         ['amountTotal', 'desc'],
+    //     ];
+    //
+    //     const statusesArr: paramType['statuses'][] = [
+    //         [],
+    //         [OrderStatus.NEW],
+    //     ];
+    //     const opTypes: paramType['operations'][] = [
+    //         [],
+    //         [OrderOperationType.NEW_PURCHASE],
+    //     ];
+    //     const amountRangesArr: paramType['amountRange'][] = [
+    //         '',
+    //         'first',
+    //     ];
+    //     const locSolutionsArr: paramType['localSolutionId'][] = [
+    //         '',
+    //         'localSolution2Id',
+    //     ];
+    //
+    //     const searches: paramType[] = [];
+    //
+    //     for (let sort of sorts) {
+    //         for (let statuses of statusesArr) {
+    //             for (let operations of opTypes) {
+    //                 for (let amountRange of amountRangesArr) {
+    //                     for (let localSolutionId of locSolutionsArr) {
+    //                         searches.push(getSearchObj({
+    //                             sortColumn: sort[0],
+    //                             sortDirection: sort[1],
+    //                             statuses: statuses,
+    //                             operations: operations,
+    //                             amountRange,
+    //                             localSolutionId,
+    //                         }));
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //
+    //     let errEncountered = false;
+    //     let counter = 0;
+    //
+    //     const obs = concat(
+    //         ...searches
+    //             .map(search => this.queryHandler.getDocs(search).pipe(
+    //                 // map(() => undefined),
+    //                 takeWhile(() => !errEncountered),
+    //                 catchError((err, obs) => {
+    //                     errEncountered = true;
+    //                     console.error(err);
+    //                     return throwError(() => err);
+    //                 })),
+    //             )
+    //     ).pipe(
+    //         tap(v => counter++, e => counter++),
+    //         finalize(() => setTimeout(() => console.log('finished all order request, count', counter), 100)),
+    //         tap({error: e => console.log('err encountered', e)}),
+    //     );
+    //
+    //     console.time('allOrderRequests');
+    //
+    //     obs.subscribe({complete: () => console.timeEnd('allOrderRequests')});
+    // }
 }
