@@ -27,7 +27,7 @@ export type OrderSortEvent = SortEvent<OrderSortColumn, OrderSortDirection>
 export type OrderAggregationOption = 'count' | 'amount' | OrderStatus;
 export type OrderAggregationTimePeriod = 'currentYear';
 
-export const allowedOrderSorts: Readonly<OrderSortEvent>[] = [
+const allowedOrderSorts: Readonly<OrderSortEvent>[] = [
     {
         column: 'createdDate',
         direction: 'asc',
@@ -45,6 +45,10 @@ export const allowedOrderSorts: Readonly<OrderSortEvent>[] = [
         direction: 'desc',
     },
 ];
+
+export const getAllowedDirections = (column: OrderSortColumn) => allowedOrderSorts
+    .filter(sort => sort.column === column)
+    .map(({ direction }) => direction)
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {

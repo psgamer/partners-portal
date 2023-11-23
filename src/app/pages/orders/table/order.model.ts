@@ -2,21 +2,7 @@ import { Timestamp } from "@angular/fire/firestore";
 import { Client, Contractor, License, Payer, Period } from "src/app/core/models/all.models";
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 
-export interface OrderModel {
-    id?: any;
-    category?: any;
-    img?: any;
-    name?: any;
-    instructor?: any;
-    lessons?: any;
-    duration?: any;
-    students?: any;
-    fees?: any;
-    rating?: any;
-    status?: any;
-}
-
-interface Order {
+export interface Order {
     id: string;
     number: Order['id'];
     contractor: {
@@ -64,22 +50,35 @@ interface Order {
     };
 }
 
-interface OrderAmountRange {
+export interface OrderAmountRange {
     id: string;
     from: number | null;
     to: number | null;
 }
 
-enum OrderOperationType {
+export enum OrderOperationType {
     NEW_PURCHASE = 'NEW_PURCHASE',
     PROLONGATION = 'PROLONGATION',
 }
 
-enum OrderStatus {
+export enum OrderStatus {
     NEW = 'NEW',
     PENDING = 'PENDING',
     CANCELLED = 'CANCELLED',
     COMPLETED = 'COMPLETED',
 }
 
-export { Order, OrderOperationType, OrderStatus, OrderAmountRange }
+export const getOrderTagItemClass = ({status}: Pick<Order, 'status'>): string => {
+    switch (status) {
+        case OrderStatus.NEW:
+            return 'bg-secondary-subtle text-secondary';
+        case OrderStatus.PENDING:
+            return 'bg-primary-subtle text-primary';
+        case OrderStatus.CANCELLED:
+            return 'bg-danger-subtle text-danger';
+        case OrderStatus.COMPLETED:
+            return 'bg-success-subtle text-success';
+        default:
+            return '';
+    }
+};

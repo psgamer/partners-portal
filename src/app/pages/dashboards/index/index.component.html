@@ -65,69 +65,44 @@
     </div><!--end col-->
 </div><!--end row-->
 <div class="row">
-    <div class="col-lg-8">
+    <div class="col-xl-9">
         <div class="card" id="contactList">
             <div class="card-header align-items-center d-flex">
-                <h4 class="card-title mb-0 flex-grow-1">Latest Orders</h4>
+                <h4 class="card-title mb-0 flex-grow-1">{{'ORDER.LABELS.LATEST' | translate}}</h4>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-borderless table-centered align-middle table-nowrap mb-0">
                         <thead class="text-muted table-light">
-                        <tr>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="date" (Ordersort)="onSort($event)">Order Date</th>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="orderId" (Ordersort)="onSort($event)">Order ID</th>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="shop" (Ordersort)="onSort($event)">Shop</th>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="customer" (Ordersort)="onSort($event)">Customers</th>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="product" (Ordersort)="onSort($event)">Products</th>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="amount" (Ordersort)="onSort($event)">Amount</th>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="status" (Ordersort)="onSort($event)">Status</th>
-                            <th scope="col" class="sort cursor-pointer" Ordersortable="rating" (Ordersort)="onSort($event)">Rating</th>
-                        </tr>
+                            <tr>
+                                <th *ngFor="let colConfig of colConfigs" scope="col">
+                                    {{('ORDER.FIELDS.' + colConfig.column) | translate}}
+                                </th>
+                            </tr>
                         </thead>
                         <tbody class="list">
-                        <tr *ngFor="let data of orderList;">
-                            <td class="order_date">
-                                {{data.date}}
-                            </td>
-                            <td class="order_id">
-                                <a routerLink="/ecommerce/order-overview" class="fw-medium link-primary">{{data.orderId}}</a>
-                            </td>
-                            <td class="shop">
-                                <img src="{{data.shop}}" alt="" class="avatar-xxs rounded-circle">
-                            </td>
-                            <td class="customer">
-                                {{data.customer}}
-                            </td>
-                            <td class="products">{{data.product}}</td>
-                            <td class="amount">
-                                <span class="fw-medium">{{data.amount}}</span>
-                            </td>
-                            <td class="status">
-                                    <span class="badge" [ngClass]="{'bg-secondary-subtle text-secondary': data.status === 'New',
-                                    'bg-warning-subtle text-warning': data.status === 'Pending',
-                                    'bg-danger-subtle text-danger': data.status === 'Out of Delivered',
-                                    'bg-primary-subtle text-primary': data.status === 'Shipping',
-                                    'bg-success-subtle text-success': data.status === 'Delivered'}">{{data.status}}</span>
-                            </td>
-                            <td class="rating">
-                                <h5 *ngIf="data.rating" class="fs-md fw-medium mb-0">
-                                    <i class="ph-star align-baseline text-warning"></i>
-                                    {{data.rating}}
-                                </h5>
-                                <h5 *ngIf="!data.rating" class="fs-md fw-medium mb-0">-</h5>
-                            </td>
-                        </tr><!-- end tr -->
+                            <tr *ngFor="let item of (orders$ | async);let i = index;" id="p_{{item.id}}">
+                                <ng-container *ngFor="let colConfig of colConfigs">
+                                    <ng-container [ngSwitch]="colConfig.column">
+                                        <td *ngSwitchCase="'createdDate'">{{extractByPath(item, colConfig.column).toDate() | date }}</td>
+                                        <td *ngSwitchCase="'number'"><a routerLink="/learning/grid" class="text-reset">{{extractByPath(item, colConfig.column)}}</a></td>
+                                        <td *ngSwitchCase="'status'"><span [class]="'badge ' + getOrderTagItemClass(item)">{{('ORDER.STATUS.' + extractByPath(item, colConfig.column)) | translate}}</span></td>
+                                        <td *ngSwitchCase="'operation'">{{('ORDER.OPERATION.' + extractByPath(item, colConfig.column)) | translate}}</td>
+                                        <td *ngSwitchDefault>{{extractByPath(item, colConfig.column)}}</td>
+                                    </ng-container>
+                                </ng-container>
+                            </tr>
                         </tbody><!-- end tbody -->
                     </table><!-- end table -->
-                    <div class="noresult" style="display: none">
-                        <div class="text-center">
-                            <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" colors="primary:#405189,secondary:#0ab39c" style="width:75px;height:75px"></lord-icon>
-                            <h5 class="mt-2">Sorry! No Result Found</h5>
-                            <p class="text-muted mb-0">We've searched more than 150+ transactions We did not find any
-                                transactions for you search.</p>
+                    <div class="noresult" *ngIf="(orders$ | async)?.length == 0 && ((loading$ | async) === false)">
+                        <div class="text-center py-4">
+                            <i class="ph-magnifying-glass fs-1 text-primary"></i>
+                            <h5 class="mt-2">{{'ORDER.LABELS.NONE' | translate}}</h5>
                         </div>
                     </div>
+                </div>
+                <div *ngIf="loading$ | async" id="elmLoader">
+                    <div class="spinner-border text-primary avatar-sm" role="status"></div>
                 </div>
             </div>
         </div>

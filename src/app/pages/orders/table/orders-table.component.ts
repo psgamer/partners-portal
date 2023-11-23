@@ -11,8 +11,8 @@ import { LocalSolutionService } from '../../../shared/local-solution/local-solut
 import { OrderAmountRangeService } from './order-amount-range.service';
 
 import { OrderSortableTableHeaderDirective } from './order-sortable-table-header.directive';
-import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
-import { allowedOrderSorts, OrderFilterParams, OrderService, OrderSortDirection, OrderSortEvent } from './order.service';
+import { getOrderTagItemClass, Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
+import { getAllowedDirections, OrderFilterParams, OrderService, OrderSortDirection, OrderSortEvent } from './order.service';
 
 interface Form {
     amountRange: FormControl<OrderAmountRange['id'] | ''>,
@@ -55,7 +55,7 @@ export class OrdersTableComponent {
         'status',
     ]).map(column => ({
         column,
-        sortDirections: allowedOrderSorts.filter(sort => sort.column === column).map(({ direction }) => direction),
+        sortDirections: getAllowedDirections(column),
     }));
     readonly extractByPath = getExtractByPath<Order>();
     readonly canCancelOrder: Predicate<Order> = ({status}) => canCancelOrderStatuses.includes(status);
@@ -99,20 +99,7 @@ export class OrdersTableComponent {
         return this.state$.pipe(map(({ sortColumn, sortDirection }) => colPath === sortColumn ? sortDirection : ''));
     }
 
-    readonly getStatusClass = (status: OrderStatus): string => {
-        switch (status) {
-            case OrderStatus.NEW:
-                return 'bg-secondary-subtle text-secondary';
-            case OrderStatus.PENDING:
-                return 'bg-primary-subtle text-primary';
-            case OrderStatus.CANCELLED:
-                return 'bg-danger-subtle text-danger';
-            case OrderStatus.COMPLETED:
-                return 'bg-success-subtle text-success';
-            default:
-                return '';
-        }
-    }
+    readonly getOrderTagItemClass = getOrderTagItemClass;
 
     get canDeleteCheckedOrders$() {
         const orderIds: Order['id'][] = Object.entries(this.checkboxItems)

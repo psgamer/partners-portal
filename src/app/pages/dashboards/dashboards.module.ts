@@ -30,7 +30,6 @@ import { SharedModule } from 'src/app/shared/shared.module';
 
 // Page route
 import { DashboardsRoutingModule } from './dashboards-routing.module';
-import { NgbdIndexsSortableHeader } from './index/index-sortable.directive';
 
 // component
 import { IndexComponent } from './index/index.component';
@@ -38,7 +37,6 @@ import { IndexComponent } from './index/index.component';
 @NgModule({
     declarations: [
         IndexComponent,
-        NgbdIndexsSortableHeader
     ],
     imports: [
         CommonModule,
