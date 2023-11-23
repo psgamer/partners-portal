@@ -9,7 +9,7 @@ import { LocalSolutionService } from './local-solution/local-solution.service';
 
 @NgModule({
     declarations: [
-        BreadcrumbsComponent
+        BreadcrumbsComponent,
     ],
     imports: [
         CommonModule,
@@ -17,7 +17,7 @@ import { LocalSolutionService } from './local-solution/local-solution.service';
         FormsModule,
         ReactiveFormsModule,
     ],
-    exports: [BreadcrumbsComponent, TranslateModule, FormsModule, ReactiveFormsModule,],
+    exports: [BreadcrumbsComponent, TranslateModule, FormsModule, ReactiveFormsModule],
     providers: [LocalSolutionService],
 })
 export class SharedModule {

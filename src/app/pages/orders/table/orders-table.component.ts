@@ -3,16 +3,16 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { PageChangedEvent } from 'ngx-bootstrap/pagination';
-import { of, take } from 'rxjs';
+import { Observable, of, take } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { getExtractByPath, Paths } from '../../../core/models/util.models';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
 import { OrderAmountRangeService } from './order-amount-range.service';
+
+import { OrderSortableTableHeaderDirective } from './order-sortable-table-header.directive';
 import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
 import { allowedOrderSorts, OrderFilterParams, OrderService, OrderSortDirection, OrderSortEvent } from './order.service';
-
-import { NgbdListSortableHeader } from './orders-table-sortable.directive';
 
 interface Form {
     amountRange: FormControl<OrderAmountRange['id'] | ''>,
@@ -90,12 +90,12 @@ export class OrdersTableComponent {
         localSolutionId: this.fb.control('', {nonNullable: true}),
     });
 
-    @ViewChildren(NgbdListSortableHeader) tableHeaders!: QueryList<NgbdListSortableHeader>;
+    @ViewChildren(OrderSortableTableHeaderDirective) tableHeaders!: QueryList<OrderSortableTableHeaderDirective>;
     // @ViewChild('addCourse') addCourse?: ModalDirective;
     @ViewChild('cancelModal') cancelDialog?: ModalDirective;
     @ViewChild('deleteModal') deleteDialog?: ModalDirective;
 
-    readonly getSortDirection$ = (colPath: Paths<Order>) => {
+    readonly getSortDirection$ = (colPath: Paths<Order>): Observable<OrderSortDirection | ''> => {
         return this.state$.pipe(map(({ sortColumn, sortDirection }) => colPath === sortColumn ? sortDirection : ''));
     }
 

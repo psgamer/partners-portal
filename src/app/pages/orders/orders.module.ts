@@ -27,7 +27,7 @@ import { SimplebarAngularModule } from 'simplebar-angular';
 // Page Route
 import { SharedModule } from 'src/app/shared/shared.module';
 import { OrdersRoutingModule } from './orders-routing.module';
-import { NgbdListSortableHeader } from './table/orders-table-sortable.directive';
+import { OrderSortableTableHeaderDirective } from './table/order-sortable-table-header.directive';
 import { OrdersTableComponent } from './table/orders-table.component';
 
 // Component
@@ -42,7 +42,7 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
 @NgModule({
     declarations: [
         OrdersTableComponent,
-        NgbdListSortableHeader,
+        OrderSortableTableHeaderDirective,
     ],
     imports: [
         CommonModule,
@@ -71,5 +71,4 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class OrdersModule {
-}
+export class OrdersModule {}

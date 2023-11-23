@@ -13,10 +13,10 @@ import { OrderSort, OrderSortColumn, OrderSortDirection, OrderSortEvent } from '
     '(click)': 'rotate()'
   }
 })
-export class NgbdListSortableHeader {
-  @Input() listsortable: OrderSortColumn = 'createdDate';
-  @Input() direction: OrderSort['direction'] = 'desc';
-  @Input() availableDirections: OrderSortDirection[] = [];
+export class OrderSortableTableHeaderDirective {
+  @Input() listsortable!: OrderSortColumn;
+  @Input() direction!: OrderSortDirection | '';
+  @Input() availableDirections!: OrderSortDirection[];
 
   @Output() sort = new EventEmitter<OrderSortEvent>();
 
