@@ -15,43 +15,43 @@ import { LocalSolution } from '../../../shared/local-solution/local-solution.mod
 import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
 import { OrderSortColumn, OrderSortDirection, SortEvent } from './orders-table-sortable.directive';
 
-interface State {
+interface SearchParams {
     page: number;
-    readonly pageSize: number;
+    pageSize: number;
     sortColumn: OrderSortColumn;
     sortDirection: OrderSortDirection;
 }
 
-export interface FiltersState {
+export interface FiltersParams {
     localSolutionId: LocalSolution['id'] | '';
     amountRange: OrderAmountRange['id'] | '';
     operations: OrderOperationType[];
     statuses: OrderStatus[];
 }
 
-export type AggregationOption = 'count' | 'amount' | OrderStatus;
+export type OrderAggregationOption = 'count' | 'amount' | OrderStatus;
 export type OrderAggregationTimePeriod = 'currentYear';
 
-interface PrivateState {
+interface PagingState {
     firstDocSnap?: DocumentSnapshot<FirebaseDoc<Order>>;
     lastDocSnap?: DocumentSnapshot<FirebaseDoc<Order>>;
 }
 
-type SearchRequest = Partial<State & FiltersState>;
+type SearchRequest = Partial<SearchParams & FiltersParams>;
 
 interface SearchResult {
-    state: State,
-    privateState: PrivateState,
-    filters: FiltersState,
-    orders: Order[],
+    searchParams: SearchParams,
+    pagingState: PagingState,
+    filterParams: FiltersParams,
+    docs: Order[],
     totalRecords: number,
 }
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-    private readonly _orders$ = new BehaviorSubject<Order[]>([]);
+    private readonly _docs$ = new BehaviorSubject<Order[]>([]);
     private readonly _totalRecords$ = new BehaviorSubject<number>(0);
-    private readonly _filtersState$ = new BehaviorSubject<FiltersState>({
+    private readonly _filterParams$ = new BehaviorSubject<FiltersParams>({
         amountRange: '',
         operations: [],
         statuses: [],
@@ -60,19 +60,19 @@ export class OrderService {
     private readonly _loading$ = new BehaviorSubject<boolean>(true);
     private readonly _searchRequest$ = new Subject<SearchRequest>();
 
-    private readonly _state$ = new BehaviorSubject<State>({
+    private readonly _searchParams$ = new BehaviorSubject<SearchParams>({
         page: 1,
         pageSize: 10,
         sortColumn: 'createdDate',
         sortDirection: 'desc',
     });
 
-    private privateState: PrivateState = {
+    private pagingState: PagingState = {
         firstDocSnap: undefined,
         lastDocSnap: undefined,
     }
 
-    private get collRef() {
+    private get collRef$() {
         return this.auth
             .currentUserContractorId()
             .pipe(
@@ -81,35 +81,31 @@ export class OrderService {
             );
     }
 
-    runMe = () => {
-        this.runAllPossibleQueriesForIndexes();
-    }
-
     constructor(private db: Firestore, private auth: AuthenticationService) {
         this._searchRequest$.pipe(
             tap(() => this._loading$.next(true)),
             switchMap(state => this.getOrders(state)),
             catchError(error => {
-                console.error('An error occurred while fetching orders:', error);
+                console.error('An error occurred while querying documents:', error);
                 this._loading$.next(false);
                 return of(undefined);
             }),
             filter(result => result !== undefined),
             map(result => result as NonNullable<typeof result>),
             tap(() => this._loading$.next(false)),
-            tap(({ state, privateState, orders, totalRecords }) => {
-                this.privateState = privateState;
+            tap(({ searchParams, pagingState, docs, totalRecords }) => {
+                this.pagingState = pagingState;
 
-                this._state$.next(state);
+                this._searchParams$.next(searchParams);
 
-                this._orders$.next(orders);
+                this._docs$.next(docs);
                 this._totalRecords$.next(totalRecords);
             }),
         ).subscribe();
     }
 
-    get orders$() {
-        return this._orders$.asObservable();
+    get docs$() {
+        return this._docs$.asObservable();
     }
 
     get totalRecords$() {
@@ -120,30 +116,30 @@ export class OrderService {
         return this._loading$.asObservable();
     }
 
-    get filtersState$() {
-        return this._filtersState$.asObservable();
+    get filterParams$() {
+        return this._filterParams$.asObservable();
     }
 
-    get state$() {
-        return this._state$.asObservable();
+    get searchParams$() {
+        return this._searchParams$.asObservable();
     }
 
     sort({ column, direction }: SortEvent) {
         this._search({ sortColumn: column, sortDirection: direction });
     }
 
-    gotoPage(page: State['page']) {
+    gotoPage(page: SearchParams['page']) {
         this._search({ page });
     }
 
-    search(changes: Partial<FiltersState> = {}) {
+    search(changes: Partial<FiltersParams> = {}) {
         this._searchRequest$.next({
             ...changes,
             page: 1,
         });
     }
 
-    getOrdersAggregation<T extends AggregationOption>(option: T, timePeriod: OrderAggregationTimePeriod = 'currentYear') {
+    getOrdersAggregation<T extends OrderAggregationOption>(option: T, timePeriod: OrderAggregationTimePeriod = 'currentYear') {
         const constraints: QueryConstraint[] = [];
 
         switch (timePeriod) {
@@ -173,12 +169,12 @@ export class OrderService {
                 constraints.push(where('status' as Paths<Order>, '==', option))
                 break;
             default:
-                throw new Error('option not supported');
+                throw new Error('aggregation option not supported');
         }
 
         const aggregationSpec = { [option]: aggregation } as {[key in T]: AggregateField<number>};
 
-        return this.collRef.pipe(
+        return this.collRef$.pipe(
             map(collRef => query(collRef, ...constraints)),
             switchMap(query => getAggregateFromServer(query, aggregationSpec)),
             map(result => result.data()),
@@ -186,14 +182,14 @@ export class OrderService {
     }
 
     cancelOrder(id: Order['id']) {
-        return this.collRef.pipe(
+        return this.collRef$.pipe(
             map(collRef => doc(collRef, id)),
             switchMap(docRef => setDoc(docRef, { status: OrderStatus.CANCELLED }, { merge: true })),
         );
     }
 
     deleteOrder(ids: Order['id'][]) {
-        return this.collRef.pipe(
+        return this.collRef$.pipe(
             map(collRef => ids.map(id => doc(collRef, id))),
             switchMap(docRefs => {
                 const batch = writeBatch(this.db);
@@ -205,7 +201,7 @@ export class OrderService {
         );
     }
 
-    private _search(changes: Partial<State> = {}) {
+    private _search(changes: Partial<SearchParams> = {}) {
         this._searchRequest$.next(changes);
     }
 
@@ -213,11 +209,11 @@ export class OrderService {
         const {
             firstDocSnap,
             lastDocSnap,
-        } = this.privateState;
+        } = this.pagingState;
 
         const {
             page: oldPage,
-        } = this._state$.value;
+        } = this._searchParams$.value;
 
         const {
             page,
@@ -233,7 +229,7 @@ export class OrderService {
             localSolutionId,
         } = this.mergeFilters(changes);
 
-        return this.collRef
+        return this.collRef$
             .pipe(
                 map(collRef => {
                     const fieldFilterConstraints: QueryFieldFilterConstraint[] = [];
@@ -297,23 +293,23 @@ export class OrderService {
                     const lastDocSnap = docs[docs.length-1];
 
                     const result: SearchResult = {
-                        state: {
+                        searchParams: {
                             page,
                             pageSize,
                             sortDirection,
                             sortColumn,
                         },
-                        privateState: {
+                        pagingState: {
                             firstDocSnap,
                             lastDocSnap,
                         },
-                        filters: {
+                        filterParams: {
                             amountRange,
                             operations,
                             statuses,
                             localSolutionId,
                         },
-                        orders: docs.map(doc => doc.data()),
+                        docs: docs.map(doc => doc.data()),
                         totalRecords,
                     };
 
@@ -327,13 +323,13 @@ export class OrderService {
         pageSize,
         sortColumn,
         sortDirection,
-    }: Partial<State>): State {
+    }: Partial<SearchParams>): SearchParams {
         const {
             pageSize: oldPageSize,
             sortColumn: oldSortColumn,
             sortDirection: oldSortDirection,
             page: oldPage,
-        } = this._state$.value;
+        } = this._searchParams$.value;
 
         return {
             page: page || oldPage,
@@ -348,13 +344,13 @@ export class OrderService {
         operations,
         statuses,
         localSolutionId
-    }: Partial<FiltersState>): FiltersState {
+    }: Partial<FiltersParams>): FiltersParams {
         const {
             amountRange: oldAmountRange,
             operations: oldOperations,
             statuses: oldStatuses,
             localSolutionId: oldLocalSolutionId
-        } = this._filtersState$.value;
+        } = this._filterParams$.value;
 
         return {
             amountRange: amountRange !== undefined ? amountRange : oldAmountRange,

@@ -10,7 +10,7 @@ import { LocalSolution } from '../../../shared/local-solution/local-solution.mod
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
 import { OrderAmountRangeService } from './order-amount-range.service';
 import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
-import { FiltersState, OrderService } from './order.service';
+import { FiltersParams, OrderService } from './order.service';
 
 import { allowedOrderSorts, NgbdListSortableHeader, OrderSortDirection, SortEvent } from './orders-table-sortable.directive';
 
@@ -68,10 +68,10 @@ export class OrdersTableComponent {
     // files: File[] = [];
 
     // Table data
-    readonly state$ = this.orderService.state$;
+    readonly state$ = this.orderService.searchParams$;
     readonly loading$ = this.orderService.loading$;
     readonly totalRecords$ = this.orderService.totalRecords$;
-    readonly orders$ = this.orderService.orders$;
+    readonly orders$ = this.orderService.docs$;
     readonly orderAmountRanges$ = this.orderAmountTotalService.orderAmountRanges$;
     readonly statuses = Object.values(OrderStatus);
     readonly operationTypes = Object.values(OrderOperationType);
@@ -140,13 +140,11 @@ export class OrdersTableComponent {
         return ids.length;
     }
 
-    readonly runMe = this.orderService.runMe;
-
     constructor(
         private orderService: OrderService, private fb: FormBuilder, private localSolutionService: LocalSolutionService,
         private orderAmountTotalService: OrderAmountRangeService,
     ) {
-        this.orderService.filtersState$
+        this.orderService.filterParams$
             .pipe(
                 untilDestroyed(this),
                 map((filters, i) => {
@@ -193,7 +191,7 @@ export class OrdersTableComponent {
         this.orderService.gotoPage(page);
     }
 
-    private parseFilters(): FiltersState {
+    private parseFilters(): FiltersParams {
         const {
             amountRange,
             operations,
@@ -209,7 +207,7 @@ export class OrdersTableComponent {
         }
     }
 
-    private updateForm({operations, amountRange, statuses, localSolutionId}: FiltersState) {
+    private updateForm({operations, amountRange, statuses, localSolutionId}: FiltersParams) {
         this.searchForm.reset({
             amountRange,
             operations: Object.fromEntries(this.operationTypes.map(operation => [operation, operations.includes(operation)])),

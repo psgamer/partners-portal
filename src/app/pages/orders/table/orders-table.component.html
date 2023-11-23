@@ -1,18 +1,11 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="card" id="coursesList">
-            <div style="height: 100px;font-size: 60px;display: block;background: red" (click)="runMe()">run all queries</div>
             <div class="card-body">
                 <div class="row align-items-center g-2">
                     <div class="col-lg-3 me-auto">
                         <h6 class="card-title mb-0">{{'MENUITEMS.ORDERS.TABLE.TITLE' | translate}}<!--<span class="badge bg-primary ms-1 align-baseline">1452</span>--></h6>
                     </div><!--end col-->
-<!--                    <div class="col-lg-2">-->
-<!--                        <div class="search-box">-->
-<!--                            <input type="text" class="form-control search" placeholder="Search for courses, price or something..." [(ngModel)]="service.searchTerm">-->
-<!--                            <i class="ri-search-line search-icon"></i>-->
-<!--                        </div>-->
-<!--                    </div>&lt;!&ndash;end col&ndash;&gt;-->
                     <div class="col-lg-auto">
                         <div class="hstack flex-wrap gap-2">
                             <button class="btn btn-subtle-danger" *ngIf="canDeleteCheckedOrders$ | async" (click)="deleteCheckedOrders()"><i class="ri-delete-bin-2-line"></i></button>
@@ -20,8 +13,6 @@
 <!--                            <a href="javascript:void(0);" (click)="addCourse.show()" class="btn btn-secondary"><i class="bi bi-plus-circle align-baseline me-1"></i>{{'ORDER.LABELS.CREATE' | translate}}</a>-->
                             <div>
                                 <button type="button" class="btn btn-info me-1" (click)="openEnd()"><i class="bi bi-funnel align-baseline me-1"></i>{{'ORDER.LABELS.SEARCH' | translate}}</button>
-<!--                                <a routerLink="/learning/grid" class="btn btn-subtle-primary btn-icon me-1"><i class="bi bi-grid"></i></a>-->
-<!--                                <a routerLink="/learning/list" class="btn btn-subtle-primary active btn-icon"><i class="bi bi-list-task"></i></a>-->
                             </div>
                         </div>
                     </div><!--end col-->
@@ -69,30 +60,6 @@
                                         <td *ngSwitchDefault>{{extractByPath(item, colConfig.column)}}</td>
                                     </ng-container>
                                 </ng-container>
-
-
-                                <!--                                <td class="id d-none"><a href="javascript:void(0)" class="fw-medium link-primary">#TBS00{{data.id}}</a></td>-->
-<!--                                                                <td class="category"><a routerLink="/learning/grid" class="text-reset">{{data.category}}</a></td>-->
-                                <!--                                <td class="course_Name">-->
-                                <!--                                    <div class="d-flex gap-2 align-items-center">-->
-                                <!--                                        <div class="flex-shrink-0">-->
-                                <!--                                            <img src="{{data.img}}" alt="" class="avatar-xxs">-->
-                                <!--                                        </div>-->
-                                <!--                                        <div class="flex-grow-1">-->
-                                <!--                                            <a routerLink="/learning/overview" class="text-reset">{{data.name}}</a>-->
-                                <!--                                        </div>-->
-                                <!--                                    </div>-->
-                                <!--                                </td>-->
-                                <!--                                <td class="instructor">{{data.instructor}}</td>-->
-                                <!--                                <td class="lessons">{{data.lessons}}</td>-->
-                                <!--                                <td class="duration">{{data.duration}}</td>-->
-                                <!--                                <td class="students">{{data.students}}</td>-->
-                                <!--                                <td class="fees"><span class="fw-medium">${{data.fees}}</span></td>-->
-                                <!--                                <td class="rating"><i class="bi bi-star-fill text-warning align-baseline me-1"></i>-->
-                                <!--                                    <span class="rate-value"> {{data.rating}}</span>-->
-                                <!--                                </td>-->
-                                <!--                                <td class="status"><span class="badge" [ngClass]="{'bg-info-subtle text-info': data.status === 'Open', 'bg-danger-subtle text-danger': data.status === 'Close'}">{{data.status}}</span>-->
-                                <!--                                </td>-->
 
                                 <td>
                                     <ul class="d-flex gap-2 list-unstyled mb-0">
@@ -144,135 +111,6 @@
     </div><!--end col-->
 </div><!--end row-->
 
-<!-- Modal -->
-<!--<div bsModal #addCourse="bs-modal" class="modal fade" id="addCourse">-->
-<!--    <div class="modal-dialog">-->
-<!--        <div class="modal-content border-0">-->
-<!--            <div class="modal-header bg-danger p-3">-->
-<!--                <h5 class="modal-title text-white" id="addCourseModalLabel">Add Course</h5>-->
-<!--                <button type="button" class="btn-close btn-close-white" (click)="addCourse.hide()"></button>-->
-<!--            </div>-->
-
-<!--            <form (ngSubmit)="saveProduct()" [formGroup]="listForm" class="tablelist-form" novalidate autocomplete="off">-->
-<!--                <div class="modal-body">-->
-<!--                    <div id="alert-error-msg" class="d-none alert alert-danger py-2"></div>-->
-<!--                    <input type="hidden" id="id-field">-->
-
-<!--                    <input type="hidden" id="rating-field">-->
-<!--                    <div class="mb-3">-->
-<!--                        <label class="form-label">Course Image<span class="text-danger">*</span></label>-->
-<!--                        <dropzone class="dropzone" [config]="dropzoneConfig" [message]="'Drop files here or click to upload.'" (success)="onUploadSuccess($event)"></dropzone>-->
-
-<!--                        <ul *ngIf="uploadedFiles" class="list-unstyled mb-0" id="dropzone-preview">-->
-<!--                            <li class="mt-2" *ngFor="let file of uploadedFiles;let i = index" id="dropzone-preview-list">-->
-<!--                                <div class="border rounded">-->
-<!--                                    <div class="d-flex flex-wrap gap-2 p-2">-->
-<!--                                        <div class="flex-shrink-0 me-3">-->
-<!--                                            <div class="avatar-sm bg-light rounded p-2">-->
-<!--                                                <img *ngIf="file.dataURL" class="img-fluid rounded d-block" [src]="file.dataURL" alt="Dropzone-Image" />-->
-<!--                                                <img *ngIf="!file.dataURL" class="img-fluid rounded d-block" [src]="file" alt="Dropzone-Image" />-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-<!--                                        <div class="flex-grow-1">-->
-<!--                                            <div class="pt-1">-->
-<!--                                                <h5 *ngIf="file.name" class="fs-md mb-1">{{ file.name }}</h5>-->
-<!--                                                <p *ngIf="file.size" class="fs-sm text-muted mb-0">{{ file.size }}</p>-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-<!--                                        <div class="flex-shrink-0 ms-3">-->
-<!--                                            <button (click)="removeFile(file)" class="btn btn-sm btn-danger">Delete</button>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </li>-->
-<!--                        </ul>-->
-<!--                        &lt;!&ndash; end dropzon-preview &ndash;&gt;-->
-<!--                    </div>-->
-<!--                    <div class="mb-3">-->
-<!--                        <label for="course-title-input" class="form-label">Course title<span class="text-danger">*</span></label>-->
-<!--                        <input type="text" id="course-title-input" formControlName="name" class="form-control" placeholder="Enter course title" required>-->
-<!--                    </div>-->
-
-
-<!--                    <div class="mb-3">-->
-<!--                        <label for="course-category-input" class="form-label">Course Category<span class="text-danger">*</span></label>-->
-
-<!--                        <select class="form-select" id="course-category-input" formControlName="category">-->
-<!--                            <option value="">Select Course Category</option>-->
-<!--                            <option value="Marketing & Management">Marketing & Management</option>-->
-<!--                            <option value="React Development">React Development</option>-->
-<!--                            <option value="Shopify Development">Shopify Development</option>-->
-<!--                            <option value="Graphic Design">Graphic Design</option>-->
-<!--                            <option value="Laravel Development">Laravel Development</option>-->
-<!--                            <option value="Flask Development">Flask Development</option>-->
-<!--                            <option value="Web Design">Web Design</option>-->
-<!--                            <option value="Asp.Net Development">Asp.Net Development</option>-->
-<!--                            <option value="PHP Development">PHP Development</option>-->
-<!--                            <option value="Graphic Design">Graphic Design</option>-->
-<!--                            <option value="Digital Marketing">Digital Marketing</option>-->
-<!--                            <option value="Data Science">Data Science</option>-->
-<!--                        </select>-->
-<!--                    </div>-->
-
-<!--                    <div class="row">-->
-<!--                        <div class="col-lg-6">-->
-<!--                            <div class="mb-3">-->
-<!--                                <label for="instructor-input" class="form-label">Instructor<span class="text-danger">*</span></label>-->
-<!--                                <input type="text" id="instructor-input" class="form-control" formControlName="instructor" placeholder="Enter instructor name" required>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="col-lg-6">-->
-<!--                            <div class="mb-3">-->
-<!--                                <label for="lessons-input" class="form-label">Lessons<span class="text-danger">*</span></label>-->
-<!--                                <input type="number" id="lessons-input" class="form-control" formControlName="lessons" placeholder="Lessons" required>-->
-<!--                            </div>-->
-<!--                        </div>&lt;!&ndash;end col&ndash;&gt;-->
-<!--                        <div class="col-lg-6">-->
-<!--                            <div class="mb-3">-->
-<!--                                <label for="students-input" class="form-label">Students</label>-->
-<!--                                <input type="number" id="students-input" class="form-control" formControlName="students" placeholder="Students" required>-->
-<!--                            </div>-->
-<!--                        </div>&lt;!&ndash;end col&ndash;&gt;-->
-<!--                        <div class="col-lg-6">-->
-<!--                            <div class="mb-3">-->
-<!--                                <label for="duration-input" class="form-label">Duration Time<span class="text-danger">*</span></label>-->
-<!--                                <input type="text" class="form-control" id="duration-input" formControlName="duration" placeholder="Select duration" required>-->
-<!--                            </div>-->
-<!--                        </div>&lt;!&ndash;end col&ndash;&gt;-->
-<!--                        <div class="col-lg-6">-->
-<!--                            <div class="mb-3">-->
-<!--                                <label for="fees-input" class="form-label">Fees<span class="text-danger">*</span></label>-->
-<!--                                <div class="input-group">-->
-<!--                                    <span class="input-group-text">$</span>-->
-<!--                                    <input type="number" class="form-control" formControlName="fees" id="fees-input" placeholder="0.00" required>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>&lt;!&ndash;end col&ndash;&gt;-->
-<!--                        <div class="col-lg-6">-->
-<!--                            <div class="mb-3">-->
-<!--                                <label for="status-input" class="form-label">Status<span class="text-danger">*</span></label>-->
-<!--                                <select class="form-select" id="status-input" formControlName="status">-->
-<!--                                    <option value="">Select Status</option>-->
-<!--                                    <option value="Open">Open</option>-->
-<!--                                    <option value="Close">Close</option>-->
-<!--                                </select>-->
-<!--                            </div>-->
-<!--                        </div>&lt;!&ndash;end col&ndash;&gt;-->
-<!--                    </div>&lt;!&ndash;end row&ndash;&gt;-->
-<!--                </div>-->
-<!--                <div class="modal-footer">-->
-<!--                    <div class="hstack gap-2 justify-content-end">-->
-<!--                        <button type="button" class="btn btn-ghost-danger" (click)="addCourse.hide()"><i class="bi bi-x-lg align-baseline me-1"></i> Close</button>-->
-<!--                        <button type="submit" class="btn btn-primary" id="add-btn">Add Course</button>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </form>-->
-<!--        </div>-->
-<!--        &lt;!&ndash; modal-content &ndash;&gt;-->
-<!--    </div>-->
-<!--</div>&lt;!&ndash;end add Property modal&ndash;&gt;-->
-
-<!-- deleteModal -->
 <div bsModal #deleteModal="bs-modal" id="deleteModal" class="modal fade zoomIn">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -294,9 +132,9 @@
                     <button type="button" class="btn w-sm btn-danger btn-hover" (click)="confirmDeleteOrders()">{{'BUTTONS.PROCEED' | translate}}</button>
                 </div>
             </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /deleteRecordModal -->
+        </div>
+    </div>
+</div>
 <!-- cancelModal -->
 <div bsModal #cancelModal="bs-modal" id="cancelModal" class="modal fade zoomIn">
     <div class="modal-dialog modal-dialog-centered">
@@ -319,9 +157,9 @@
                     <button type="button" class="btn w-sm btn-warning btn-hover" (click)="confirmCancelOrder()">{{'BUTTONS.PROCEED' | translate}}</button>
                 </div>
             </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /deleteRecordModal -->
+        </div>
+    </div>
+</div>
 
 <div class="custom-offcanvas" id="courseFilters">
     <div class="offcanvas-header border-bottom p-3">
