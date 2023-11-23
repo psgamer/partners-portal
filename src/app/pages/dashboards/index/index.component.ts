@@ -8,8 +8,6 @@ import { getExtractByPath, Paths } from '../../../core/models/util.models';
 import { getOrderTagItemClass, Order, OrderStatus } from '../../orders/table/order.model';
 import { getAllowedDirections, OrderAggregationTimePeriod, OrderService, OrderSortDirection } from '../../orders/table/order.service';
 
-const createTimePeriodSubject = (defaultValue: OrderAggregationTimePeriod = 'currentYear') => new BehaviorSubject<OrderAggregationTimePeriod>(defaultValue);
-
 type StatusCounts = AggregateSpecData<{ [key in OrderStatus]: AggregateField<number> }>;
 interface ColConfig {
     column: Paths<Order>;
@@ -47,9 +45,9 @@ export class IndexComponent {
         distinctUntilChanged(),
     );
 
-    private readonly amountTimePeriod$ = createTimePeriodSubject();
-    private readonly countTimePeriod$ = createTimePeriodSubject();
-    private readonly statusesTimePeriod$ = createTimePeriodSubject();
+    private readonly amountTimePeriod$ = new BehaviorSubject<OrderAggregationTimePeriod>('currentYear');
+    private readonly countTimePeriod$ = new BehaviorSubject<OrderAggregationTimePeriod>('currentYear');
+    private readonly statusesTimePeriod$ = new BehaviorSubject<OrderAggregationTimePeriod>('currentYear');
 
     private readonly _amount$ = new BehaviorSubject<number>(0);
     private readonly _count$ = new BehaviorSubject<number>(0);

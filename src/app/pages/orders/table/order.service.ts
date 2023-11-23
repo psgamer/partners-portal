@@ -99,29 +99,26 @@ export class OrderService {
 
         let aggregation: AggregateField<number>;
 
-        switch (option) {
-            case "count":
-                aggregation = count();
-                break;
-            case "amount":
-                aggregation = sum('amountTotal' as Paths<Order>);
-                break;
-            case OrderStatus.NEW:
-            case OrderStatus.CANCELLED:
-            case OrderStatus.COMPLETED:
-            case OrderStatus.PENDING:
-                aggregation = count();
-                constraints.push(where('status' as Paths<Order>, '==', option))
-                break;
-            default:
-                throw new Error('aggregation option not supported');
+        if (option in OrderStatus) {
+            aggregation = count();
+            constraints.push(where('status' as Paths<Order>, '==', option));
+        } else {
+            switch (option) {
+                case "count":
+                    aggregation = count();
+                    break;
+                case "amount":
+                    aggregation = sum('amountTotal' as Paths<Order>);
+                    break;
+                default:
+                    throw new Error('aggregation option not supported');
+            }
         }
 
         const aggregationSpec = { [option]: aggregation } as { [key in T]: AggregateField<number> };
 
         return this.collRef$.pipe(
-            map(collRef => query(collRef, ...constraints)),
-            switchMap(query => getAggregateFromServer(query, aggregationSpec)),
+            switchMap(collRef => getAggregateFromServer(query(collRef, ...constraints), aggregationSpec)),
             map(result => result.data()),
         );
     }
