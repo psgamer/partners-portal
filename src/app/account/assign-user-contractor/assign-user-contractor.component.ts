@@ -1,12 +1,12 @@
-import {Component} from '@angular/core';
-import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
-import {AuthenticationService} from "../../core/services/auth.service";
-import {ActivatedRoute} from "@angular/router";
-import {Functions, httpsCallable} from '@angular/fire/functions';
-import {Contractor} from "../../core/models/all.models";
-import {User} from "../../core/models/auth.models";
-import {map, switchMap, take, tap, throwError} from 'rxjs';
-import {catchError} from "rxjs/operators";
+import { Component } from '@angular/core';
+import { Functions, httpsCallable } from '@angular/fire/functions';
+import { ActivatedRoute } from "@angular/router";
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { map, switchMap, take, tap, throwError } from 'rxjs';
+import { catchError } from "rxjs/operators";
+import { User } from "../../core/models/auth.models";
+import { AuthenticationService } from "../../core/services/auth.service";
+import { Contractor } from "../../shared/contractor/contractor.model";
 
 // Register Auth
 
@@ -42,7 +42,7 @@ export class AssignUserContractorComponent {
                 take(1),
                 map(u => (u as NonNullable<typeof u>).uid),
                 switchMap(uid => this.assignContractorToUser({contractorId, uid})),
-                catchError((err, obs) => {
+                catchError((err) => {
                     this.text = 'Failure trying to assign contractor to user';
                     console.error('Failure trying to assign contractor to user', err);
                     return throwError(() => err);

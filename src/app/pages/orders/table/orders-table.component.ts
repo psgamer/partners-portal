@@ -5,14 +5,15 @@ import { ModalDirective } from 'ngx-bootstrap/modal';
 import { PageChangedEvent } from 'ngx-bootstrap/pagination';
 import { Observable, of, take } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { getExtractByPath, Paths } from '../../../core/models/util.models';
+import { getExtractByPath, Paths } from '../../../core/helpers/utils';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
-import { OrderAmountRangeService } from './order-amount-range.service';
+import { OrderAmountRange } from '../order-amount-range.model';
+import { OrderAmountRangeService } from '../order-amount-range.service';
+import { getOrderTagItemClass, Order, OrderOperationType, OrderStatus } from '../order.model';
+import { getAllowedDirections, OrderFilterParams, OrderService, OrderSortDirection, OrderSortEvent } from '../order.service';
 
 import { OrderSortableTableHeaderDirective } from './order-sortable-table-header.directive';
-import { getOrderTagItemClass, Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
-import { getAllowedDirections, OrderFilterParams, OrderService, OrderSortDirection, OrderSortEvent } from './order.service';
 
 interface Form {
     amountRange: FormControl<OrderAmountRange['id'] | ''>,
@@ -37,7 +38,6 @@ const canDeleteOrderStatuses = [OrderStatus.NEW];
 @Component({
     templateUrl: './orders-table.component.html',
     styleUrls: ['./orders-table.component.scss'],
-    providers: [OrderService, OrderAmountRangeService]
 })
 // List Component
 export class OrdersTableComponent {

@@ -26,7 +26,10 @@ import { SimplebarAngularModule } from 'simplebar-angular';
 
 // Page Route
 import { SharedModule } from 'src/app/shared/shared.module';
+import { OrderAmountRangeService } from './order-amount-range.service';
+import { OrderService } from './order.service';
 import { OrdersRoutingModule } from './orders-routing.module';
+import { OrderPageComponent } from './page/order-page.component';
 import { OrderSortableTableHeaderDirective } from './table/order-sortable-table-header.directive';
 import { OrdersTableComponent } from './table/orders-table.component';
 
@@ -43,6 +46,7 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
     declarations: [
         OrdersTableComponent,
         OrderSortableTableHeaderDirective,
+        OrderPageComponent,
     ],
     imports: [
         CommonModule,
@@ -64,6 +68,7 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
         NgSelectModule
     ],
     providers: [
+        OrderService, OrderAmountRangeService,
         {
             provide: DROPZONE_CONFIG,
             useValue: DEFAULT_DROPZONE_CONFIG

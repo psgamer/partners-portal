@@ -1,16 +1,6 @@
 import { Timestamp } from '@angular/fire/firestore';
+import { Contractor } from '../../shared/contractor/contractor.model';
 import { LocalSolution } from '../../shared/local-solution/local-solution.model';
-
-interface Contractor {
-    id: string;
-    name: string;
-    contractorIds: Contractor['id'][];
-}
-
-interface Payer {
-    id: string;
-    name: string;
-}
 
 interface License {
     id: string;
@@ -83,6 +73,5 @@ interface NewsArticle {
 }
 
 export {
-    Contractor, Client, License, LicensePassword, LicensePrivateKey, Period, PeriodType, UserNotificationType, UserNotification, Payer,
-    NewsArticle,
+    Client, License, LicensePassword, LicensePrivateKey, Period, PeriodType, UserNotificationType, UserNotification, NewsArticle,
 }

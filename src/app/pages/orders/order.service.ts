@@ -5,12 +5,13 @@ import {
     QueryConstraint, QueryFieldFilterConstraint, setDoc, sum, where, writeBatch
 } from '@angular/fire/firestore';
 import { map, switchMap } from 'rxjs/operators';
-import { QueryFilterConstraints, QueryHandler, Sort, SortEvent } from '../../../core/helpers/query.handler';
-import { getBaseConverter, Paths } from '../../../core/models/util.models';
-import { AuthenticationService } from '../../../core/services/auth.service';
-import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
+import { QueryFilterConstraints, QueryHandler, Sort, SortEvent } from '../../core/helpers/query.handler';
+import { getBaseConverter, Paths } from '../../core/helpers/utils';
+import { AuthenticationService } from '../../core/services/auth.service';
+import { LocalSolution } from '../../shared/local-solution/local-solution.model';
+import { OrderAmountRange } from './order-amount-range.model';
 
-import { Order, OrderAmountRange, OrderOperationType, OrderStatus } from './order.model';
+import { Order, OrderOperationType, OrderStatus } from './order.model';
 
 export interface OrderFilterParams {
     localSolutionId: LocalSolution['id'] | '';

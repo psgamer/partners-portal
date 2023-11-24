@@ -1,6 +1,9 @@
 import { Timestamp } from "@angular/fire/firestore";
-import { Client, Contractor, License, Payer, Period } from "src/app/core/models/all.models";
-import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
+import { Client, License, Period } from "src/app/core/models/all.models";
+import { Contractor } from '../../shared/contractor/contractor.model';
+import { LocalSolution } from '../../shared/local-solution/local-solution.model';
+import { Payer } from '../../shared/payer/payer.model';
+import { OrderAmountRange } from './order-amount-range.model';
 
 export interface Order {
     id: string;
@@ -31,7 +34,7 @@ export interface Order {
         id: LocalSolution['id'];
         count: number;
         expirationDate: Timestamp;
-    } | undefined;
+    } | null;
     localSolutionRes: {
         id: LocalSolution['id'];
         name: LocalSolution['name'];
@@ -48,12 +51,6 @@ export interface Order {
         phone: string;
         email: string;
     };
-}
-
-export interface OrderAmountRange {
-    id: string;
-    from: number | null;
-    to: number | null;
 }
 
 export enum OrderOperationType {
@@ -82,3 +79,5 @@ export const getOrderTagItemClass = ({status}: Pick<Order, 'status'>): string =>
             return '';
     }
 };
+
+export const orderRouteParam = 'number';

@@ -4,9 +4,9 @@ import { AggregateField, AggregateSpecData } from '@firebase/firestore';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ProgressbarType } from 'ngx-bootstrap/progressbar';
 import { BehaviorSubject, distinctUntilChanged, map, Subject, switchMap, tap, zip } from 'rxjs';
-import { getExtractByPath, Paths } from '../../../core/models/util.models';
-import { getOrderTagItemClass, Order, OrderStatus } from '../../orders/table/order.model';
-import { getAllowedDirections, OrderAggregationTimePeriod, OrderService, OrderSortDirection } from '../../orders/table/order.service';
+import { getExtractByPath, Paths } from '../../../core/helpers/utils';
+import { getOrderTagItemClass, Order, OrderStatus } from '../../orders/order.model';
+import { getAllowedDirections, OrderAggregationTimePeriod, OrderService, OrderSortDirection } from '../../orders/order.service';
 
 type StatusCounts = AggregateSpecData<{ [key in OrderStatus]: AggregateField<number> }>;
 interface ColConfig {

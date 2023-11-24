@@ -8,7 +8,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 import { BehaviorSubject, Observable, of, Subject, throwError, zip } from 'rxjs';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
-import { FirebaseDoc } from '../models/util.models';
+import { FirebaseDoc } from './utils';
 
 interface SearchParams<SortColumn, SortDirection> {
     page: number;

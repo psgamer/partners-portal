@@ -9,8 +9,7 @@
                     <div class="col-lg-auto">
                         <div class="hstack flex-wrap gap-2">
                             <button class="btn btn-subtle-danger" *ngIf="canDeleteCheckedOrders$ | async" (click)="deleteCheckedOrders()"><i class="ri-delete-bin-2-line"></i></button>
-                            <!--TODO add-->
-<!--                            <a href="javascript:void(0);" (click)="addCourse.show()" class="btn btn-secondary"><i class="bi bi-plus-circle align-baseline me-1"></i>{{'ORDER.LABELS.CREATE' | translate}}</a>-->
+                            <a routerLink="create" class="btn btn-secondary"><i class="bi bi-plus-circle align-baseline me-1"></i>{{'ORDER.LABELS.ACTION.CREATE' | translate}}</a>
                             <div>
                                 <button type="button" class="btn btn-info me-1" (click)="openEnd()"><i class="bi bi-funnel align-baseline me-1"></i>{{'ORDER.LABELS.SEARCH' | translate}}</button>
                             </div>

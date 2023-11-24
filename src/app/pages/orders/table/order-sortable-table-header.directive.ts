@@ -1,5 +1,5 @@
 import { Directive, EventEmitter, Input, Output } from '@angular/core';
-import { OrderSort, OrderSortColumn, OrderSortDirection, OrderSortEvent } from './order.service';
+import { OrderSort, OrderSortColumn, OrderSortDirection, OrderSortEvent } from '../order.service';
 
 @Directive({
   selector: 'th[listsortable]',

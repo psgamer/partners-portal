@@ -6,13 +6,14 @@ import { Functions, httpsCallable } from '@angular/fire/functions';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { switchMap, tap } from 'rxjs/operators';
-import { getBaseConverter, Paths } from '../../../core/models/util.models';
+import { getBaseConverter, Paths } from '../../core/helpers/utils';
 
-import { OrderAmountRange } from './order.model';
+
+import { OrderAmountRange } from "./order-amount-range.model";
 
 @Injectable({ providedIn: 'root' })
 export class OrderAmountRangeService {
-    private readonly generateOrderAmountRanges = httpsCallable<void, boolean>(this.functions, 'generateOrderAmountRanges');
+    private readonly generateOrderAmountRanges = httpsCallable<void, void>(this.functions, 'generateOrderAmountRanges');
     private readonly collRef = collection(this.db, 'order-amount-ranges').withConverter(getBaseConverter<OrderAmountRange>());
     private readonly _orderAmountRanges$ = new BehaviorSubject<OrderAmountRange[]>([]);
     private readonly _searchRequest = new Subject<void>();

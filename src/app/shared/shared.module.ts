@@ -5,7 +5,9 @@ import { TranslateModule } from '@ngx-translate/core';
 
 // component
 import { BreadcrumbsComponent } from './breadcrumbs/breadcrumbs.component';
+import { ContractorService } from './contractor/contractor.service';
 import { LocalSolutionService } from './local-solution/local-solution.service';
+import { PayerService } from './payer/payer.service';
 
 @NgModule({
     declarations: [
@@ -18,7 +20,7 @@ import { LocalSolutionService } from './local-solution/local-solution.service';
         ReactiveFormsModule,
     ],
     exports: [BreadcrumbsComponent, TranslateModule, FormsModule, ReactiveFormsModule],
-    providers: [LocalSolutionService],
+    providers: [LocalSolutionService, ContractorService, PayerService],
 })
 export class SharedModule {
 }

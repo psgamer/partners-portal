@@ -1,4 +1,7 @@
-import { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions, WithFieldValue } from '@angular/fire/firestore';
+import {
+    DocumentData, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions, Timestamp, WithFieldValue
+} from '@angular/fire/firestore';
+import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
 
 
 type FirebaseDoc<T> = Omit<T, 'id'>;
@@ -8,6 +11,16 @@ type Paths<T> = T extends object
         [K in keyof T]: `${Exclude<K, symbol>}${'' | `.${Paths<T[K]>}`}`
     }[keyof T]
     : never;
+
+type FormStructure<T> = {
+    [K in keyof T]: NonNullable<T[K]> extends Timestamp
+        ? AbstractControl<NonNullable<T[K]>>
+        : (NonNullable<T[K]> extends object
+            ? FormGroup<FormStructure<NonNullable<T[K]>>>
+            : (NonNullable<T[K]> extends any[]
+                ? FormArray<AbstractControl<NonNullable<T[K]>[0]>>
+                : AbstractControl<NonNullable<T[K]>>));
+};
 
 const getExtractByPath = <T extends {[key: string]: any}>() => <R = any>(obj: T, path: Paths<T>): R => path
     .split('.')
@@ -27,4 +40,4 @@ const getBaseConverter = <T extends ({id: any} & DocumentData)>(): FirestoreData
     },
 });
 
-export {FirebaseDoc, Paths, getExtractByPath, getBaseConverter};
+export {FirebaseDoc, Paths, FormStructure, getExtractByPath, getBaseConverter};

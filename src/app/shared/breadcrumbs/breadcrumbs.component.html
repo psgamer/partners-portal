@@ -1,13 +1,12 @@
-<!-- start page title -->
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">{{title}}</h4>
+            <h4 class="mb-sm-0">{{(breadcrumbs[breadcrumbs.length - 1]) | translate}}</h4>
 
             <div class="page-title-right">
                 <ol class="breadcrumb m-0">
-                    <ng-container *ngFor="let item of breadcrumbItems">
-                        <li class="breadcrumb-item"[ngClass]="{'active': item.active == true}">{{ item.label }}</li>
+                    <ng-container *ngFor="let item of breadcrumbs; let l = last">
+                        <li class="breadcrumb-item" [ngClass]="{'active': l}">{{ item | translate }}</li>
                     </ng-container>
                 </ol>
             </div>
@@ -15,4 +14,3 @@
         </div>
     </div>
 </div>
-<!-- end page title -->

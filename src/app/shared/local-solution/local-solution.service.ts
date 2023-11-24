@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { collection, Firestore, getDocs, orderBy, query } from '@angular/fire/firestore';
-import { FirebaseDoc, getBaseConverter, Paths } from '../../core/models/util.models';
+import { FirebaseDoc, getBaseConverter, Paths } from '../../core/helpers/utils';
 import { LocalSolution } from './local-solution.model';
 
 @Injectable({ providedIn: 'root' })
