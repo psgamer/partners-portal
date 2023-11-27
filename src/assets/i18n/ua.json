@@ -291,7 +291,9 @@
       },
       "DETAILS": {
         "TITLE": "Замовлення {{number}}"
-      }
+      },
+      "TITLE": "Замовлення",
+      "OWNER_INFO": "Дані власника ліцензії"
     },
     "CONFIRM": {
       "CANCEL": {
@@ -310,6 +312,9 @@
       "localSolutionRes.count":  "Кількість",
       "amountTotal": "Вартість",
       "contractor.name":  "Контрагент",
+      "distributor.name":  "Дистриб'ютор",
+      "contractorPayer.name":  "Платник",
+      "distributorPayer.name":  "Платник дистриб'ютора",
       "client.name": "Клієнт",
       "status":  "Статус"
     },

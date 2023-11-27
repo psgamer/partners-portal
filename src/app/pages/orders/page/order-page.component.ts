@@ -1,12 +1,13 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { Timestamp } from '@angular/fire/firestore';
 import { NonNullableFormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslateService } from '@ngx-translate/core';
 import { ModalDirective } from 'ngx-bootstrap/modal';
-import { BehaviorSubject, distinctUntilChanged, ReplaySubject, take, tap } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { FormStructure } from '../../../core/helpers/utils';
+import { distinctUntilChanged, Observable, of, ReplaySubject, take, tap } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs/operators';
+import { FormStructure, selectComparatorById } from '../../../core/helpers/utils';
 import { PeriodType } from '../../../core/models/all.models';
 import { Contractor } from '../../../shared/contractor/contractor.model';
 import { ContractorService } from '../../../shared/contractor/contractor.service';
@@ -14,7 +15,7 @@ import { LocalSolution } from '../../../shared/local-solution/local-solution.mod
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
 import { Payer } from '../../../shared/payer/payer.model';
 import { PayerService } from '../../../shared/payer/payer.service';
-import { Order, OrderOperationType, orderRouteParam, OrderStatus } from '../order.model';
+import { CreateOrder, OrderOperationType, orderRouteParam, OrderStatus } from '../order.model';
 
 // data Get
 import { addressList } from './data';
@@ -22,10 +23,22 @@ import { addressList } from './data';
 @UntilDestroy()
 @Component({
     templateUrl: './order-page.component.html',
-    styleUrls: ['./order-page.component.scss']
+    styleUrls: ['./order-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Default,
 })
 export class OrderPageComponent {
-    breadcrumbs?: string[];
+    readonly selectComparator = selectComparatorById;
+    readonly breadcrumbs$ = this.route.paramMap.pipe(
+        untilDestroyed(this),
+        map(map => map.get(orderRouteParam)),
+        switchMap(number => !number
+            ? of('ORDER.LABELS.CREATE.TITLE')
+            : this.translate.get('ORDER.LABELS.DETAILS.TITLE', { number }) as Observable<string>),
+        map(finalBreadcrumb => [
+            'MENUITEMS.ORDERS.TEXT',
+            finalBreadcrumb,
+        ]),
+    );
 
     name: any;
     address: any;
@@ -42,10 +55,9 @@ export class OrderPageComponent {
     form = this.createOrderFormGroup;
 
     readonly localSolutions$ = new ReplaySubject<LocalSolution[]>(1);
-    readonly contractor$ = new ReplaySubject<Contractor | undefined>(1);
-    readonly payers$ = new ReplaySubject<Payer[]>(1);
-    readonly distributors$ = new BehaviorSubject<Contractor[]>([]);
-    readonly distributorPayers$ = new BehaviorSubject<Payer[]>([]);
+    readonly contractorPayers$ = new ReplaySubject<Payer[]>(1);
+    readonly distributors$ = new ReplaySubject<Contractor[]>(1);
+    readonly distributorPayers$ = new ReplaySubject<Payer[]>(1);
 
     constructor(
         private route: ActivatedRoute,
@@ -53,110 +65,103 @@ export class OrderPageComponent {
         private localSolutionService: LocalSolutionService,
         private contractorService: ContractorService,
         private payerService: PayerService,
+        private translate: TranslateService,
     ) {
-        const orderId = this.route.snapshot.paramMap.get(orderRouteParam);// TODO for edit
-
-        this.localSolutionService.findAll()
-            .then(localSolutions => this.localSolutions$.next(localSolutions));
         this.contractorService.findCurrentUserContractor().pipe(
             untilDestroyed(this),
-            tap(contractor => this.contractor$.next(contractor)),
-        ).subscribe();
-        this.contractorService.findDistributors().pipe(
-            untilDestroyed(this),
-            tap(distributors => this.distributors$.next(distributors)),
-        ).subscribe();
-        this.contractor$.pipe(
-            untilDestroyed(this),
             take(1),
-            filter(contractor => !!contractor),
-            map(contractor => contractor as NonNullable<typeof contractor>),
-            tap(({ id, name }) => this.form.controls.contractor!.reset({
+            tap(({ id, name }) => this.form.controls.contractor.reset({
+                id,
+                name,
+            })),
+            switchMap(({id}) => this.payerService.findAllForContractor(id)),
+            tap((payers) => this.contractorPayers$.next(payers)),
+            filter(payers => !!payers.length),
+            tap(([{ id, name }]) => this.form.controls.contractorPayer.reset({
                 id,
                 name,
             })),
         ).subscribe();
 
-        this.form.controls.contractor!.controls.id.valueChanges.pipe(
+        this.form.controls.distributor.valueChanges.pipe(
             untilDestroyed(this),
             distinctUntilChanged(),
-            filter(contractorId => contractorId !== ''),
-            tap(contractorId => this.payerService
-                .findAllForContractor(contractorId)
-                .then(payers => this.payers$.next(payers)))
-        ).subscribe();
-        this.form.controls.distributor!.controls.id.valueChanges.pipe(
-            untilDestroyed(this),
-            distinctUntilChanged(),
+            map(({id}) => id),
             filter(distributorId => distributorId !== ''),
-            tap(distributorId => this.payerService
-                .findAllForContractor(distributorId)
-                .then(payers => this.distributorPayers$.next(payers)))
+            switchMap(distributorId => this.payerService.findAllForContractor(distributorId)),
+            tap(payers => this.distributorPayers$.next(payers)),
+            filter(distributorPayers => !!distributorPayers.length),
+            distinctUntilChanged(),
+            map(([{id, name}]) => ({id, name})),
+            filter(({id}) => this.form.controls.distributorPayer.value.id !== id),
+            tap(distributorPayer => this.form.controls.distributorPayer.reset(distributorPayer)),
         ).subscribe();
+        this.contractorService.findDistributors().pipe(
+            untilDestroyed(this),
+            take(1),
+            tap(distributors => this.distributors$.next(distributors)),
+            filter(distributors => !!distributors.length),
+            tap(([{id, name}]) => this.form.controls.distributor.reset({
+                id,
+                name,
+            })),
+        ).subscribe();
+
+        this.localSolutionService.findAll()
+            .then(localSolutions => this.localSolutions$.next(localSolutions));
+
+        // this.form.valueChanges.pipe(tap(v => setTimeout(() => console.log(this.form.value), 3000))).subscribe();
     }
 
     private get createOrderFormGroup() {
-        return this.fb.group<FormStructure<Partial<Order>>>({
-            localSolutionSrc: this.fb.group<FormStructure<NonNullable<Order['localSolutionSrc']>>>({
-                id: this.fb.control(''),
-                count: this.fb.control(0),
-                expirationDate: this.fb.control(Timestamp.now(), []),
+        return this.fb.group<FormStructure<CreateOrder>>({
+            localSolutionSrc: this.fb.control({
+                id: '',
+                count: 0,
+                expirationDate: Timestamp.now(),
             }),
-            localSolutionRes: this.fb.group<FormStructure<Order['localSolutionRes']>>({
-                id: this.fb.control('', [Validators.required]),
-                count: this.fb.control(0, [Validators.required]),
-                name: this.fb.control('', [Validators.required]),
-                period: this.fb.group<FormStructure<Order['localSolutionRes']['period']>>({
-                    count: this.fb.control(1, [Validators.required]),
-                    type: this.fb.control(PeriodType.YEAR, [Validators.required]),
-                })
-            }),
+            localSolutionRes: this.fb.control({
+                id: '',
+                count: 0,
+                name: '',
+                period: {
+                    count: 1,
+                    type: PeriodType.YEAR,
+                },
+            }, [Validators.required]),
             status: this.fb.control(OrderStatus.NEW, [Validators.required]),
             amountTotal: this.fb.control(0, Validators.required),
-            client: this.fb.group<FormStructure<Order['client']>>({
-                id: this.fb.control('', [Validators.required]),
-                name: this.fb.control('', [Validators.required]),
-                taxCode: this.fb.control(0, [Validators.required]),
-            }),
-            contact: this.fb.group<FormStructure<Order['contact']>>({
-                name: this.fb.control('', [Validators.required]),
-                phone: this.fb.control('', [Validators.required]),
-                email: this.fb.control('', [Validators.required]),
-            }),
-            contractor: this.fb.group<FormStructure<Order['contractor']>>({
-                id: this.fb.control('', [Validators.required]),
-                name: this.fb.control('', [Validators.required]),
-            }),
-            contractorPayer: this.fb.group<FormStructure<Order['contractorPayer']>>({
-                id: this.fb.control('', [Validators.required]),
-                name: this.fb.control('', [Validators.required]),
-            }),
-            distributor: this.fb.group<FormStructure<Order['distributor']>>({
-                id: this.fb.control('', [Validators.required]),
-                name: this.fb.control('', [Validators.required]),
-            }),
-            distributorPayer: this.fb.group<FormStructure<Order['distributorPayer']>>({
-                id: this.fb.control('', [Validators.required]),
-                name: this.fb.control('', [Validators.required]),
-            }),
+            client: this.fb.control({
+                id: '',
+                name: '',
+                taxCode: 0,
+            }, [Validators.required]),
+            contact: this.fb.control({
+                name: '',
+                phone: '',
+                email: '',
+            }, [Validators.required]),
+            contractor: this.fb.control({
+                id: '',
+                name: '',
+            }, [Validators.required]),
+            contractorPayer: this.fb.control({
+                id: '',
+                name: '',
+            }, [Validators.required]),
+            distributor: this.fb.control({
+                id: '',
+                name: '',
+            }, [Validators.required]),
+            distributorPayer: this.fb.control({
+                id: '',
+                name: '',
+            }, [Validators.required]),
             operation: this.fb.control(OrderOperationType.NEW_PURCHASE, [Validators.required]),
         });
     }
 
     ngOnInit(): void {
-        // orderNumberParam
-        // const orderNumber = this.route.paramMap.pipe(tap(console.log)).subscribe();
-
-        // if (!orderNumber) {
-        //
-        // }
-
-        this.breadcrumbs = [
-            'MENUITEMS.ORDERS.TEXT',
-            'ORDER.LABELS.CREATE.TITLE',// TODO create or edit based on route
-        ];
-
-
         // Fetch Data
         this.addressData = addressList
     }

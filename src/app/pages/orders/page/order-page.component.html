@@ -1,18 +1,101 @@
 <!-- Start Breadcrumbs -->
-<breadcrumbs *ngIf="breadcrumbs" [breadcrumbs]="breadcrumbs"></breadcrumbs>
+<breadcrumbs *ngIf="breadcrumbs$ | async as breadcrumbs" [breadcrumbs]="breadcrumbs"></breadcrumbs>
 <!-- End Breadcrumbs -->
 
 <!--TODO delete later-->
-<div style="background: black;width: 100px;height: 100px" [routerLink]="'../create'">TO CREATE</div>
-<div style="background: black;width: 100px;height: 100px" [routerLink]="'../25'">TO 25</div>
+<div style="display:inline-block;background: black;width: 100px;height: 100px" [routerLink]="'../create'">TO CREATE</div>
+<div style="display:inline-block;background: black;width: 100px;height: 100px" [routerLink]="'../25'">TO 25</div>
 
-<div class="row">
+<div class="row" [formGroup]="form">
     <div class="col-xxl-8">
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-header">
-                        <h6 class="card-title mb-0">Personal Information</h6>
+                        <h6 class="card-title mb-0">{{'ORDER.LABELS.TITLE' | translate}}</h6>
+                    </div>
+                    <div class="card-body">
+                        <form action="#!">
+                            <div class="row g-3">
+<!--                                <div class="col-lg-6">-->
+<!--                                    <label for="name" class="form-label">Name</label>-->
+<!--                                    <input type="text" class="form-control" id="name" placeholder="Name">-->
+<!--                                </div>-->
+<!--                                <div class="col-lg-6">-->
+<!--                                    <label for="phoneNumber" class="form-label">Phone Number</label>-->
+<!--                                    <input type="text" class="form-control" id="phoneNumber" placeholder="Phone number">-->
+<!--                                </div>-->
+<!--                                <div class="col-lg-6">-->
+<!--                                    <label for="email" class="form-label">Email Address</label>-->
+<!--                                    <input type="text" class="form-control" id="email" placeholder="Email address">-->
+<!--                                </div>-->
+<!--                                <div class="col-lg-6">-->
+<!--                                    <label for="cityInput" class="form-label">City</label>-->
+<!--                                    <input type="text" class="form-control" id="cityInput" placeholder="City">-->
+<!--                                </div>-->
+<!--                                <div class="col-lg-4">-->
+<!--                                    <label for="stateInput" class="form-label">State</label>-->
+<!--                                    <input type="text" class="form-control" id="stateInput" placeholder="State">-->
+<!--                                </div>-->
+                                <div class="col-lg-6">
+                                    <label for="contractor.name" class="form-label">{{'ORDER.FIELDS.contractor.name' | translate}}</label>
+                                    <input id="contractor.name" name="contractor.name" readonly [disabled]="true"
+                                           [value]="form.controls.contractor.value.name" type="text" class="form-control"
+                                           [placeholder]="'ORDER.LABELS.UNSET' | translate">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="contractor.name" class="form-label">{{'ORDER.FIELDS.distributor.name' | translate}}</label>
+                                    <select [formControl]="form.controls.distributor" id="distributor.name" name="distributor.name"
+                                            [compareWith]="selectComparator"
+                                            data-choices class="form-control">
+                                    <option hidden [ngValue]="{id: '', name: ''}">{{'ORDER.LABELS.UNSET' | translate}}</option>
+                                        <option *ngFor="let distributor of distributors$ | async"
+                                                [ngValue]="{id: distributor.id, name: distributor.name}"
+                                        >{{distributor.name}}</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="contractorPayer.name" class="form-label">{{'ORDER.FIELDS.contractorPayer.name' | translate}}</label>
+                                    <select [formControl]="form.controls.contractorPayer" id="contractorPayer.name"
+                                            [compareWith]="selectComparator"
+                                            name="contractorPayer.name" data-choices class="form-control">
+                                    <option hidden [ngValue]="{id: '', name: ''}">{{'ORDER.LABELS.UNSET' | translate}}</option>
+                                        <option *ngFor="let contractorPayer of contractorPayers$ | async"
+                                                [ngValue]="{id: contractorPayer.id, name: contractorPayer.name}"
+                                        >{{contractorPayer.name}}</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="distributorPayer.name" class="form-label">{{'ORDER.FIELDS.distributorPayer.name' | translate}}</label>
+                                    <select [formControl]="form.controls.distributorPayer" id="distributorPayer.name"
+                                            [compareWith]="selectComparator"
+                                            name="distributorPayer.name" data-choices class="form-control">
+                                    <option hidden [ngValue]="{id: '', name: ''}">{{'ORDER.LABELS.UNSET' | translate}}</option>
+                                        <option *ngFor="let distributorPayer of distributorPayers$ | async"
+                                                [ngValue]="{id: distributorPayer.id, name: distributorPayer.name}"
+                                        >{{distributorPayer.name}}</option>
+                                    </select>
+                                </div>
+<!--                                <div class="col-lg-4">-->
+<!--                                    <label for="zipCodeInput" class="form-label">Zip Code</label>-->
+<!--                                    <input type="text" class="form-control" id="zipCodeInput" placeholder="Zip code">-->
+<!--                                </div>-->
+<!--                                <div class="col-lg-12">-->
+<!--                                    <div>-->
+<!--                                        <label for="addressInput" class="form-label">Address</label>-->
+<!--                                        <textarea class="form-control" id="addressInput" rows="3"-->
+<!--                                            placeholder="Enter address"></textarea>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">{{'ORDER.LABELS.OWNER_INFO' | translate}}</h6>
                     </div>
                     <div class="card-body">
                         <form action="#!">
@@ -307,7 +390,7 @@
                                     <div>
                                         <label for="addressInput" class="form-label">Address</label>
                                         <textarea class="form-control" id="addressInput" rows="3"
-                                            placeholder="Enter address"></textarea>
+                                                  placeholder="Enter address"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -315,6 +398,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">

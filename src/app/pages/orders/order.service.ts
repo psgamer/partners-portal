@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import { Injectable } from '@angular/core';
 import {
-    AggregateField, collection, count, doc, Firestore, getAggregateFromServer, or, OrderByDirection, query, QueryCompositeFilterConstraint,
-    QueryConstraint, QueryFieldFilterConstraint, setDoc, sum, where, writeBatch
+    addDoc, AggregateField, collection, count, doc, Firestore, getAggregateFromServer, or, OrderByDirection, query,
+    QueryCompositeFilterConstraint, QueryConstraint, QueryFieldFilterConstraint, setDoc, sum, where, writeBatch
 } from '@angular/fire/firestore';
 import { map, switchMap } from 'rxjs/operators';
 import { QueryFilterConstraints, QueryHandler, Sort, SortEvent } from '../../core/helpers/query.handler';
@@ -11,7 +11,7 @@ import { AuthenticationService } from '../../core/services/auth.service';
 import { LocalSolution } from '../../shared/local-solution/local-solution.model';
 import { OrderAmountRange } from './order-amount-range.model';
 
-import { Order, OrderOperationType, OrderStatus } from './order.model';
+import { CreateOrder, Order, OrderOperationType, OrderStatus } from './order.model';
 
 export interface OrderFilterParams {
     localSolutionId: LocalSolution['id'] | '';
@@ -121,6 +121,13 @@ export class OrderService {
         return this.collRef$.pipe(
             switchMap(collRef => getAggregateFromServer(query(collRef, ...constraints), aggregationSpec)),
             map(result => result.data()),
+        );
+    }
+
+    createOrder(orderData: CreateOrder) {
+        return this.collRef$.pipe(
+            switchMap(collRef => addDoc(collRef, orderData)),
+            switchMap(({id}) => id),
         );
     }
 

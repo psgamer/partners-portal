@@ -40,7 +40,11 @@ service cloud.firestore {
       allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
 
       match /payers/{payerId} {
-      	allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
+        function isCurrentUserPayerContractorsDistributor() {
+          return isAuthorized() && request.auth.token.contractorId in get(/databases/$(database)/documents/contractors/$(contractorId)).data.contractorIds;// TODO refactor to avoid requests?
+        }
+
+      	allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserPayerContractorsDistributor());
       }
       match /orders/{orderId} {
         function isValidCancelOperation() {
@@ -51,11 +55,15 @@ service cloud.firestore {
         function isValidDeleteOperation() {
           return currentDoc().status == 'NEW';
         }
+        function isValidCreateOperation() {
+          return false;
+        }
         function isValidUpdateOperation() {
           return false;
         }
 
       	allow read: if isAuthorized() && isCurrentUserContractor();
+        allow create: if isAuthorized() && isCurrentUserContractor() && isValidCreateOperation();
         allow update: if isAuthorized() && isCurrentUserContractor() && (isValidCancelOperation() || isValidUpdateOperation());
         allow delete: if isAuthorized() && isCurrentUserContractor() && isValidDeleteOperation();
       }

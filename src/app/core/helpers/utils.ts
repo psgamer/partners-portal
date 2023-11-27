@@ -1,7 +1,5 @@
-import {
-    DocumentData, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions, Timestamp, WithFieldValue
-} from '@angular/fire/firestore';
-import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
+import { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions, WithFieldValue } from '@angular/fire/firestore';
+import { FormArray, FormControl } from '@angular/forms';
 
 
 type FirebaseDoc<T> = Omit<T, 'id'>;
@@ -13,14 +11,15 @@ type Paths<T> = T extends object
     : never;
 
 type FormStructure<T> = {
-    [K in keyof T]: NonNullable<T[K]> extends Timestamp
-        ? AbstractControl<NonNullable<T[K]>>
-        : (NonNullable<T[K]> extends object
-            ? FormGroup<FormStructure<NonNullable<T[K]>>>
-            : (NonNullable<T[K]> extends any[]
-                ? FormArray<AbstractControl<NonNullable<T[K]>[0]>>
-                : AbstractControl<NonNullable<T[K]>>));
+    [K in keyof T]: NonNullable<T[K]> extends any[]
+        ? FormArray<FormControl<NonNullable<T[K]>[0]>>
+        : FormControl<NonNullable<T[K]>>;
 };
+
+type Subset<T extends U, U> = U;
+
+const getSelectComparator = <T extends object>(key: keyof T) => ({[key]: key1}: T, {[key]: key2}: T) => key1 === key2;
+const selectComparatorById = getSelectComparator<{id: any}>('id');
 
 const getExtractByPath = <T extends {[key: string]: any}>() => <R = any>(obj: T, path: Paths<T>): R => path
     .split('.')
@@ -40,4 +39,4 @@ const getBaseConverter = <T extends ({id: any} & DocumentData)>(): FirestoreData
     },
 });
 
-export {FirebaseDoc, Paths, FormStructure, getExtractByPath, getBaseConverter};
+export {FirebaseDoc, Paths, FormStructure, Subset, selectComparatorById, getSelectComparator, getExtractByPath, getBaseConverter};

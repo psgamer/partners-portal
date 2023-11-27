@@ -1,5 +1,6 @@
 import { Timestamp } from "@angular/fire/firestore";
 import { Client, License, Period } from "src/app/core/models/all.models";
+import { Subset } from '../../core/helpers/utils';
 import { Contractor } from '../../shared/contractor/contractor.model';
 import { LocalSolution } from '../../shared/local-solution/local-solution.model';
 import { Payer } from '../../shared/payer/payer.model';
@@ -52,6 +53,49 @@ export interface Order {
         email: string;
     };
 }
+
+export type CreateOrder = Subset<Order, {
+    contractor: {
+        id: Contractor['id'];
+        name: Contractor['name'];
+    };
+    distributor: {
+        id: Contractor['id'];
+        name: Contractor['name'];
+    };
+    contractorPayer: {
+        id: Payer['id'];
+        name: Payer['name'];
+    };
+    distributorPayer: {
+        id: Payer['id'];
+        name: Payer['name'];
+    };
+    amountTotal: number;
+    operation: OrderOperationType;
+    status: OrderStatus;
+    localSolutionSrc: {
+        id: LocalSolution['id'];
+        count: number;
+        expirationDate: Timestamp;
+    } | null;
+    localSolutionRes: {
+        id: LocalSolution['id'];
+        name: LocalSolution['name'];
+        count: number;
+        period: Period;
+    };
+    client: {
+        id: Client['id'];
+        taxCode: Client['taxCode'];
+        name: Client['name'];
+    };
+    contact: {
+        name: string;
+        phone: string;
+        email: string;
+    };
+}>;
 
 export enum OrderOperationType {
     NEW_PURCHASE = 'NEW_PURCHASE',

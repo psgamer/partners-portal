@@ -14,11 +14,11 @@ export class ContractorService {
 
     constructor(private db: Firestore, private auth: AuthenticationService) {}
 
-    findCurrentUserContractor(): Observable<Contractor | undefined> {
+    findCurrentUserContractor(): Observable<Contractor> {
         return this.contractorId$.pipe(
             map(contractorId => doc(this.collRef, contractorId).withConverter(getBaseConverter<Contractor>())),
             switchMap(docRef => getDoc(docRef)),
-            map(doc => doc.data()),
+            map(doc => doc.data()!),
         );
     }
 
