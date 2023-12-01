@@ -223,7 +223,60 @@
           "order" : "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup" : "orders",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath" : "createdDate",
+          "order" : "ASCENDING"
+        },
+        {
+          "fieldPath" : "amountTotal",
+          "order" : "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup" : "contractors",
+      "queryScope" : "COLLECTION",
+      "fields" : [
+        {
+          "fieldPath": "contractorIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath" : "name",
+          "order" : "ASCENDING"
+        }
+      ]
     }
   ],
-  "fieldOverrides" : []
+  "fieldOverrides" : [
+    {
+      "collectionGroup" : "license-private-key",
+      "fieldPath" : "privateKey",
+      "ttl" : false,
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    }
+  ]
+
 }
