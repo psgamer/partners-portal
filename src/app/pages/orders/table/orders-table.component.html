@@ -36,7 +36,10 @@
                                     [availableDirections]="colConfig.sortDirections"
                                     (sort)="onSort($event)"
                                 >
-                                    {{('ORDER.FIELDS.' + colConfig.column) | translate}}
+                                    <ng-container [ngSwitch]="colConfig.column">
+                                        <ng-container *ngSwitchCase="'client.name'">{{'ORDER.FIELDS.client' | translate}}</ng-container>
+                                        <ng-container *ngSwitchDefault>{{('ORDER.FIELDS.' + colConfig.column) | translate}}</ng-container>
+                                    </ng-container>
                                 </th>
                                 <th scope="col">{{'ORDER.LABELS.ACTION.TEXT' | translate}}</th>
                             </tr>
@@ -45,7 +48,7 @@
                             <tr *ngFor="let item of (orders$ | async);let i = index;" id="p_{{item.id}}">
                                 <td>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="chk_child" [(ngModel)]="checkboxItems[item.id]" (change)="onCheckboxChange($event)">
+                                        <input class="form-check-input" type="checkbox" name="chk_child" [(ngModel)]="checkboxItems[item.id]" (change)="onCheckboxChange()">
                                         <label class="form-check-label"></label>
                                     </div>
                                 </td>
@@ -123,7 +126,7 @@
                     </div>
                     <div class="mt-4">
                         <h4 class="mb-2">{{'LABELS.CONFIRM.TITLE' | translate}}</h4>
-                        <p class="text-muted mx-3 mb-0">{{('ORDER.CONFIRM.DELETE.TEXT' + (deleteCount > 1 ? '_MULTIPLE' : '')) | translate }}</p>
+                        <p class="text-muted mx-3 mb-0">{{'ORDER.CONFIRM.DELETE' | translate: {count: deleteCount} }}</p>
                     </div>
                 </div>
                 <div class="d-flex gap-2 justify-content-center mt-4 pt-2 mb-2">
@@ -148,7 +151,7 @@
                     </div>
                     <div class="mt-4">
                         <h4 class="mb-2">{{'LABELS.CONFIRM.TITLE' | translate}}</h4>
-                        <p class="text-muted mx-3 mb-0">{{'ORDER.CONFIRM.CANCEL.TEXT' | translate}}</p>
+                        <p class="text-muted mx-3 mb-0">{{'ORDER.CONFIRM.CANCEL' | translate}}</p>
                     </div>
                 </div>
                 <div class="d-flex gap-2 justify-content-center mt-4 pt-2 mb-2">

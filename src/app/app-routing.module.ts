@@ -14,6 +14,10 @@ const routes: Routes = [
         canActivate: [AuthGuard]
     },
     { path: 'auth', component: AuthlayoutComponent, loadChildren: () => import('./account/account.module').then(m => m.AccountModule) },
+    {
+        path: '**',
+        redirectTo: '',
+    },
 ];
 
 @NgModule({

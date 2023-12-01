@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
@@ -13,7 +13,8 @@ import { environment } from '../../../environments/environment';
 @Component({
     selector: 'app-login',
     templateUrl: './login.component.html',
-    styleUrls: ['./login.component.scss']
+    styleUrls: ['./login.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 // Login Component
@@ -105,7 +106,7 @@ export class LoginComponent {
                     if (!!contractorId) {
                         this.router.navigate(['/']);
                     } else {
-                        this.router.navigate(['/auth/register-contractor']);
+                        this.router.navigate(['/auth/assign-user-contractor']);
                     }
                 }),
                 catchError((err, obs) => {

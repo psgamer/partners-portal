@@ -20,6 +20,7 @@ import { TabsModule } from 'ngx-bootstrap/tabs';
 
 // Drop Zone
 import { DROPZONE_CONFIG, DropzoneConfigInterface, DropzoneModule } from 'ngx-dropzone-wrapper';
+import { NgxMaskDirective } from "ngx-mask";
 
 // Simplebar
 import { SimplebarAngularModule } from 'simplebar-angular';
@@ -65,7 +66,8 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
         NgStepperModule,
         CdkStepperModule,
         RatingModule,
-        NgSelectModule
+        NgSelectModule,
+        NgxMaskDirective
     ],
     providers: [
         OrderService, OrderAmountRangeService,

@@ -64,7 +64,8 @@
               "sweetalert2",
               "polylabel",
               "dialog-polyfill",
-              "dropzone"
+              "dropzone",
+              "@messageformat/core"
             ]
           },
           "configurations": {

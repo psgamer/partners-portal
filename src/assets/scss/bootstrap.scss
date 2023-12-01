@@ -14,3 +14,7 @@ File: Custom Bootstrap Css File
 @import "variables-dark";
 @import "components/utilities";
 @import "./node_modules/bootstrap/scss/bootstrap";
+
+.is-invalid-border {
+  border: 1px solid var(--tb-form-invalid-border-color) !important;
+}

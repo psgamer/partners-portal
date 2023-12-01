@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/adjacent-overload-signatures */
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
-    addDoc, AggregateField, collection, count, doc, Firestore, getAggregateFromServer, or, OrderByDirection, query,
-    QueryCompositeFilterConstraint, QueryConstraint, QueryFieldFilterConstraint, setDoc, sum, where, writeBatch
+    addDoc, AggregateField, collection, count, doc, Firestore, getAggregateFromServer, onSnapshot, or, OrderByDirection, query,
+    QueryCompositeFilterConstraint, QueryConstraint, QueryFieldFilterConstraint, setDoc, sum, where, writeBatch,
 } from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
+import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { map, switchMap } from 'rxjs/operators';
 import { QueryFilterConstraints, QueryHandler, Sort, SortEvent } from '../../core/helpers/query.handler';
 import { getBaseConverter, Paths } from '../../core/helpers/utils';
@@ -73,7 +75,7 @@ export class OrderService {
             );
     }
 
-    constructor(private db: Firestore, private auth: AuthenticationService) {}
+    constructor(private db: Firestore, private auth: AuthenticationService, private zone: NgZone) {}
 
     get queryHandler() {
         return new QueryHandler<Order, OrderSortColumn, OrderSortDirection, OrderFilterParams>(
@@ -124,10 +126,28 @@ export class OrderService {
         );
     }
 
-    createOrder(orderData: CreateOrder) {
+    createOrder(order: CreateOrder): Observable<Order['number']> {
         return this.collRef$.pipe(
-            switchMap(collRef => addDoc(collRef, orderData)),
-            switchMap(({id}) => id),
+            switchMap(collRef => fromPromise(addDoc(collRef, order as Order))),
+            switchMap(docRef => new Observable<Order['number']>(observer => {
+                const snapshotSub = onSnapshot(docRef, {
+                    next: order => {
+                        const number = order.get('number' as Paths<Order>) as Order['number'] | null | undefined;
+                        if (!!number) {
+                            this.zone.run(() => {
+                                observer.next(number);
+                                observer.complete();
+                            });
+                        }
+                    },
+                    error: e => this.zone.run(() => {
+                        observer.error(e);
+                        observer.complete();
+                    }),
+                });
+
+                return () => this.zone.run(() => snapshotSub());
+            })),
         );
     }
 

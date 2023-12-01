@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AggregateField, AggregateSpecData } from '@firebase/firestore';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ProgressbarType } from 'ngx-bootstrap/progressbar';
@@ -19,6 +19,7 @@ interface ColConfig {
     templateUrl: './index.component.html',
     styleUrls: ['./index.component.scss'],
     providers: [DecimalPipe, OrderService],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IndexComponent {
     private readonly queryHandler = this.orderService.queryHandler;

@@ -1,33 +1,45 @@
-import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
-import { Timestamp } from '@angular/fire/firestore';
-import { NonNullableFormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { Component, ViewChild } from '@angular/core';
+import { serverTimestamp } from '@angular/fire/firestore';
+import { NonNullableFormBuilder, ValidatorFn, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslateService } from '@ngx-translate/core';
+import { AutocompleteComponent } from 'angular-ng-autocomplete';
 import { ModalDirective } from 'ngx-bootstrap/modal';
-import { distinctUntilChanged, Observable, of, ReplaySubject, take, tap } from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
-import { FormStructure, selectComparatorById } from '../../../core/helpers/utils';
+import { BehaviorSubject, distinctUntilChanged, Observable, of, ReplaySubject, Subject, take, tap } from 'rxjs';
+import { catchError, filter, map, switchMap } from 'rxjs/operators';
+import {
+    autoCompleteLocalFilter, formToTimestamp, NonNullableFields, selectComparatorById, showError, validateForm
+} from '../../../core/helpers/utils';
 import { PeriodType } from '../../../core/models/all.models';
 import { Contractor } from '../../../shared/contractor/contractor.model';
 import { ContractorService } from '../../../shared/contractor/contractor.service';
+import { License } from '../../../shared/license/license.model';
+import { LicenseService } from '../../../shared/license/license.service';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
 import { Payer } from '../../../shared/payer/payer.model';
 import { PayerService } from '../../../shared/payer/payer.service';
-import { CreateOrder, OrderOperationType, orderRouteParam, OrderStatus } from '../order.model';
+import { CreateOrder, Order, OrderOperationType, orderRouteParam, OrderStatus } from '../order.model';
+import { OrderService } from '../order.service';
 
-// data Get
-import { addressList } from './data';
+const nonEmptyStringRequiredValidator: ValidatorFn = ({value}) => value === '' ? {required: true} : null;
+const requiredLicenseValidator: ValidatorFn = ({value}) => (typeof value === 'string' || value === null) ? {required: true} : null;
+
+type AutoCompleteLicense = Pick<License, 'id' | 'expirationDate' | 'localSolution'>;
 
 @UntilDestroy()
 @Component({
     templateUrl: './order-page.component.html',
     styleUrls: ['./order-page.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Default,
+    // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderPageComponent {
     readonly selectComparator = selectComparatorById;
+    readonly autoCompleteLocalFilter = autoCompleteLocalFilter<License>;
+    readonly periodTypes = Object.values(PeriodType);
+    readonly showError = showError;
+    readonly formToTimestamp = formToTimestamp;
     readonly breadcrumbs$ = this.route.paramMap.pipe(
         untilDestroyed(this),
         map(map => map.get(orderRouteParam)),
@@ -39,25 +51,43 @@ export class OrderPageComponent {
             finalBreadcrumb,
         ]),
     );
-
-    name: any;
-    address: any;
-    phone: any;
-    type: any;
-
-    addressData: any;
-
-    @ViewChild('addAddressModal', { static: false }) addAddressModal?: ModalDirective;
-    @ViewChild('removeItemModal', { static: false }) removeItemModal?: ModalDirective;
-    id: any;
-    deleteId: any;
+    readonly autocompleteSelectedValueRenderer = (license: string | null | AutoCompleteLicense): any => {
+        if (license === null) {
+            return '';
+        } else if (typeof license === 'string') {
+            return license;
+        } else {
+            return `${license.localSolution.name} / ${license.localSolution.count} / ${formToTimestamp(license.expirationDate).toDate().toLocaleDateString()}`;
+        }
+    };
 
     form = this.createOrderFormGroup;
+    localSolutionSrcDialogForm = this.fb.group({
+        license: this.fb.control(null as string | AutoCompleteLicense | null, [requiredLicenseValidator]),
+    });
+    localSolutionResDialogForm = this.fb.group({
+        count: this.fb.control(null, [Validators.required, nonEmptyStringRequiredValidator, Validators.min(1)]),
+        period: this.fb.group({
+            count: this.fb.control(null, [Validators.required, nonEmptyStringRequiredValidator, Validators.min(1)]),
+            type: this.fb.control(null, [Validators.required]),
+        }),
 
-    readonly localSolutions$ = new ReplaySubject<LocalSolution[]>(1);
+        localSolution: this.fb.control(null as LocalSolution | null, [Validators.required]),
+    });
+
+    @ViewChild('localSolutionSrcModal') localSolutionSrcDialog?: ModalDirective;
+    @ViewChild('localSolutionResModal') localSolutionResDialog?: ModalDirective;
+    @ViewChild('confirmOrderModal') confirmCreateOrderDialog?: ModalDirective;
+    @ViewChild(AutocompleteComponent) qwe?: AutocompleteComponent;
+
+    readonly localSolutions$ = new BehaviorSubject<LocalSolution[]>([]);
     readonly contractorPayers$ = new ReplaySubject<Payer[]>(1);
     readonly distributors$ = new ReplaySubject<Contractor[]>(1);
     readonly distributorPayers$ = new ReplaySubject<Payer[]>(1);
+
+    private readonly licenseSearchRequest$ = new Subject<string>();
+    readonly licensesLoading$ = new BehaviorSubject<boolean>(false);
+    licenseOptions: AutoCompleteLicense[] = [];
 
     constructor(
         private route: ActivatedRoute,
@@ -66,6 +96,9 @@ export class OrderPageComponent {
         private contractorService: ContractorService,
         private payerService: PayerService,
         private translate: TranslateService,
+        private licenseService: LicenseService,
+        private orderService: OrderService,
+        private router: Router,
     ) {
         this.contractorService.findCurrentUserContractor().pipe(
             untilDestroyed(this),
@@ -86,16 +119,18 @@ export class OrderPageComponent {
         this.form.controls.distributor.valueChanges.pipe(
             untilDestroyed(this),
             distinctUntilChanged(),
+            filter(distributor => !!distributor),
+            map(distributor => distributor as NonNullable<typeof distributor>),
             map(({id}) => id),
-            filter(distributorId => distributorId !== ''),
             switchMap(distributorId => this.payerService.findAllForContractor(distributorId)),
             tap(payers => this.distributorPayers$.next(payers)),
             filter(distributorPayers => !!distributorPayers.length),
             distinctUntilChanged(),
             map(([{id, name}]) => ({id, name})),
-            filter(({id}) => this.form.controls.distributorPayer.value.id !== id),
+            filter(({id}) => this.form.controls.distributorPayer.value?.id !== id),
             tap(distributorPayer => this.form.controls.distributorPayer.reset(distributorPayer)),
         ).subscribe();
+
         this.contractorService.findDistributors().pipe(
             untilDestroyed(this),
             take(1),
@@ -107,113 +142,168 @@ export class OrderPageComponent {
             })),
         ).subscribe();
 
-        this.localSolutionService.findAll()
-            .then(localSolutions => this.localSolutions$.next(localSolutions));
+        this.form.controls.localSolutionSrc.valueChanges.pipe(
+            untilDestroyed(this),
+            map(value => !!value),
+            distinctUntilChanged(),
+            map(hasSrc => hasSrc ? OrderOperationType.PROLONGATION : OrderOperationType.NEW_PURCHASE),
+            tap(operation => this.form.controls.operation.reset(operation)),
+        ).subscribe();
 
-        // this.form.valueChanges.pipe(tap(v => setTimeout(() => console.log(this.form.value), 3000))).subscribe();
+        this.licenseSearchRequest$.pipe(
+            untilDestroyed(this),
+            tap(() => this.licensesLoading$.next(true)),
+            switchMap(query => this.licenseService.findByPrivateKey(query)),
+            catchError(error => {
+                console.error('An error occurred while querying documents:', error);
+                this.licensesLoading$.next(false);
+                return of(undefined);
+            }),
+            map(result => result as NonNullable<typeof result>),
+            tap(() => this.licensesLoading$.next(false)),
+            tap(licenses => this.licenseOptions = licenses),
+        ).subscribe();
+    }
+
+    selectLocalSolutionSrcLicense(license: AutoCompleteLicense | null) {
+        this.localSolutionSrcDialogForm.controls.license.setValue(license);
+        this.licenseOptions = [];
+    }
+
+    autocompleteLicenses() {
+        this.licenseSearchRequest$.next(this.localSolutionSrcDialogForm.controls.license.value as string);
     }
 
     private get createOrderFormGroup() {
-        return this.fb.group<FormStructure<CreateOrder>>({
-            localSolutionSrc: this.fb.control({
-                id: '',
-                count: 0,
-                expirationDate: Timestamp.now(),
+        return this.fb.group({
+            localSolutionSrc: this.fb.control(null as Order['localSolutionSrc']),
+            localSolutionRes: this.fb.control(null as Order['localSolutionRes'] | null, [Validators.required]),
+            amountTotal: this.fb.control('', Validators.required),
+            client: this.fb.group({
+                name: this.fb.control('', [Validators.required, Validators.minLength(3)]),
+                taxCode: this.fb.control('', [Validators.required, Validators.minLength(8), Validators.maxLength(12)]),
             }),
-            localSolutionRes: this.fb.control({
-                id: '',
-                count: 0,
-                name: '',
-                period: {
-                    count: 1,
-                    type: PeriodType.YEAR,
-                },
-            }, [Validators.required]),
-            status: this.fb.control(OrderStatus.NEW, [Validators.required]),
-            amountTotal: this.fb.control(0, Validators.required),
-            client: this.fb.control({
-                id: '',
-                name: '',
-                taxCode: 0,
-            }, [Validators.required]),
-            contact: this.fb.control({
-                name: '',
-                phone: '',
-                email: '',
-            }, [Validators.required]),
-            contractor: this.fb.control({
-                id: '',
-                name: '',
-            }, [Validators.required]),
-            contractorPayer: this.fb.control({
-                id: '',
-                name: '',
-            }, [Validators.required]),
-            distributor: this.fb.control({
-                id: '',
-                name: '',
-            }, [Validators.required]),
-            distributorPayer: this.fb.control({
-                id: '',
-                name: '',
-            }, [Validators.required]),
+            contact: this.fb.group({
+                name: this.fb.control('', [Validators.required, Validators.minLength(3)]),
+                phone: this.fb.control('', [Validators.required, Validators.pattern(/^380\d{2}\d{3}\d{2}\d{2}$/)]),
+                email: this.fb.control('', [Validators.required, nonEmptyStringRequiredValidator, Validators.email]),
+            }),
+            contractor: this.fb.control(null as Omit<Contractor, 'contractorIds'> | null, [Validators.required]),
+            contractorPayer: this.fb.control(null as Payer | null, [Validators.required]),
+            distributor: this.fb.control(null as Omit<Contractor, 'contractorIds'> | null, [Validators.required]),
+            distributorPayer: this.fb.control(null as Payer | null, [Validators.required]),
             operation: this.fb.control(OrderOperationType.NEW_PURCHASE, [Validators.required]),
+            licenseId: this.fb.control(null as Order['licenseId'], []),
         });
     }
 
-    ngOnInit(): void {
-        // Fetch Data
-        this.addressData = addressList
-    }
+    beforeEditLocalSolutionSrc() {
+        const {licenseId, localSolutionSrc} = this.form.value;
 
-    // Add Address
-    addAddress() {
-        if (this.id) {
-            var params = {
-                id: this.id,
-                name: this.name,
-                address: this.address,
-                phone: this.phone,
-                type: this.type
-            }
-            this.addressData = this.addressData.map((address: {
-                id: any;
-            }) => address.id === this.id ? { ...address, ...params } : address);
+        if (!(licenseId && localSolutionSrc)) {
+            this.localSolutionSrcDialogForm.reset();
         } else {
-            this.addressData.push({
-                id: this.addressData.length + 1,
-                name: this.name,
-                address: this.address,
-                phone: this.phone,
-                type: this.type
-            })
+            const {id, name, count, expirationDate} = localSolutionSrc;
+
+            this.localSolutionSrcDialogForm.reset({
+                license: {
+                    id: licenseId,
+                    localSolution: {
+                        id,
+                        name,
+                        count,
+                    },
+                    expirationDate,
+                }
+            });
         }
-        this.id = ''
-        this.name = ''
-        this.address = ''
-        this.phone = ''
-        this.type = ''
-        this.addAddressModal?.hide()
+
+        this.localSolutionSrcDialog!.show();
     }
 
-    // Edit Address
-    editAddress(id: any) {
-        this.addAddressModal?.show()
-        this.id = this.addressData[id].id
-        this.name = this.addressData[id].name
-        this.address = this.addressData[id].address
-        this.phone = this.addressData[id].phone
-        this.type = this.addressData[id].type
+    confirmEditLocalSolutionSrc() {
+        this.localSolutionSrcDialog!.hide();
+        const {
+            id: licenseId,
+            localSolution: { id, name, count },
+            expirationDate
+        } = this.localSolutionSrcDialogForm.value.license as AutoCompleteLicense;
+
+        this.form.controls.licenseId.reset(licenseId);
+        this.form.controls.localSolutionSrc.reset({
+            id,
+            name,
+            count,
+            expirationDate: formToTimestamp(expirationDate),
+        });
     }
 
-    // Delete Address
-    removeAddress(id: any) {
-        this.deleteId = id;
-        this.removeItemModal?.show()
+    beforeEditLocalSolutionRes() {
+        if (!this.localSolutions$.value.length) {
+            this.localSolutionService.findAll().then(localSolutions => this.localSolutions$.next(localSolutions));
+        }
+
+        const {localSolutionRes} = this.form.value;
+
+        this.localSolutionResDialogForm.reset({
+            localSolution: localSolutionRes && localSolutionRes.id && localSolutionRes.name ? {
+                id: localSolutionRes.id,
+                name: localSolutionRes.name,
+            } : null,
+            count: localSolutionRes?.count as any,
+            period: {
+                count: localSolutionRes?.period.count || 1,
+                type: localSolutionRes?.period.type || PeriodType.YEAR,
+            } as any,
+        });
+
+        this.localSolutionResDialog!.show();
     }
 
-    deleteAddress() {
-        addressList.splice(this.deleteId, 1)
-        this.removeItemModal?.hide()
+    confirmEditLocalSolutionRes() {
+        this.localSolutionResDialog!.hide();
+
+        const {
+            period,
+            count,
+            localSolution: { id, name, }
+        } = this.localSolutionResDialogForm.value as NonNullableFields<typeof this.localSolutionResDialogForm.value>;
+
+        this.form.controls.localSolutionRes.patchValue({
+            period,
+            count,
+            id,
+            name,
+        } as any);
+    }
+
+    createOrder() {
+        if (this.form.invalid) {
+            validateForm(this.form);
+        } else {
+            this.confirmCreateOrderDialog!.show();
+        }
+
+    }
+
+    confirmCreateOrder() {
+        this.confirmCreateOrderDialog!.hide();
+
+        const formValue = this.form.value as any as Omit<CreateOrder, 'createdDate' | 'status'>;
+        const { localSolutionRes: { count } } = formValue;
+        const order: CreateOrder = {
+            ...formValue,
+            localSolutionRes: {
+                ...formValue.localSolutionRes,
+                count: parseInt(count as any as string),
+            },
+            createdDate: serverTimestamp(),
+            status: OrderStatus.NEW,
+        };
+
+        this.orderService.createOrder(order).pipe(
+            untilDestroyed(this),
+            tap(number => this.router.navigate(['../', number], {relativeTo: this.route})),
+        ).subscribe();
     }
 }

@@ -267,6 +267,11 @@
     "SIGNOUT" : "Вихід"
   },
   "NAME" : "Партнерський портал",
+  "PERIOD": {
+    "YEAR": "{count, select, 1 {рік} 2 {роки} 3 {роки} 4 {роки} other {років} }",
+    "MONTH": "{count, select, 1 {місяць} 2 {місяці} 3 {місяці} 4 {місяці} other {місяців} }",
+    "DAY": "{count, select, 1 {день} 2 {дні} 3 {дні} 4 {дні} other {днів} }"
+  },
   "ORDER" : {
     "LABELS" : {
       "SEARCH" : "Пошук",
@@ -279,7 +284,10 @@
         "EDIT" : "Редагувати",
         "CANCEL" : "Анулювати",
         "DELETE" : "Видалити",
-        "CREATE" : "Створити"
+        "CREATE" : "Створити",
+        "ADD" : "Додати",
+        "RETURN": "Повернутися",
+        "APPLY": "Застосувати"
       },
       "REVENUE": {
         "TOTAL": "Загальна виручка"
@@ -290,32 +298,42 @@
         "TITLE": "Створення замовлення"
       },
       "DETAILS": {
-        "TITLE": "Замовлення {{number}}"
+        "TITLE": "Замовлення {number}"
       },
       "TITLE": "Замовлення",
-      "OWNER_INFO": "Дані власника ліцензії"
+      "OWNER_INFO": "Дані власника ліцензії",
+      "PRODUCT_PRICE": "Продукт/Ціна",
+      "localSolutionSrc": "Iснуюче рішення",
+      "localSolutionRes": "Результуюче рішення"
     },
     "CONFIRM": {
-      "CANCEL": {
-        "TEXT": "Замовлення буде анульовано"
-      },
-      "DELETE": {
-        "TEXT": "Замовлення буде видалено",
-        "TEXT_MULTIPLE": "Замовлення будуть видалені"
-      }
+      "CREATE": "Замовлення буде створено",
+      "CANCEL": "Замовлення буде анульовано",
+      "DELETE": "{count, select, 1 {Замовлення буде видалено} 2 {роки} 3 {роки} 4 {роки} other {Замовлення будуть видалені} }"
     },
     "FIELDS" : {
       "createdDate": "Дата створення",
       "number": "Номер замовлення",
+      "localSolutionSrc.name":  "Наше рішення",
+      "localSolutionSrc.count":  "Кількість",
+      "localSolutionSrc.expirationDate":  "Дата закінчення",
       "localSolutionRes.name":  "Наше рішення",
-      "operation": "Тип операції",
       "localSolutionRes.count":  "Кількість",
+      "localSolutionRes.period":  "Період",
+      "operation": "Тип операції",
       "amountTotal": "Вартість",
       "contractor.name":  "Контрагент",
       "distributor.name":  "Дистриб'ютор",
       "contractorPayer.name":  "Платник",
       "distributorPayer.name":  "Платник дистриб'ютора",
-      "client.name": "Клієнт",
+      "client": "Клієнт",
+      "client.name": "Найменування компанії",
+      "client.taxCode": "ЄДРПОУ",
+      "contact": {
+        "name": "ПIБ",
+        "phone": "Телефон",
+        "email": "Ел. пошта"
+      },
       "status":  "Статус"
     },
     "STATUS": {
@@ -329,8 +347,21 @@
       "PROLONGATION": "Поновлення"
     }
   },
+  "LICENSE": {
+    "LABELS": {
+      "NONE": "Ліцензій не знайдено"
+    },
+    "SEARCH": {
+      "LABEL": "Пошук ліцензії"
+    },
+    "PRIVATE_KEY": {
+      "SEARCH": {
+        "LABEL": "Введіть приватний ключ ліцензії"
+      }
+    }
+  },
   "TABLE": {
-    "AMOUNT_TEXT": "Показано <span class=\"fw-semibold\">{{current}}</span> з <span class=\"fw-semibold\">{{total}}</span> результатів"
+    "AMOUNT_TEXT": "Показано <span class=\"fw-semibold\">{current}</span> з <span class=\"fw-semibold\">{total}</span> результатів"
   },
   "LABELS": {
     "CONFIRM": {

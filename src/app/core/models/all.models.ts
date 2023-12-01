@@ -1,38 +1,9 @@
 import { Timestamp } from '@angular/fire/firestore';
 import { Contractor } from '../../shared/contractor/contractor.model';
-import { LocalSolution } from '../../shared/local-solution/local-solution.model';
-
-interface License {
-    id: string;
-    expirationDate: Timestamp;
-    login: string;
-    publicKey: string;
-    ordersContractorIds: Contractor['id'][];
-    localSolution: {
-        id: LocalSolution['id'];
-        count: number;
-    }
-    client: {
-        id: Client['id'];
-        taxCode: Client['taxCode'];
-        name: Client['name'];
-    };
-}
-
-interface LicensePrivateKey {
-    id: string;
-    licenseId: License['id'];
-    privateKey: string;
-}
-
-interface LicensePassword {
-    id: string;
-    password: string;
-}
 
 interface Client {
     id: string;
-    taxCode: number;
+    taxCode: string;
     name: string;
     contractorIds: Contractor['id'][];
 }
@@ -73,5 +44,5 @@ interface NewsArticle {
 }
 
 export {
-    Client, License, LicensePassword, LicensePrivateKey, Period, PeriodType, UserNotificationType, UserNotification, NewsArticle,
+    Client, Period, PeriodType, UserNotificationType, UserNotification, NewsArticle,
 }

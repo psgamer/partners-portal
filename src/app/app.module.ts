@@ -16,11 +16,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TitleStrategy } from '@angular/router';
 
 // Laguage
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 // firebase
 import { ToastrModule } from 'ngx-toastr';
+import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 
 // env
 import { environment } from '../environments/environment';
@@ -56,6 +57,10 @@ export function createTranslateLoader(http: HttpClient): any {
                 provide: TranslateLoader,
                 useFactory: (createTranslateLoader),
                 deps: [HttpClient]
+            },
+            compiler: {
+                provide: TranslateCompiler,
+                useClass: TranslateMessageFormatCompiler,
             }
         }),
         provideFirebaseApp(() => initializeApp(environment.firebase)),

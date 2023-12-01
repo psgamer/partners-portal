@@ -1,4 +1,4 @@
-import { Component, Predicate, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Predicate, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ModalDirective } from 'ngx-bootstrap/modal';
@@ -38,6 +38,7 @@ const canDeleteOrderStatuses = [OrderStatus.NEW];
 @Component({
     templateUrl: './orders-table.component.html',
     styleUrls: ['./orders-table.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // List Component
 export class OrdersTableComponent {
@@ -321,7 +322,7 @@ export class OrdersTableComponent {
         ).subscribe();
     }
 
-    onCheckboxChange(e: Event) {
+    onCheckboxChange() {
         if (Object.values(this.checkboxItems).every(checked => checked)) {
             this.headerCheckboxSelected = true;
         } else if (this.headerCheckboxSelected) {

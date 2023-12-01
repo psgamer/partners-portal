@@ -41,7 +41,7 @@ service cloud.firestore {
 
       match /payers/{payerId} {
         function isCurrentUserPayerContractorsDistributor() {
-          return isAuthorized() && request.auth.token.contractorId in get(/databases/$(database)/documents/contractors/$(contractorId)).data.contractorIds;// TODO refactor to avoid requests?
+          return isAuthorized() && request.auth.token.contractorId in get(/databases/$(database)/documents/contractors/$(contractorId)).data.contractorIds;
         }
 
       	allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserPayerContractorsDistributor());
@@ -55,8 +55,40 @@ service cloud.firestore {
         function isValidDeleteOperation() {
           return currentDoc().status == 'NEW';
         }
+        function isValidLocalSolutionSrcLicenseByDbForCreate() {
+          let futureLocalSolutionSrc = futureDoc().localSolutionSrc;
+          let localSolution = get(/databases/$(database)/documents/licenses/$(futureDoc().licenseId)).data.localSolution;
+
+          return localSolution.id == futureLocalSolutionSrc.id
+              && localSolution.count == futureLocalSolutionSrc.count
+        }
         function isValidCreateOperation() {
-          return false;
+          return futureDoc().keys().hasAll(['status','amountTotal','operation','createdDate','localSolutionRes','client','contact','contractor','distributor','contractorPayer','distributorPayer','licenseId','localSolutionSrc'])
+                    && futureDoc().contractor.keys().hasAll(['id','name'])
+                    && futureDoc().distributor.keys().hasAll(['id','name'])
+                    && futureDoc().contractorPayer.keys().hasAll(['id','name'])
+                    && futureDoc().distributorPayer.keys().hasAll(['id','name'])
+                    && futureDoc().localSolutionRes.keys().hasAll(['id','name','count','period'])
+                    && futureDoc().localSolutionRes.period.keys().hasAll(['count','type'])
+                    && futureDoc().client.keys().hasAll(['taxCode','name'])
+                    && futureDoc().contact.keys().hasAll(['phone','name','email'])
+                    && futureDoc().status == 'NEW'
+                    && futureDoc().contractor.id == contractorId
+                    && (
+                           (futureDoc().operation == 'NEW_PURCHASE'
+                            && futureDoc().licenseId == null
+                            && futureDoc().localSolutionSrc == null)
+                        ||
+                           (futureDoc().operation == 'PROLONGATION'
+                            && futureDoc().licenseId != null
+                            && futureDoc().localSolutionSrc != null
+                            && futureDoc().localSolutionSrc.keys().hasAll(['id','name','count','expirationDate'])
+                            && isValidLocalSolutionSrcLicenseByDbForCreate())
+                    )
+                    && contractorId in get(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)).data.contractorIds
+                    && exists(/databases/$(database)/documents/contractors/$(contractorId)/payers/$(futureDoc().contractorPayer.id))
+                    && exists(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)/payers/$(futureDoc().distributorPayer.id))
+                    && exists(/databases/$(database)/documents/local-solutions/$(futureDoc().localSolutionRes.id));
         }
         function isValidUpdateOperation() {
           return false;
