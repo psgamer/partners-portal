@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { serverTimestamp } from '@angular/fire/firestore';
 import { NonNullableFormBuilder, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -32,7 +32,7 @@ type AutoCompleteLicense = Pick<ContractorLicense, 'id' | 'expirationDate' | 'lo
 @Component({
     templateUrl: './order-page.component.html',
     styleUrls: ['./order-page.component.scss'],
-    // changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrderPageComponent {
     readonly selectComparator = selectComparatorById;
@@ -51,13 +51,15 @@ export class OrderPageComponent {
             finalBreadcrumb,
         ]),
     );
-    readonly autocompleteSelectedValueRenderer = (license: string | null | AutoCompleteLicense): any => {
+    readonly autocompleteSelectedValueRenderer = (license: string | null | AutoCompleteLicense): string => {
         if (license === null) {
             return '';
         } else if (typeof license === 'string') {
             return license;
         } else {
-            return `${license.localSolution.name} / ${license.localSolution.count} / ${formToTimestamp(license.expirationDate).toDate().toLocaleDateString()}`;
+            const { localSolution: { name, count }, expirationDate } = license;
+
+            return `${name} / ${count} / ${formToTimestamp(expirationDate).toDate().toLocaleDateString()}`;
         }
     };
 
