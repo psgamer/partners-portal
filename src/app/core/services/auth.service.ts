@@ -37,14 +37,14 @@ export class AuthenticationService {
         return getFirebaseBackend()!.loginWithTwitter();
     }
 
-    currentUser(): Observable<User | null> {
+    currentUser$(): Observable<User | null> {
         // TODO refactor to return after init
-        return getFirebaseBackend()!.getAuthenticatedUser();
+        return getFirebaseBackend()!.getAuthenticatedUser$();
     }
 
     currentUserContractorId(forceTokenRefresh = false) {
         return this
-            .currentUser()
+            .currentUser$()
             .pipe(
                 take(1),
                 switchMap(user => user

@@ -37,7 +37,7 @@ export class AssignUserContractorComponent {
              * do NOT pass uid as payload
              * https://github.com/firebase/firebase-tools/issues/5210
              */
-            this.authService.currentUser().pipe(
+            this.authService.currentUser$().pipe(
                 untilDestroyed(this),
                 take(1),
                 map(u => (u as NonNullable<typeof u>).uid),

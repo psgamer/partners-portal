@@ -130,7 +130,7 @@ class FirebaseAuthBackend {
         });
     }
 
-    getAuthenticatedUser = (): Observable<User | null> => {
+    getAuthenticatedUser$ = (): Observable<User | null> => {
         return this.authInitialized$.pipe(
             skipWhile(init => !init),
             take(1),

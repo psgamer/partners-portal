@@ -6,7 +6,7 @@ import { map } from 'rxjs/operators';
 import { AuthenticationService } from '../services/auth.service';
 
 @Injectable({ providedIn: 'root' })
-export class AuthGuard {
+export class UnAuthGuard {
     constructor(
         private router: Router,
         private authenticationService: AuthenticationService,
@@ -16,10 +16,10 @@ export class AuthGuard {
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
         this.authenticationService.currentUser$().pipe(
             map(currentUser => {
-                if (!!currentUser) {
+                if (!currentUser) {
                     return true;
                 } else {
-                    this.router.navigate(['/auth/login']);
+                    this.router.navigate(['./']);
                     return false;
                 }
             })
