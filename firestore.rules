@@ -20,14 +20,11 @@ service cloud.firestore {
       return futureDoc().diff(currentDoc());
     }
 
-    match /clients/{clientId} {
-    	allow read: if isAuthorized() && request.auth.token.contractorId in currentDoc().contractorIds;
-    }
     match /local-solutions/{localSolutionId} {
     	allow read: if isAuthorized();
     }
     match /order-amount-ranges/{rangeId} {
-    	allow read: if true;
+    	allow read: if isAuthorized();
     }
     match /contractors/{contractorId} {
       function isCurrentUserContractor() {
@@ -44,7 +41,13 @@ service cloud.firestore {
           return isAuthorized() && request.auth.token.contractorId in get(/databases/$(database)/documents/contractors/$(contractorId)).data.contractorIds;
         }
 
-      	allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserPayerContractorsDistributor());
+      	allow read: if isCurrentUserContractor() || isCurrentUserPayerContractorsDistributor();
+      }
+      match /contractor-clients/{contractorClientId} {
+        allow read: if isCurrentUserContractor();
+      }
+      match /contractor-licenses/{contractorLicenseId} {
+        allow read: if isCurrentUserContractor();
       }
       match /orders/{orderId} {
         function isValidCancelOperation() {
@@ -94,10 +97,10 @@ service cloud.firestore {
           return false;
         }
 
-      	allow read: if isAuthorized() && isCurrentUserContractor();
-        allow create: if isAuthorized() && isCurrentUserContractor() && isValidCreateOperation();
-        allow update: if isAuthorized() && isCurrentUserContractor() && (isValidCancelOperation() || isValidUpdateOperation());
-        allow delete: if isAuthorized() && isCurrentUserContractor() && isValidDeleteOperation();
+      	allow read: if isCurrentUserContractor();
+        allow create: if isCurrentUserContractor() && isValidCreateOperation();
+        allow update: if isCurrentUserContractor() && (isValidCancelOperation() || isValidUpdateOperation());
+        allow delete: if isCurrentUserContractor() && isValidDeleteOperation();
       }
     }
   }

@@ -14,7 +14,7 @@ import {
 import { PeriodType } from '../../../core/models/all.models';
 import { Contractor } from '../../../shared/contractor/contractor.model';
 import { ContractorService } from '../../../shared/contractor/contractor.service';
-import { License } from '../../../shared/license/license.model';
+import { ContractorLicense } from '../../../shared/license/license.model';
 import { LicenseService } from '../../../shared/license/license.service';
 import { LocalSolution } from '../../../shared/local-solution/local-solution.model';
 import { LocalSolutionService } from '../../../shared/local-solution/local-solution.service';
@@ -26,7 +26,7 @@ import { OrderService } from '../order.service';
 const nonEmptyStringRequiredValidator: ValidatorFn = ({value}) => value === '' ? {required: true} : null;
 const requiredLicenseValidator: ValidatorFn = ({value}) => (typeof value === 'string' || value === null) ? {required: true} : null;
 
-type AutoCompleteLicense = Pick<License, 'id' | 'expirationDate' | 'localSolution'>;
+type AutoCompleteLicense = Pick<ContractorLicense, 'id' | 'expirationDate' | 'localSolution'>;
 
 @UntilDestroy()
 @Component({
@@ -36,7 +36,7 @@ type AutoCompleteLicense = Pick<License, 'id' | 'expirationDate' | 'localSolutio
 })
 export class OrderPageComponent {
     readonly selectComparator = selectComparatorById;
-    readonly autoCompleteLocalFilter = autoCompleteLocalFilter<License>;
+    readonly autoCompleteLocalFilter = autoCompleteLocalFilter<ContractorLicense>;
     readonly periodTypes = Object.values(PeriodType);
     readonly showError = showError;
     readonly formToTimestamp = formToTimestamp;

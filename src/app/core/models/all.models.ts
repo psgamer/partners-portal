@@ -1,25 +1,30 @@
 import { Timestamp } from '@angular/fire/firestore';
-import { Contractor } from '../../shared/contractor/contractor.model';
+import { Subset } from '../helpers/utils';
 
-interface Client {
+export interface Client {
     id: string;
     taxCode: string;
     name: string;
-    contractorIds: Contractor['id'][];
 }
 
-interface Period {
+export type ContractorClient = Subset<Client, {
+    id: Client['id'];
+    taxCode: Client['taxCode'];
+    name: Client['name'];
+}>;
+
+export interface Period {
     count: number;
     type: PeriodType;
 }
 
-enum PeriodType {
+export enum PeriodType {
     YEAR = 'YEAR',
     MONTH = 'MONTH',
     DAY = 'DAY',
 }
 
-interface UserNotification {
+export interface UserNotification {
     id: string;
     creationDate: Timestamp;
     isRead: boolean;
@@ -28,11 +33,11 @@ interface UserNotification {
     type: UserNotificationType;
 }
 
-enum UserNotificationType {
+export enum UserNotificationType {
     ORDER = 'ORDER',
 }
 
-interface NewsArticle {
+export interface NewsArticle {
     id: string;
     author: string;
     content: string;
@@ -41,8 +46,4 @@ interface NewsArticle {
     previewText: string;
     thumbnailUrl: string;
     title: string;
-}
-
-export {
-    Client, Period, PeriodType, UserNotificationType, UserNotification, NewsArticle,
 }

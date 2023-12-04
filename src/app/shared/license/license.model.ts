@@ -1,6 +1,6 @@
 import { Timestamp } from '@angular/fire/firestore';
-import { Client } from '../../core/models/all.models';
-import { Contractor } from '../contractor/contractor.model';
+import { Subset } from '../../core/helpers/utils';
+import { Client, ContractorClient } from '../../core/models/all.models';
 import { LocalSolution } from '../local-solution/local-solution.model';
 
 export interface License {
@@ -8,7 +8,6 @@ export interface License {
     expirationDate: Timestamp;
     login: string;
     publicKey: string;
-    ordersContractorIds: Contractor['id'][];
     localSolution: {
         id: LocalSolution['id'];
         name: LocalSolution['name'];
@@ -21,6 +20,19 @@ export interface License {
     };
 }
 
+export type ContractorLicense = Subset<License, {
+    id: License['id'];
+    expirationDate: License['expirationDate'];
+    login: License['login'];
+    publicKey: License['publicKey'];
+    localSolution: License['localSolution'];
+    client: {
+        id: ContractorClient['id'];
+        taxCode: ContractorClient['taxCode'];
+        name: ContractorClient['name'];
+    };
+}>
+
 export interface LicensePrivateKey {
     id: string;
     licenseId: License['id'];
@@ -29,5 +41,6 @@ export interface LicensePrivateKey {
 
 export interface LicensePassword {
     id: string;
+    licenseId: License['id'];
     password: string;
 }

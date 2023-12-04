@@ -369,10 +369,7 @@ export class OrdersTableComponent {
 
         this.orderService.deleteOrder(orderIds)
             .subscribe({
-                complete: () => {
-                    console.log("Successfully deleted for ids", orderIds);
-                    this.search();
-                },
+                complete: () => this.search(),
                 error: e => console.error("Failed to delete orders", e)
             });
     }

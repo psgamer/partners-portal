@@ -10,8 +10,8 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import {
-    CollectionGroup, CollectionReference, DocumentData, DocumentReference, FieldPath, FieldValue, FirestoreDataConverter, getFirestore,
-    QueryDocumentSnapshot, Timestamp, UpdateData, WithFieldValue,
+    CollectionGroup, CollectionReference, DocumentData, DocumentReference, FieldPath, FirestoreDataConverter, getFirestore,
+    QueryDocumentSnapshot, UpdateData, WithFieldValue,
 } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
@@ -171,10 +171,10 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
         assign_number: false,
         assign_amountTotalRanges: false,
         assign_status: false,
-        assign_client: false,
-        update_license_contractors: false,
-        unAssign_from_clients: false,
-        unAssign_from_licenses: false,
+        checkAndCreateAndAssign_contractorClientAndClient: false,
+        checkAndCreate_contractorLicense: false,
+        checkAndRemove_oldContractorClient: false,
+        checkAndRemove_oldContractorLicense: false,
     }
 
     switch (opType) {
@@ -182,11 +182,11 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             operations.assign_number = true;
             operations.assign_amountTotalRanges = true;
             operations.assign_status = true;
-            operations.assign_client = true;
+            operations.checkAndCreateAndAssign_contractorClientAndClient = true;
 
             const licenseId = docSnap.get('licenseId' as _Paths<_Order>) as _Order['licenseId'];
             if (licenseId != null) {
-                operations.update_license_contractors = true;
+                operations.checkAndCreate_contractorLicense = true;
             }
             break;
         }
@@ -197,17 +197,30 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             if (oldDocData.amountTotal !== docData.amountTotal) {
                 operations.assign_amountTotalRanges = true;
             }
-            if (oldDocData.licenseId == null && docData.licenseId != null) {
-                operations.update_license_contractors = true;
+            if (oldDocData.client.id !== docData.client.id) {
+                if (oldDocData.client.id != null) {
+                    operations.checkAndRemove_oldContractorClient = true;
+                }
+                if (docData.client.id == null) {
+                    operations.checkAndCreateAndAssign_contractorClientAndClient = true;
+                }
+            }
+            if (oldDocData.licenseId !== docData.licenseId) {
+                if (oldDocData.licenseId != null) {
+                    operations.checkAndRemove_oldContractorLicense = true;
+                }
+                if (docData.licenseId != null) {
+                    operations.checkAndCreate_contractorLicense = true;
+                }
             }
             break;
         }
         case 'delete': {
-            operations.unAssign_from_clients = true;
+            operations.checkAndRemove_oldContractorClient = true;
 
             const licenseId = oldDocSnap.get('licenseId' as _Paths<_Order>) as _Order['licenseId'];
             if (licenseId != null) {
-                operations.unAssign_from_licenses = true;
+                operations.checkAndRemove_oldContractorLicense = true;
             }
             break;
         }
@@ -228,42 +241,62 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
     if (operations.assign_status) {
         docChanges.status = _OrderStatus.NEW;
     }
-    if (operations.assign_client) {
+    if (operations.checkAndCreateAndAssign_contractorClientAndClient) {
         const {name, taxCode} = docSnap.get('client' as _Paths<_Order>) as _Order['client'];
 
+        const contractorId = docSnap.get('contractor.id' as _Paths<_Order>) as _Order['contractor']['id'];
+        const contractorClientsCollRef = db().collection(`contractors/${contractorId}/contractor-clients`) as CollectionReference<_ContractorClient>;
         const clientCollRef = db().collection('clients') as CollectionReference<_Client>;
 
-        const foundClientSnaps = await clientCollRef
-            .where('taxCode' as _Paths<_Client>, '==', taxCode)
-            .where('name' as _Paths<_Client>, '==', name)
+        const actions: ('createClient' | 'createContractorClient')[] = [];
+        let clientId: _Order['client']['id'] | undefined;
+
+        clientId = await clientCollRef
+            .where('taxCode' as _Paths<_ContractorClient>, '==', taxCode)
+            .where('name' as _Paths<_ContractorClient>, '==', name)
+            .limit(1)
             .get()
-            .then(({docs}) => docs);
+            .then(({ docs }) => docs.map(({ id }) => id)[0]);
 
-        if (foundClientSnaps.length > 1) {
-            logger.error("Found multiple client with same name and taxCode, DB is inconsistent, skipping assignment of client.id to order, listing: taxCode, name, clientIds", taxCode, name, foundClientSnaps);
-        } else {
-            const foundClientSnap = foundClientSnaps[0];
-            let clientId: string;
-            const contractorId = docSnap.get('contractor.id' as _Paths<_Order>);
+        if (!clientId) {
+            actions.push('createContractorClient');
 
-            if (!foundClientSnap) {
-                logger.info(`Creating a client to assign to order`);
-                const newClientRef = clientCollRef.doc();
+            clientId = await clientCollRef
+                .where('taxCode' as _Paths<_Client>, '==', taxCode)
+                .where('name' as _Paths<_Client>, '==', name)
+                .limit(1)
+                .get()
+                .then(({ docs }) => docs.map(({ id }) => id)[0]);
 
-                clientId = newClientRef.id;
-                batch.create(newClientRef, {
-                    name,
-                    taxCode,
-                    contractorIds: [contractorId]
-                });
-            } else {
-                clientId = foundClientSnap.id;
-                batch.update(foundClientSnap.ref, { contractorIds: FieldValue.arrayUnion(contractorId) })
+            if (!clientId) {
+                actions.push('createClient');
             }
-
-            logger.info(`Assigning client.id of ${clientId} to order with id ${docSnap.id}`)
-            docChanges['client.id'] = clientId;
         }
+
+        if (actions.includes('createClient')) {
+            logger.info(`Creating a client for order`);
+
+            const newClientRef = clientCollRef.doc();
+            clientId = newClientRef.id;
+
+            batch.create(newClientRef, {
+                name,
+                taxCode,
+            });
+        }
+        if (actions.includes('createContractorClient')) {
+            logger.info(`Creating a contractorClient with id ${clientId} for contractorId ${contractorId}`);
+
+            const newContractorClientRef = contractorClientsCollRef.doc(clientId);
+
+            batch.set(newContractorClientRef, {
+                name,
+                taxCode,
+            });
+        }
+
+        logger.info(`Assigning client.id of ${clientId} to order with id ${docSnap.id}`)
+        docChanges['client.id'] = clientId;
     }
     if (operations.assign_amountTotalRanges) {
         const currentAmountTotal = (docSnap.data() as _Order).amountTotal;
@@ -279,18 +312,28 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
 
         docChanges.amountTotalRanges = newOrderAmountRangesEntries;
     }
-    if (operations.update_license_contractors) {
+    if (operations.checkAndCreate_contractorLicense) {
         const contractorId = docSnap.get('contractor.id' as _Paths<_Order>);
         const licenseId = docSnap.get('licenseId' as _Paths<_Order>) as _Order['licenseId'];
-        const licenseRef = db().doc(`licenses/${licenseId}`) as DocumentReference<_License>;
+        const licenseRef = (db().collection('licenses') as CollectionReference<_License>).doc(licenseId);
+        const contractorLicenseRef = (db().collection(`contractors/${contractorId}/contractor-licenses`) as CollectionReference<_ContractorLicense>).doc(licenseId);
 
-        logger.info(`assigning contractorId of ${contractorId} to license with id ${licenseId}`);
-        batch.update(licenseRef, {ordersContractorIds: FieldValue.arrayUnion(contractorId)});
+        const contractorLicenseExists = await contractorLicenseRef.get().then(({exists}) => exists);
+        if (!contractorLicenseExists) {
+            logger.info(`creating contractorLicense with id ${licenseId} for contractorId ${contractorId}`);
+
+            const license = await licenseRef.get().then(licenseSnap => licenseSnap.data());
+
+            batch.set(contractorLicenseRef, {
+                // filter license fields here
+                ...license,
+            });
+        }
     }
-    if (operations.unAssign_from_clients) {
-        const contractorId = oldDocSnap.get('contractor.id' as _Paths<_Order>);
+    if (operations.checkAndRemove_oldContractorClient) {
+        const contractorId = oldDocSnap.get('contractor.id' as _Paths<_Order>) as _Order['contractor']['id'];
         const clientId = oldDocSnap.get('client.id' as _Paths<_Order>) as _Order['client']['id'];
-        const clientRef = db().doc(`clients/${clientId}`) as DocumentReference<_Client>;
+        const contractorClientRef = db().doc(`contractors/${contractorId}/contractor-clients/${clientId}`) as DocumentReference<_Client>;
         const ordersCollRef = db().collection(`contractors/${contractorId}/orders`) as CollectionReference<_Order>
 
         const otherOrdersByClientCountSnap = await ordersCollRef
@@ -299,14 +342,14 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             .get();
 
         if (otherOrdersByClientCountSnap.data().count == 0) {
-            logger.info(`unAssigning contractorId of ${contractorId} from client with id ${clientId}`);
-            batch.update(clientRef, { contractorIds: FieldValue.arrayRemove(contractorId) });
+            logger.info(`deleting contractorClient with id ${clientId} for contractorId ${contractorId}`);
+            batch.delete(contractorClientRef);
         }
     }
-    if (operations.unAssign_from_licenses) {
-        const contractorId = oldDocSnap.get('contractor.id' as _Paths<_Order>);
+    if (operations.checkAndRemove_oldContractorLicense) {
+        const contractorId = oldDocSnap.get('contractor.id' as _Paths<_Order>) as _Order['contractor']['id'];
         const licenseId = oldDocSnap.get('licenseId' as _Paths<_Order>) as _Order['licenseId'];
-        const licenseRef = db().doc(`licenses/${licenseId}`) as DocumentReference<_License>;
+        const contractorLicenseRef = db().doc(`contractors/${contractorId}/contractor-licenses/${licenseId}`) as DocumentReference<_ContractorLicense>;
         const ordersCollRef = db().collection(`contractors/${contractorId}/orders`) as CollectionReference<_Order>
 
         const otherOrdersByLicenseCountSnap = await ordersCollRef
@@ -315,8 +358,8 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             .get();
 
         if (otherOrdersByLicenseCountSnap.data().count == 0) {
-            logger.info(`unAssigning contractorId of ${contractorId} from license with id ${licenseId}`);
-            batch.update(licenseRef, { ordersContractorIds: FieldValue.arrayRemove(contractorId) });
+            logger.info(`deleting contractorLicense with id ${licenseId} for contractorId ${contractorId}`);
+            batch.delete(contractorLicenseRef);
         }
     }
 
@@ -349,10 +392,9 @@ interface _OrderAmountRange {
     to: number | null;
 }
 
-interface _License {
-    expirationDate: Timestamp;
-    ordersContractorIds: string[];
-}
+type _License = Record<string, never>;
+
+type _ContractorLicense = _Subset<_License, Record<string, never>>
 
 interface _LicensePrivateKey {
     licenseId: string;
@@ -362,8 +404,12 @@ interface _LicensePrivateKey {
 interface _Client {
     taxCode: string;
     name: string;
-    contractorIds: _Order['contractor']['id'][];
 }
+
+type _ContractorClient = _Subset<_Client, {
+    taxCode: _Client['taxCode'];
+    name: _Client['name'];
+}>
 
 enum _OrderStatus {
     NEW = 'NEW',
@@ -371,6 +417,9 @@ enum _OrderStatus {
     CANCELLED = 'CANCELLED',
     COMPLETED = 'COMPLETED',
 }
+
+// eslint-disable-next-line
+type _Subset<T extends U, U> = U;
 
 type _Paths<T> = T extends object
     ? {

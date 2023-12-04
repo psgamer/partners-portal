@@ -1,9 +1,9 @@
 import { Timestamp } from "@angular/fire/firestore";
 import { FieldValue } from '@firebase/firestore';
-import { Client, Period } from "src/app/core/models/all.models";
+import { ContractorClient, Period } from "src/app/core/models/all.models";
 import { Subset } from '../../core/helpers/utils';
 import { Contractor } from '../../shared/contractor/contractor.model';
-import { License } from '../../shared/license/license.model';
+import { ContractorLicense } from '../../shared/license/license.model';
 import { LocalSolution } from '../../shared/local-solution/local-solution.model';
 import { Payer } from '../../shared/payer/payer.model';
 import { OrderAmountRange } from './order-amount-range.model';
@@ -27,7 +27,7 @@ export interface Order {
         id: Payer['id'];
         name: Payer['name'];
     };
-    licenseId: License['id'] | null;
+    licenseId: ContractorLicense['id'] | null;
     amountTotal: number;
     amountTotalRanges: OrderAmountRange['id'][];
     operation: OrderOperationType;
@@ -46,9 +46,9 @@ export interface Order {
         period: Period;
     };
     client: {
-        id: Client['id'];
-        taxCode: Client['taxCode'];
-        name: Client['name'];
+        id: ContractorClient['id'];
+        taxCode: ContractorClient['taxCode'];
+        name: ContractorClient['name'];
     };
     contact: {
         name: string;
@@ -74,7 +74,7 @@ export type CreateOrder = Subset<Order, {
         id: Payer['id'];
         name: Payer['name'];
     };
-    licenseId: License['id'] | null;
+    licenseId: ContractorLicense['id'] | null;
     amountTotal: number;
     operation: OrderOperationType;
     status: OrderStatus;
@@ -92,8 +92,8 @@ export type CreateOrder = Subset<Order, {
         period: Period;
     };
     client: {
-        taxCode: Client['taxCode'];
-        name: Client['name'];
+        taxCode: ContractorClient['taxCode'];
+        name: ContractorClient['name'];
     };
     contact: {
         name: string;
