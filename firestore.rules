@@ -28,26 +28,27 @@ service cloud.firestore {
     }
     match /contractors/{contractorId} {
       function isCurrentUserContractor() {
-        return isAuthorized() && request.auth.token.contractorId == contractorId;
+        return request.auth.token.contractorId == contractorId;
       }
       function isCurrentUserContractorsDistributor() {
-        return isAuthorized() && request.auth.token.contractorId in currentDoc().contractorIds;
+        let currentUserContractorId = request.auth.token.contractorId;
+
+        return contractorId in get(/databases/$(database)/documents/contractors/$(currentUserContractorId)/contractor-distributors/$(currentUserContractorId)).data.distributorIds;
       }
 
       allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
 
+      match /contractor-distributors/{contractorDistributorId} {
+      	allow read: if isAuthorized() && isCurrentUserContractor();
+      }
       match /payers/{payerId} {
-        function isCurrentUserPayerContractorsDistributor() {
-          return isAuthorized() && request.auth.token.contractorId in get(/databases/$(database)/documents/contractors/$(contractorId)).data.contractorIds;
-        }
-
-      	allow read: if isCurrentUserContractor() || isCurrentUserPayerContractorsDistributor();
+      	allow read: if isAuthorized() && (isCurrentUserContractor() || isCurrentUserContractorsDistributor());
       }
       match /contractor-clients/{contractorClientId} {
-        allow read: if isCurrentUserContractor();
+        allow read: if isAuthorized() && isCurrentUserContractor();
       }
       match /contractor-licenses/{contractorLicenseId} {
-        allow read: if isCurrentUserContractor();
+        allow read: if isAuthorized() && isCurrentUserContractor();
       }
       match /orders/{orderId} {
         function isValidCancelOperation() {
@@ -141,10 +142,10 @@ service cloud.firestore {
                       && (futureDoc().client.id == null || futureDoc().client.id == currentDoc().client.id);
         }
 
-      	allow read: if isCurrentUserContractor();
-        allow create: if isCurrentUserContractor() && isValidCreateOperation() && isValidResultingOrder();
-        allow update: if isCurrentUserContractor() && (isValidCancelOperation() || (isValidUpdateOperation() && isValidResultingOrder()));
-        allow delete: if isCurrentUserContractor() && isValidDeleteOperation();
+      	allow read: if isAuthorized() && isCurrentUserContractor();
+        allow create: if isAuthorized() && isCurrentUserContractor() && isValidCreateOperation() && isValidResultingOrder();
+        allow update: if isAuthorized() && isCurrentUserContractor() && (isValidCancelOperation() || (isValidUpdateOperation() && isValidResultingOrder()));
+        allow delete: if isAuthorized() && isCurrentUserContractor() && isValidDeleteOperation();
       }
     }
   }

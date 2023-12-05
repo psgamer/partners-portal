@@ -134,9 +134,9 @@ export class OrderPageComponent {
             phone: this.fb.control('', [Validators.required, Validators.pattern(/^380\d{2}\d{3}\d{2}\d{2}$/)]),
             email: this.fb.control('', [Validators.required, nonEmptyStringRequiredValidator, Validators.email]),
         }),
-        contractor: this.fb.control(null as Omit<Contractor, 'contractorIds'> | null, [Validators.required]),
+        contractor: this.fb.control(null as Contractor | null, [Validators.required]),
         contractorPayer: this.fb.control(null as Payer | null, [Validators.required]),
-        distributor: this.fb.control(null as Omit<Contractor, 'contractorIds'> | null, [Validators.required]),
+        distributor: this.fb.control(null as Contractor | null, [Validators.required]),
         distributorPayer: this.fb.control(null as Payer | null, [Validators.required]),
         operation: this.fb.control(OrderOperationType.NEW_PURCHASE, [Validators.required]),
         licenseId: this.fb.control(null as Order['licenseId'], []),
@@ -150,7 +150,6 @@ export class OrderPageComponent {
             count: this.fb.control(null, [Validators.required, nonEmptyStringRequiredValidator, Validators.min(1)]),
             type: this.fb.control(null, [Validators.required]),
         }),
-
         localSolution: this.fb.control(null as LocalSolution | null, [Validators.required]),
     });
 

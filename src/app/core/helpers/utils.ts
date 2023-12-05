@@ -124,6 +124,10 @@ const buildDiffObject = (target: any, comparisonValue: any): any => {
     return diffObject;
 }
 
+export const flattenArray = <T>(arr: T[][]): T[]  => [].concat(...arr as any);
+
+export const MAX_FIRESTORE_DISJUNCTION_AMOUNT = 30;
+
 const buildArrayDiff = (arr1: any[], arr2: any[]): any[] => {
     const diffArray: any[] = [];
 

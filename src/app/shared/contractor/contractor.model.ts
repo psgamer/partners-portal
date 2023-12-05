@@ -1,5 +1,9 @@
 export interface Contractor {
     id: string;
     name: string;
-    contractorIds: Contractor['id'][];
+}
+
+export interface ContractorDistributor {
+    id: Contractor['id'];
+    distributorIds: Contractor['id'][];
 }
