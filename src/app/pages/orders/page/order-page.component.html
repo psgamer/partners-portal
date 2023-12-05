@@ -3,6 +3,38 @@
 <!-- End Breadcrumbs -->
 
 <div class="row" [formGroup]="form">
+    <div *ngIf="order$ | async as order" class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">{{'ORDER.LABELS.DETAILS.DATA' | translate}}</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="row g-3">
+                            <div class="col-auto">
+                                <label for="order.status">{{'ORDER.FIELDS.status' | translate}}:</label>
+                            </div>
+                            <div class="col-auto">
+                                <span id="order.status" readonly [class]="'badge ' + getOrderTagItemClass(order)">{{('ORDER.STATUS.' + order.status) | translate}}</span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="row g-3">
+                            <div class="col-auto">
+                                <label for="order.createdDate">{{'ORDER.FIELDS.createdDate' | translate}}:</label>
+                            </div>
+                            <div class="col-auto">
+                                <span id="order.createdDate" readonly>{{order.createdDate.toDate() | date}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="col-lg-12">
         <div class="card">
             <div class="card-header">
@@ -207,13 +239,23 @@
     </div>
 </div>
 
-<div class="row">
+<div *ngIf="!(order$ | async) || (order$ | async)?.status === OrderStatus.NEW" class="row">
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
                 <div class="text-end">
-                    <button type="button" data-bs-toggle="modal" (click)="createOrder()" class="btn btn-primary me-1">{{'ORDER.LABELS.ACTION.CREATE' | translate}} {{'ORDER.LABELS.TITLE' | translate | lowercase}}</button>
-                    <a routerLink="../" class="btn btn-secondary">{{'ORDER.LABELS.ACTION.RETURN' | translate}}</a>
+                    <ng-container *ngIf="!(order$ | async)">
+                        <button type="button" data-bs-toggle="modal" (click)="createOrder()"
+                                class="btn btn-primary me-1"
+                        >{{'ORDER.LABELS.ACTION.CREATE' | translate}} {{'ORDER.LABELS.TITLE' | translate | lowercase}}</button>
+                        <a routerLink="../" class="btn btn-secondary">{{'ORDER.LABELS.ACTION.RETURN' | translate}}</a>
+                    </ng-container>
+                    <ng-container *ngIf="order$ | async as order">
+                        <button type="button" data-bs-toggle="modal" (click)="updateOrder()"
+                                class="btn btn-primary me-1" [disabled]="updateSubmitDisabled$ | async"
+                        >{{'ORDER.LABELS.ACTION.SAVE_CHANGES' | translate}}</button>
+                        <button class="btn btn-secondary" (click)="resetFormToOrder(order)">{{'ORDER.LABELS.ACTION.RESET_CHANGES' | translate}}</button>
+                    </ng-container>
                 </div>
             </div>
         </div>
@@ -332,11 +374,11 @@
 </div><!-- /.modal -->
 
 <!--confirm orders-->
-<div bsModal #confirmOrderModal="bs-modal" id="confirmOrderModal" class="modal fade zoomIn">
+<div bsModal #confirmCreateOrderModal="bs-modal" id="confirmCreateOrderModal" class="modal fade zoomIn">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="btn-close" (click)="confirmOrderModal.hide()"></button>
+                <button type="button" class="btn-close" (click)="confirmCreateOrderModal.hide()"></button>
             </div>
             <div class="modal-body">
                 <div class="mt-2 text-center">
@@ -347,9 +389,34 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
-                    <button type="button" class="btn w-sm btn-ghost-danger" (click)="confirmOrderModal.hide()"><i
+                    <button type="button" class="btn w-sm btn-ghost-danger" (click)="confirmCreateOrderModal.hide()"><i
                             class="bi bi-x-lg align-baseline me-1"></i>{{'BUTTONS.CLOSE' | translate}}</button>
                     <button type="button" class="btn w-sm btn-success" (click)="confirmCreateOrder()">{{'BUTTONS.PROCEED' | translate}}</button>
+                </div>
+            </div>
+
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div bsModal #confirmUpdateOrderModal="bs-modal" id="confirmUpdateOrderModal" class="modal fade zoomIn">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" (click)="confirmUpdateOrderModal.hide()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mt-2 text-center">
+                    <i class="bi bi-shop display-6"></i>
+                    <div class="mt-4 pt-2 mx-4 mx-sm-5">
+                        <h4>{{'LABELS.CONFIRM.TITLE' | translate}}</h4>
+                        <p class="text-muted mx-4 mb-0">{{'ORDER.CONFIRM.UPDATE' | translate}}</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
+                    <button type="button" class="btn w-sm btn-ghost-danger" (click)="confirmUpdateOrderModal.hide()"><i
+                            class="bi bi-x-lg align-baseline me-1"></i>{{'BUTTONS.CLOSE' | translate}}</button>
+                    <button type="button" class="btn w-sm btn-success" (click)="confirmUpdateOrder()">{{'BUTTONS.PROCEED' | translate}}</button>
                 </div>
             </div>
 

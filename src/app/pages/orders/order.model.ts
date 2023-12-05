@@ -1,5 +1,4 @@
 import { Timestamp } from "@angular/fire/firestore";
-import { FieldValue } from '@firebase/firestore';
 import { ContractorClient, Period } from "src/app/core/models/all.models";
 import { Subset } from '../../core/helpers/utils';
 import { Contractor } from '../../shared/contractor/contractor.model';
@@ -55,51 +54,45 @@ export interface Order {
         phone: string;
         email: string;
     };
+    hasPendingChanges: boolean;
 }
 
 export type CreateOrder = Subset<Order, {
-    contractor: {
-        id: Contractor['id'];
-        name: Contractor['name'];
-    };
-    distributor: {
-        id: Contractor['id'];
-        name: Contractor['name'];
-    };
-    contractorPayer: {
-        id: Payer['id'];
-        name: Payer['name'];
-    };
-    distributorPayer: {
-        id: Payer['id'];
-        name: Payer['name'];
-    };
-    licenseId: ContractorLicense['id'] | null;
-    amountTotal: number;
-    operation: OrderOperationType;
-    status: OrderStatus;
-    createdDate: FieldValue;
-    localSolutionSrc: {
-        id: LocalSolution['id'];
-        name: LocalSolution['name'];
-        count: number;
-        expirationDate: Timestamp;
-    } | null;
-    localSolutionRes: {
-        id: LocalSolution['id'];
-        name: LocalSolution['name'];
-        count: number;
-        period: Period;
-    };
+    contractor: Order['contractor'];
+    distributor: Order['distributor'];
+    contractorPayer: Order['contractorPayer'];
+    distributorPayer: Order['distributorPayer'];
+    licenseId: Order['licenseId'];
+    amountTotal: Order['amountTotal'];
+    operation: Order['operation'];
+    status: Order['status'];
+    createdDate: Order['createdDate'];
+    localSolutionSrc: Order['localSolutionSrc'];
+    localSolutionRes: Order['localSolutionRes'];
     client: {
-        taxCode: ContractorClient['taxCode'];
-        name: ContractorClient['name'];
+        taxCode: Order['client']['taxCode'];
+        name: Order['client']['name'];
     };
-    contact: {
-        name: string;
-        phone: string;
-        email: string;
+    contact: Order['contact'];
+    hasPendingChanges: Order['hasPendingChanges'];
+}>;
+
+export type UpdateOrder = Subset<Order, {
+    distributor: Order['distributor'];
+    contractorPayer: Order['contractorPayer'];
+    distributorPayer: Order['distributorPayer'];
+    licenseId: Order['licenseId'];
+    amountTotal: Order['amountTotal'];
+    operation: Order['operation'];
+    localSolutionSrc: Order['localSolutionSrc'];
+    localSolutionRes: Order['localSolutionRes'];
+    client: {
+        id: Order['client']['id'] | null;
+        taxCode: Order['client']['taxCode'];
+        name: Order['client']['name'];
     };
+    contact: Order['contact'];
+    hasPendingChanges: Order['hasPendingChanges'];
 }>;
 
 export enum OrderOperationType {

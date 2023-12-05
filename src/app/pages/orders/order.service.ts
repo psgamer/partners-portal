@@ -1,19 +1,19 @@
-/* eslint-disable @typescript-eslint/adjacent-overload-signatures */
 import { Injectable, NgZone } from '@angular/core';
 import {
-    addDoc, AggregateField, collection, count, doc, Firestore, getAggregateFromServer, onSnapshot, or, OrderByDirection, query,
-    QueryCompositeFilterConstraint, QueryConstraint, QueryFieldFilterConstraint, setDoc, sum, where, writeBatch,
+    addDoc, AggregateField, collection, count, doc, DocumentReference, Firestore, getAggregateFromServer, getDoc, onSnapshot, or,
+    OrderByDirection, query, QueryCompositeFilterConstraint, QueryConstraint, QueryFieldFilterConstraint, serverTimestamp, setDoc, sum,
+    updateDoc, where, writeBatch,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { map, switchMap } from 'rxjs/operators';
 import { QueryFilterConstraints, QueryHandler, Sort, SortEvent } from '../../core/helpers/query.handler';
-import { getBaseConverter, Paths } from '../../core/helpers/utils';
+import { FirebaseDoc, getBaseConverter, Paths, updateObjToPayload } from '../../core/helpers/utils';
 import { AuthenticationService } from '../../core/services/auth.service';
 import { LocalSolution } from '../../shared/local-solution/local-solution.model';
 import { OrderAmountRange } from './order-amount-range.model';
 
-import { CreateOrder, Order, OrderOperationType, OrderStatus } from './order.model';
+import { CreateOrder, Order, OrderOperationType, OrderStatus, UpdateOrder } from './order.model';
 
 export interface OrderFilterParams {
     localSolutionId: LocalSolution['id'] | '';
@@ -126,29 +126,49 @@ export class OrderService {
         );
     }
 
-    createOrder(order: CreateOrder): Observable<Order['number']> {
+    findOne(number: Order['number']) {
         return this.collRef$.pipe(
-            switchMap(collRef => fromPromise(addDoc(collRef, order as Order))),
-            switchMap(docRef => new Observable<Order['number']>(observer => {
-                const snapshotSub = onSnapshot(docRef, {
-                    next: order => {
-                        const number = order.get('number' as Paths<Order>) as Order['number'] | null | undefined;
-                        if (!!number) {
-                            this.zone.run(() => {
-                                observer.next(number);
-                                observer.complete();
-                            });
-                        }
-                    },
-                    error: e => this.zone.run(() => {
-                        observer.error(e);
-                        observer.complete();
-                    }),
-                });
-
-                return () => this.zone.run(() => snapshotSub());
-            })),
+            switchMap(collRef => getDoc(doc(collRef, number))),
+            map(docSnap => docSnap.data()),
         );
+    }
+
+    createOrder(createOrder: Omit<CreateOrder, 'createdDate' | 'hasPendingChanges'>): Observable<Order> {
+        return this.collRef$.pipe(
+            switchMap(collRef => fromPromise(addDoc(collRef, <CreateOrder>{ ...createOrder, hasPendingChanges: true, createdDate: serverTimestamp() } as Order))),
+            switchMap(docRef => this.createOrderObservableAfterUpdated(docRef)),
+        );
+    }
+
+    updateOrder(number: Order['number'], updateOrder: Partial<Omit<UpdateOrder, 'hasPendingChanges'>>): Observable<Order> {
+        return this.collRef$.pipe(
+            map(collRef => doc(collRef, number)),
+            switchMap(docRef => updateDoc(docRef, updateObjToPayload(<Partial<UpdateOrder>>{ ...updateOrder, hasPendingChanges: true })).then(() => docRef)),
+            switchMap(docRef => this.createOrderObservableAfterUpdated(docRef))
+        );
+    }
+
+    private createOrderObservableAfterUpdated(docRef: DocumentReference<Order, FirebaseDoc<Order>>): Observable<Order> {
+        return new Observable<Order>(observer => {
+            const snapshotSub = onSnapshot(docRef, {
+                next: orderSnap => {
+                    const hasPendingChanges = () => orderSnap.get('hasPendingChanges' as Paths<Order>) as Order['hasPendingChanges'];
+
+                    if (!(orderSnap.metadata.hasPendingWrites || hasPendingChanges())) {
+                        this.zone.run(() => {
+                            observer.next(orderSnap.data());
+                            observer.complete();
+                        });
+                    }
+                },
+                error: e => this.zone.run(() => {
+                    observer.error(e);
+                    observer.complete();
+                }),
+            });
+
+            return () => this.zone.run(() => snapshotSub());
+        });
     }
 
     cancelOrder(id: Order['id']) {

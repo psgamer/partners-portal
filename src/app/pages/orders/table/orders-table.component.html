@@ -56,7 +56,7 @@
                                 <ng-container *ngFor="let colConfig of colConfigs">
                                     <ng-container [ngSwitch]="colConfig.column">
                                         <td *ngSwitchCase="'createdDate'">{{extractByPath(item, colConfig.column).toDate() | date }}</td>
-                                        <td *ngSwitchCase="'number'"><a routerLink="/learning/grid" class="text-reset">{{extractByPath(item, colConfig.column)}}</a></td>
+                                        <td *ngSwitchCase="'number'"><a [routerLink]="extractByPath(item, colConfig.column)" class="text-reset">{{extractByPath(item, colConfig.column)}}</a></td>
                                         <td *ngSwitchCase="'status'"><span [class]="'badge ' + getOrderTagItemClass(item)">{{('ORDER.STATUS.' + extractByPath(item, colConfig.column)) | translate}}</span></td>
                                         <td *ngSwitchCase="'operation'">{{('ORDER.OPERATION.' + extractByPath(item, colConfig.column)) | translate}}</td>
                                         <td *ngSwitchDefault>{{extractByPath(item, colConfig.column)}}</td>

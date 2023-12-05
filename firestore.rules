@@ -58,48 +58,92 @@ service cloud.firestore {
         function isValidDeleteOperation() {
           return currentDoc().status == 'NEW';
         }
-        function isValidLocalSolutionSrcLicenseByDbForCreate() {
+        function isValidLocalSolutionSrcLicenseByDb() {
           let futureLocalSolutionSrc = futureDoc().localSolutionSrc;
           let localSolution = get(/databases/$(database)/documents/licenses/$(futureDoc().licenseId)).data.localSolution;
 
           return localSolution.id == futureLocalSolutionSrc.id
               && localSolution.count == futureLocalSolutionSrc.count
         }
+        function isValidResultingOrder() {
+          return futureDoc().keys().hasAll(['status',
+                                            'amountTotal',
+                                            'operation',
+                                            'createdDate',
+                                            'localSolutionRes',
+                                            'client',
+                                            'contact',
+                                            'contractor',
+                                            'distributor',
+                                            'contractorPayer',
+                                            'distributorPayer',
+                                            'licenseId',
+                                            'localSolutionSrc'])
+                              && futureDoc().contractor.keys().hasAll(['id','name'])
+                              && futureDoc().distributor.keys().hasAll(['id','name'])
+                              && futureDoc().contractorPayer.keys().hasAll(['id','name'])
+                              && futureDoc().distributorPayer.keys().hasAll(['id','name'])
+                              && futureDoc().localSolutionRes.keys().hasAll(['id','name','count','period'])
+                              && futureDoc().localSolutionRes.period.keys().hasAll(['count','type'])
+                              && futureDoc().client.keys().hasAll(['taxCode','name'])
+                              && futureDoc().contact.keys().hasAll(['phone','name','email'])
+                              && futureDoc().contractor.id == contractorId
+                              && (
+                                     (futureDoc().operation == 'NEW_PURCHASE'
+                                      && futureDoc().licenseId == null
+                                      && futureDoc().localSolutionSrc == null)
+                                  ||
+                                     (futureDoc().operation == 'PROLONGATION'
+                                      && futureDoc().licenseId != null
+                                      && futureDoc().localSolutionSrc != null
+                                      && futureDoc().localSolutionSrc.keys().hasAll(['id','name','count','expirationDate'])
+                                      && isValidLocalSolutionSrcLicenseByDb())
+                              )
+                              && contractorId in get(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)).data.contractorIds
+                              && exists(/databases/$(database)/documents/contractors/$(contractorId)/payers/$(futureDoc().contractorPayer.id))
+                              && exists(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)/payers/$(futureDoc().distributorPayer.id))
+                              && exists(/databases/$(database)/documents/local-solutions/$(futureDoc().localSolutionRes.id));
+        }
         function isValidCreateOperation() {
-          return futureDoc().keys().hasAll(['status','amountTotal','operation','createdDate','localSolutionRes','client','contact','contractor','distributor','contractorPayer','distributorPayer','licenseId','localSolutionSrc'])
-                    && futureDoc().contractor.keys().hasAll(['id','name'])
-                    && futureDoc().distributor.keys().hasAll(['id','name'])
-                    && futureDoc().contractorPayer.keys().hasAll(['id','name'])
-                    && futureDoc().distributorPayer.keys().hasAll(['id','name'])
-                    && futureDoc().localSolutionRes.keys().hasAll(['id','name','count','period'])
-                    && futureDoc().localSolutionRes.period.keys().hasAll(['count','type'])
-                    && futureDoc().client.keys().hasAll(['taxCode','name'])
-                    && futureDoc().contact.keys().hasAll(['phone','name','email'])
-                    && futureDoc().status == 'NEW'
-                    && futureDoc().contractor.id == contractorId
-                    && (
-                           (futureDoc().operation == 'NEW_PURCHASE'
-                            && futureDoc().licenseId == null
-                            && futureDoc().localSolutionSrc == null)
-                        ||
-                           (futureDoc().operation == 'PROLONGATION'
-                            && futureDoc().licenseId != null
-                            && futureDoc().localSolutionSrc != null
-                            && futureDoc().localSolutionSrc.keys().hasAll(['id','name','count','expirationDate'])
-                            && isValidLocalSolutionSrcLicenseByDbForCreate())
-                    )
-                    && contractorId in get(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)).data.contractorIds
-                    && exists(/databases/$(database)/documents/contractors/$(contractorId)/payers/$(futureDoc().contractorPayer.id))
-                    && exists(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)/payers/$(futureDoc().distributorPayer.id))
-                    && exists(/databases/$(database)/documents/local-solutions/$(futureDoc().localSolutionRes.id));
+          return futureDoc().keys().hasOnly(['contractor',
+                                             'distributor',
+                                             'contractorPayer',
+                                             'distributorPayer',
+                                             'licenseId',
+                                             'amountTotal',
+                                             'operation',
+                                             'status',
+                                             'createdDate',
+                                             'localSolutionSrc',
+                                             'localSolutionRes',
+                                             'client',
+                                             'contact',
+                                             'hasPendingChanges'])
+                      && futureDoc().createdDate is timestamp
+                      && futureDoc().status == 'NEW'
+                      && futureDoc().hasPendingChanges
+                      && futureDoc().client.id == null;
         }
         function isValidUpdateOperation() {
-          return false;
+          return diffMap().affectedKeys().hasOnly(['distributor',
+                                                   'contractorPayer',
+                                                   'distributorPayer',
+                                                   'licenseId',
+                                                   'amountTotal',
+                                                   'operation',
+                                                   'localSolutionSrc',
+                                                   'localSolutionRes',
+                                                   'client',
+                                                   'contact',
+                                                   'hasPendingChanges'])
+                      && currentDoc().status == 'NEW'
+                      && futureDoc().hasPendingChanges
+                      && (futureDoc().client.id == null || futureDoc().client.id == currentDoc().client.id);
         }
 
       	allow read: if isCurrentUserContractor();
-        allow create: if isCurrentUserContractor() && isValidCreateOperation();
-        allow update: if isCurrentUserContractor() && (isValidCancelOperation() || isValidUpdateOperation());
+        allow create: if isCurrentUserContractor() && isValidCreateOperation() && isValidResultingOrder();
+        allow update: if isCurrentUserContractor() && (isValidCancelOperation() || (isValidUpdateOperation() && isValidResultingOrder()));
         allow delete: if isCurrentUserContractor() && isValidDeleteOperation();
       }
     }

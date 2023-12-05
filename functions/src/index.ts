@@ -175,6 +175,7 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
         checkAndCreate_contractorLicense: false,
         checkAndRemove_oldContractorClient: false,
         checkAndRemove_oldContractorLicense: false,
+        unset_hasPendingChanges: false,
     }
 
     switch (opType) {
@@ -185,9 +186,15 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             operations.checkAndCreateAndAssign_contractorClientAndClient = true;
 
             const licenseId = docSnap.get('licenseId' as _Paths<_Order>) as _Order['licenseId'];
+            const hasPendingChanges = docSnap.get('hasPendingChanges' as _Paths<_Order>) as _Order['hasPendingChanges'];
+
             if (licenseId != null) {
                 operations.checkAndCreate_contractorLicense = true;
             }
+            if (hasPendingChanges) {
+                operations.unset_hasPendingChanges = true;
+            }
+
             break;
         }
         case "update": {
@@ -197,12 +204,10 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             if (oldDocData.amountTotal !== docData.amountTotal) {
                 operations.assign_amountTotalRanges = true;
             }
-            if (oldDocData.client.id !== docData.client.id) {
+            if (docData.client.id === null) {
+                operations.checkAndCreateAndAssign_contractorClientAndClient = true;
                 if (oldDocData.client.id != null) {
                     operations.checkAndRemove_oldContractorClient = true;
-                }
-                if (docData.client.id == null) {
-                    operations.checkAndCreateAndAssign_contractorClientAndClient = true;
                 }
             }
             if (oldDocData.licenseId !== docData.licenseId) {
@@ -212,6 +217,9 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
                 if (docData.licenseId != null) {
                     operations.checkAndCreate_contractorLicense = true;
                 }
+            }
+            if (docData.hasPendingChanges) {
+                operations.unset_hasPendingChanges = true;
             }
             break;
         }
@@ -307,7 +315,7 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             .then(({ docs }) => docs.filter(doc => {
                 const { from, to } = doc.data() as _OrderAmountRange;
 
-                return (from === undefined || from <= currentAmountTotal) && (to === undefined || currentAmountTotal <= to);
+                return (from === null || from <= currentAmountTotal) && (to === null || currentAmountTotal <= to);
             }).map(({ id }) => id));
 
         docChanges.amountTotalRanges = newOrderAmountRangesEntries;
@@ -362,6 +370,9 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             batch.delete(contractorLicenseRef);
         }
     }
+    if (operations.unset_hasPendingChanges) {
+        docChanges.hasPendingChanges = false;
+    }
 
     if (Object.keys(docChanges).length) {
         batch.update(docSnap.ref, docChanges);
@@ -385,6 +396,7 @@ interface _Order {
         name: _Client['name'];
         taxCode: _Client['taxCode'];
     };
+    hasPendingChanges: boolean;
 }
 
 interface _OrderAmountRange {
