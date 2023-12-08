@@ -5,7 +5,7 @@ import { ModalDirective } from 'ngx-bootstrap/modal';
 import { CookieService } from 'ngx-cookie-service';
 import { AuthenticationService } from 'src/app/core/services/auth.service';
 import { EventService } from 'src/app/core/services/event.service';
-import { cartList, notification } from './data';
+import { cartList } from './data';
 
 @Component({
   selector: 'app-topbar',
@@ -36,15 +36,9 @@ export class TopbarComponent {
   discount: any;
   tax: any;
 
-  notificationList: any;
-
   @Output() mobileMenuButtonClicked = new EventEmitter();
-  @ViewChild('removeNotificationModal', { static: false }) removeNotificationModal?: ModalDirective;
   @ViewChild('removeCartModal', { static: false }) removeCartModal?: ModalDirective;
   deleteid: any;
-  totalNotify: number = 0;
-  newNotify: number = 0;
-  readNotify: number = 0;
 
   constructor(@Inject(DOCUMENT) private document: any,
     private eventService: EventService,
@@ -76,16 +70,6 @@ export class TopbarComponent {
     } else {
       this.flagvalue = val.map(element => element.flag);
     }
-
-    this.notificationList = notification
-    this.notificationList.forEach((element: any) => {
-      this.totalNotify += element.items.length
-      if (element.title == 'New') {
-        this.newNotify = element.items.length
-      } else {
-        this.readNotify = element.items.length
-      }
-    });
   }
 
   windowScroll() {
@@ -262,54 +246,6 @@ export class TopbarComponent {
     dropdown.classList.remove("show");
     searchOptions.classList.add("d-none");
     searchInputReponsive.value = "";
-  }
-
-  // Remove Notification
-  checkedValGet: any[] = [];
-  onCheckboxChange(event: any, id: any) {
-    var checkedVal: any[] = [];
-    var result
-    for (var i = 0; i < this.notificationList.length; i++) {
-      for (var x = 0; x < this.notificationList[i].items.length; x++) {
-        if (this.notificationList[i].items[x].state == true) {
-          result = this.notificationList[i].items[x].id;
-          checkedVal.push(result);
-        }
-      }
-    }
-    this.checkedValGet = checkedVal
-    checkedVal.length > 0 ? (document.getElementById("notification-actions") as HTMLElement).style.display = 'block' : (document.getElementById("notification-actions") as HTMLElement).style.display = 'none';
-  }
-
-  notificationDelete() {
-    for (var i = 0; i < this.checkedValGet.length; i++) {
-      for (var j = 0; j < this.notificationList.length; j++) {
-        for (var x = 0; x < this.notificationList[j].items.length; x++) {
-          if (this.notificationList[j].items[x].id == this.checkedValGet[i]) {
-            this.notificationList[j].items.splice(x, 1)
-          }
-        }
-      }
-    }
-    this.calculatenotification()
-    this.removeNotificationModal?.hide();
-  }
-
-  calculatenotification() {
-    this.totalNotify = 0;
-    this.checkedValGet = []
-    this.notificationList.forEach((element: any) => {
-      this.totalNotify += element.items.length
-      if (element.title == 'New') {
-        this.newNotify = element.items.length
-      } else {
-        this.readNotify = element.items.length
-      }
-    });
-    this.checkedValGet.length > 0 ? (document.getElementById("notification-actions") as HTMLElement).style.display = 'block' : (document.getElementById("notification-actions") as HTMLElement).style.display = 'none';
-    if (this.totalNotify == 0) {
-      document.querySelector('.empty-notification-elem')?.classList.remove('d-none')
-    }
   }
 
   /**

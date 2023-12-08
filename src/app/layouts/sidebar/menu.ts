@@ -17,9 +17,9 @@ export const MENU: MenuItem[] = [
         link: '/orders',
     },
     {
-        label: 'MENUITEMS.NOTIFICATIONS.TEXT',
+        label: 'MENUITEMS.USER_NOTIFICATIONS.TEXT',
         icon: 'ph-notification',
-        link: '/',
+        link: '/user-notifications',
     },
     {
         label: 'MENUITEMS.NEWS.TEXT',

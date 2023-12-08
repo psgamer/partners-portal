@@ -24,19 +24,6 @@ export enum PeriodType {
     DAY = 'DAY',
 }
 
-export interface UserNotification {
-    id: string;
-    creationDate: Timestamp;
-    isRead: boolean;
-    title: string;
-    text: string;
-    type: UserNotificationType;
-}
-
-export enum UserNotificationType {
-    ORDER = 'ORDER',
-}
-
 export interface NewsArticle {
     id: string;
     author: string;

@@ -150,7 +150,7 @@ export class OrderService {
 
     private createOrderObservableAfterUpdated(docRef: DocumentReference<Order, FirebaseDoc<Order>>): Observable<Order> {
         return new Observable<Order>(observer => {
-            const snapshotSub = onSnapshot(docRef, {
+            const snapshotSub = onSnapshot(docRef, { includeMetadataChanges: true }, {
                 next: orderSnap => {
                     const hasPendingChanges = () => orderSnap.get('hasPendingChanges' as Paths<Order>) as Order['hasPendingChanges'];
 

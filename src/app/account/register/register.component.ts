@@ -1,13 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { UntilDestroy } from '@ngneat/until-destroy';
 import { tap } from 'rxjs';
-import { first } from 'rxjs/operators';
 
 // Register Auth
 import { AuthenticationService } from 'src/app/core/services/auth.service';
-import { UserProfileService } from 'src/app/core/services/user.service';
 import { environment } from 'src/environments/environment';
 
 @UntilDestroy()
@@ -31,8 +29,7 @@ export class RegisterComponent {
   fieldTextType!: boolean;
 
   constructor(private formBuilder: UntypedFormBuilder, private router: Router,
-    private authenticationService: AuthenticationService,
-    private userService: UserProfileService) { }
+    private authenticationService: AuthenticationService) { }
 
   ngOnInit(): void {
     /**
@@ -96,19 +93,6 @@ export class RegisterComponent {
           .catch((error: string) => {
             this.error = error ? error : '';
           });
-      } else {
-        this.userService.register(this.signupForm.value)
-          .pipe(first(), untilDestroyed(this))
-          .subscribe(
-            (data: any) => {
-              this.successmsg = true;
-              if (this.successmsg) {
-                this.router.navigate(['/auth/login']);
-              }
-            },
-            (error: any) => {
-              this.error = error ? error : '';
-            });
       }
     }
   }

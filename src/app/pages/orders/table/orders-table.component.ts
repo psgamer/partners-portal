@@ -219,100 +219,10 @@ export class OrdersTableComponent {
         document.querySelector('.backdrop3')?.classList.remove('show')
     }
 
-    // File Upload
-    // public dropzoneConfig: DropzoneConfigInterface = {
-    //     clickable: true,
-    //     addRemoveLinks: true,
-    //     previewsContainer: false,
-    // };
-
-    // uploadedFiles: any[] = [];
-
-    // File Upload
-    // imageURL: any;
-
-    // onUploadSuccess(event: any) {
-    //     setTimeout(() => {
-    //         this.uploadedFiles.push(event[0]);
-    //         this.listForm.controls['img'].setValue(event[0].dataURL);
-    //     }, 100);
-    // }
-
-    // File Remove
-    // removeFile(event: any) {
-    //     this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
-    // }
-
     // Sort Data
     onSort(sort: OrderSortEvent) {
         this.queryHandler.sort(sort);
     }
-
-    // Edit Data
-    // editList(id: any) {
-    //     // this.addCourse?.show()
-    //     // var modaltitle = document.querySelector('.modal-title') as HTMLAreaElement
-    //     // modaltitle.innerHTML = 'Edit Product'
-    //     // var modalbtn = document.getElementById('add-btn') as HTMLAreaElement
-    //     // modalbtn.innerHTML = 'Update'
-    //     //
-    //     // var editData = this.tableItems[id]
-    //     //
-    //     // this.uploadedFiles.push({ 'dataURL': editData.img, 'name': editData.img_alt, 'size': 1024, });
-    //     //
-    //     // this.listForm.patchValue(this.tableItems[id]);
-    // }
-
-    /**
-     * Save product
-     */
-    // saveProduct() {
-    //     if (this.listForm.valid) {
-    //         if (this.listForm.get('id')?.value) {
-    //             this.service.products = courseList.map((order: {
-    //                 id: any;
-    //             }) => order.id === this.listForm.get('id')?.value ? { ...order, ...this.listForm.value } : order);
-    //         } else {
-    //             const name = this.listForm.get('name')?.value;
-    //             const category = this.listForm.get('category')?.value;
-    //             const instructor = this.listForm.get('instructor')?.value;
-    //             const lessons = this.listForm.get('lessons')?.value;
-    //             const students = this.listForm.get('students')?.value;
-    //             const duration = this.listForm.get('duration')?.value;
-    //             const fees = this.listForm.get('fees')?.value;
-    //             const status = this.listForm.get('status')?.value;
-    //             const img = this.listForm.get('img')?.value;
-    //
-    //             courseList.push({
-    //                 id: this.tableItems.length + 1,
-    //                 category,
-    //                 img,
-    //                 name,
-    //                 instructor,
-    //                 lessons,
-    //                 students,
-    //                 duration,
-    //                 fees,
-    //                 rating: '',
-    //                 status
-    //             })
-    //
-    //             var modaltitle = document.querySelector('.modal-title') as HTMLAreaElement
-    //             modaltitle.innerHTML = 'Add Course'
-    //             var modalbtn = document.getElementById('add-btn') as HTMLAreaElement
-    //             modalbtn.innerHTML = 'Add Course'
-    //
-    //             this.service.products = courseList
-    //
-    //         }
-    //         this.listForm.reset();
-    //         this.uploadedFiles = [];
-    //         this.addCourse?.hide()
-    //     }
-    //     this.submitted = true
-    // }
-    //
-    // checkedValGet: any[] = [];
 
     // The master checkbox will check/ uncheck all items
     checkUncheckAll(ev: Event) {

@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase-admin/firestore'
+
 export interface _Order {
     contractor: {
         id: string;
@@ -43,6 +45,19 @@ export enum _OrderStatus {
     PENDING = 'PENDING',
     CANCELLED = 'CANCELLED',
     COMPLETED = 'COMPLETED',
+}
+
+export interface _UserNotification {
+    isRead: boolean;
+    skipTriggers?: boolean;
+}
+
+export interface _UserNotificationMetadata {
+    unreadCount: number;
+}
+
+export interface _ProcessedEvent {
+    timestamp: Timestamp;
 }
 
 // eslint-disable-next-line

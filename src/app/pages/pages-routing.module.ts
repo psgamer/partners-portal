@@ -7,6 +7,9 @@ const routes: Routes = [
     },
     {
         path: 'orders', loadChildren: () => import('./orders/orders.module').then(({ OrdersModule }) => OrdersModule)
+    },
+    {
+        path: 'user-notifications', loadChildren: () => import('./user-notifications/user-notifications.module').then(({ UserNotificationsModule }) => UserNotificationsModule)
     }
 ];
 

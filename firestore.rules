@@ -23,6 +23,27 @@ service cloud.firestore {
     match /local-solutions/{localSolutionId} {
     	allow read: if isAuthorized();
     }
+    match /users/{userId} {
+      function isCurrentUser() {
+        return request.auth.uid == userId;
+      }
+
+      match /user-notifications/{notificationId} {
+        function isReadChangedOnly() {
+          return diffMap().affectedKeys().hasOnly(['isRead'])
+            && futureDoc().isRead != null
+            && futureDoc().isRead != currentDoc().isRead;
+        }
+
+        allow read: if isCurrentUser();
+        allow update: if isCurrentUser() && isReadChangedOnly();
+        allow delete: if isCurrentUser();
+      }
+
+      match /user-notifications-metadata/{metadataId} {
+        allow read: if isCurrentUser();
+      }
+    }
     match /order-amount-ranges/{rangeId} {
     	allow read: if isAuthorized();
     }
@@ -100,7 +121,7 @@ service cloud.firestore {
                                       && futureDoc().localSolutionSrc.keys().hasAll(['id','name','count','expirationDate'])
                                       && isValidLocalSolutionSrcLicenseByDb())
                               )
-                              && contractorId in get(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)).data.contractorIds
+                              && futureDoc().distributor.id in get(/databases/$(database)/documents/contractors/$(contractorId)/contractor-distributors/$(contractorId)).data.distributorIds
                               && exists(/databases/$(database)/documents/contractors/$(contractorId)/payers/$(futureDoc().contractorPayer.id))
                               && exists(/databases/$(database)/documents/contractors/$(futureDoc().distributor.id)/payers/$(futureDoc().distributorPayer.id))
                               && exists(/databases/$(database)/documents/local-solutions/$(futureDoc().localSolutionRes.id));
@@ -123,7 +144,7 @@ service cloud.firestore {
                       && futureDoc().createdDate is timestamp
                       && futureDoc().status == 'NEW'
                       && futureDoc().hasPendingChanges
-                      && futureDoc().client.id == null;
+                      && futureDoc().client.keys().hasOnly(['taxCode','name']);
         }
         function isValidUpdateOperation() {
           return diffMap().affectedKeys().hasOnly(['distributor',

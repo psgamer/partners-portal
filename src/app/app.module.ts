@@ -18,6 +18,8 @@ import { TitleStrategy } from '@angular/router';
 // Laguage
 import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TimeagoCustomFormatter, TimeagoFormatter, TimeagoIntl, TimeagoModule } from 'ngx-timeago';
+import { strings as uaStrings } from "ngx-timeago/language-strings/uk";
 
 // firebase
 import { ToastrModule } from 'ngx-toastr';
@@ -42,6 +44,14 @@ const functionsRegion = 'europe-west1';
 
 export function createTranslateLoader(http: HttpClient): any {
     return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+}
+
+export class MyIntl extends TimeagoIntl {
+    constructor() {
+        super();
+        this.strings = uaStrings;
+        this.changes.next();
+    }
 }
 
 @NgModule({
@@ -121,7 +131,11 @@ export function createTranslateLoader(http: HttpClient): any {
         LayoutsModule,
         ToastrModule.forRoot(),
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        TimeagoModule.forRoot({
+            intl: { provide: TimeagoIntl, useClass: MyIntl },
+            formatter: {provide: TimeagoFormatter, useClass: TimeagoCustomFormatter},
+        }),
     ],
     providers: [{
         provide: FIREBASE_OPTIONS,

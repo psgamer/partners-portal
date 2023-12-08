@@ -15,6 +15,8 @@ import { NgxSpinnerModule } from "ngx-spinner";
 
 // Simplebar
 import { SimplebarAngularModule } from 'simplebar-angular';
+import { UserNotificationPanelComponent } from '../pages/user-notifications/panel/user-notification-panel.component';
+import { SharedModule } from '../shared/shared.module';
 
 // Language
 import { FooterComponent } from './footer/footer.component';
@@ -32,31 +34,34 @@ import { TwoColumnComponent } from './two-column/two-column.component';
 import { VerticalComponent } from './vertical/vertical.component';
 
 @NgModule({
-  declarations: [
-    LayoutComponent,
-    VerticalComponent,
-    TopbarComponent,
-    SidebarComponent,
-    FooterComponent,
-    RightsidebarComponent,
-    TwoColumnComponent,
-    TwoColumnSidebarComponent,
-    HorizontalComponent,
-    HorizontalTopbarComponent,
-  ],
-  imports: [
-    CommonModule,
-    BrowserAnimationsModule,
-    RouterModule,
-    SimplebarAngularModule,
-    BsDropdownModule.forRoot(),
-    TranslateModule,
-    // NgxAsideModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ModalModule,
-    NgxSpinnerModule.forRoot({ type: 'ball-scale-multiple' })
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    declarations: [
+        LayoutComponent,
+        VerticalComponent,
+        TopbarComponent,
+        SidebarComponent,
+        FooterComponent,
+        RightsidebarComponent,
+        TwoColumnComponent,
+        TwoColumnSidebarComponent,
+        HorizontalComponent,
+        HorizontalTopbarComponent,
+        UserNotificationPanelComponent,
+    ],
+    imports: [
+        CommonModule,
+        BrowserAnimationsModule,
+        RouterModule,
+        SimplebarAngularModule,
+        BsDropdownModule.forRoot(),
+        TranslateModule,
+        // NgxAsideModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ModalModule,
+        NgxSpinnerModule.forRoot({ type: 'ball-scale-multiple' }),
+        SharedModule,
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class LayoutsModule { }
+export class LayoutsModule {
+}
