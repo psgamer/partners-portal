@@ -13,7 +13,7 @@
                     </div>
                     <div *ngIf="(userNotifications$ | async)?.length" dropdown class="col-auto dropdown">
                         <a dropdownToggle href="javascript:void(0);" data-bs-toggle="dropdown" class="link-secondary fs-md"><i class="bi bi-three-dots-vertical"></i></a>
-                        <ul *dropdownMenu class="dropdown-menu">
+                        <ul *dropdownMenu class="dropdown-menu dropdown-menu-right">
                             <li *ngFor="let item of menuItems">
                                 <a class="dropdown-item" href="javascript:void(0);"
                                    (click)="item.action()"
@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <div *ngIf="(userNotifications$ | async)?.length" class="py-2 ps-2" id="notificationItemsTabContent">
+        <div *ngIf="(userNotifications$ | async)?.length !== undefined" class="py-2 ps-2" id="notificationItemsTabContent">
             <ngx-simplebar style="max-height: 300px;" class="pe-2">
                 <div *ngFor="let item of (userNotifications$ | async)!" class="text-reset notification-item d-block dropdown-item position-relative" [ngClass]="{'unread-message': !item.isRead}">
                     <div class="d-flex">
@@ -49,16 +49,16 @@
                         </div>
                         <div class="px-2 fs-base">
                             <div class="form-check notification-check">
-                                <input class="form-check-input" type="checkbox" [(ngModel)]="checkboxItems[item.id]" (change)="onCheckboxChange()" id="{{item.id}}">
+                                <input class="form-check-input" type="checkbox" [(ngModel)]="checkboxItems[item.id]" id="{{item.id}}">
                                 <label class="form-check-label" for="{{item.id}}"></label>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div *ngIf="loading$ | async" id="elmLoader">
-                    <div class="spinner-border text-primary avatar-sm" role="status"></div>
-                </div>
             </ngx-simplebar>
+            <div *ngIf="loading$ | async" id="elmLoader">
+                <div class="spinner-border text-primary avatar-sm" role="status"></div>
+            </div>
             <div *ngIf="checkedCount > 0" class="notification-actions" style="display: block">
                 <div class="d-flex text-muted justify-content-center align-items-center">
                     <button type="button" class="btn btn-link link-danger p-0"
@@ -66,7 +66,7 @@
                     >{{'USER_NOTIFICATION.ACTION.DELETE_COUNT' | translate: {count: checkedCount} }}</button>
                 </div>
             </div>
-            <div class="empty-notification-elem text-center px-4 d-none">
+            <div *ngIf="(userNotifications$ | async)?.length === 0 && !(loading$ | async)" class="empty-notification-elem text-center px-4">
                 <div class="mt-3 avatar-md mx-auto">
                     <div class="avatar-title bg-info-subtle text-info fs-24 rounded-circle">
                         <i class="bi bi-bell "></i>

@@ -151,7 +151,8 @@
   "USER_NOTIFICATION": {
     "LABEL": {
       "UNREAD_COUNT": "{count} непрочитаних",
-      "NONE": "Сповіщень не знайдено"
+      "NONE": "Сповіщень не знайдено",
+      "LOAD_MORE": "Показати ще"
     },
     "ACTION": {
       "MARK_READ": "{count, select, 1 {Позначити як прочитане} other {Позначити всі як прочитані} }",

@@ -1,0 +1,72 @@
+<div class="dropdown-head rounded-top">
+    <div class="p-3 border-bottom border-bottom-dashed">
+        <div class="row align-items-center">
+            <div class="col">
+                <h6 class="mb-0 fs-lg fw-semibold">{{'MENUITEMS.USER_NOTIFICATIONS.TEXT' | translate}} <span *ngIf="unreadCountGlobal$ | async as count" class="badge bg-danger-subtle text-danger fs-sm notification-badge">{{'USER_NOTIFICATION.LABEL.UNREAD_COUNT' | translate: {count: count} }} </span></h6>
+            </div>
+            <div class="col-auto">
+                <button *ngIf="checkedCount > 0" (click)="deleteSelected()"
+                        id="deleteSelectedBtn"
+                      class="btn btn-subtle-danger btn-sm"
+                >{{ 'USER_NOTIFICATION.ACTION.DELETE_COUNT' | translate: {count: checkedCount} }}</button>
+            </div>
+            <div *ngIf="(userNotifications$ | async)?.length" dropdown class="col-auto dropdown">
+                <a dropdownToggle href="javascript:void(0);" data-bs-toggle="dropdown" class="link-secondary fs-md"><i class="bi bi-three-dots-vertical"></i></a>
+                <ul *dropdownMenu class="dropdown-menu dropdown-menu-right">
+                    <li *ngFor="let item of menuItems">
+                        <a class="dropdown-item" href="javascript:void(0);"
+                           (click)="item.action()"
+                        >{{item.labelKey | translate: {count: undefined} }}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="(userNotifications$ | async)?.length !== undefined" class="py-2 ps-2" id="notificationItemsTabContent">
+    <div *ngFor="let item of (userNotifications$ | async)!" class="text-reset notification-item position-relative card" [ngClass]="{'unread-message': !item.isRead}">
+        <div class="d-flex">
+            <div class="avatar-xs me-3 flex-shrink-0">
+                            <span class="avatar-title {{getUserNotificationTagItemClass(item)}} rounded-circle fs-lg">
+                                <i class="{{getOrderTagItemIconClass(item)}}"></i>
+                            </span>
+            </div>
+            <div class="flex-grow-1">
+                <a href="javascript:void(0);" class="stretched-link" [ngClass]="{disabled: loading$ | async}" (click)="markAsRead(item)">
+                    <h6 *ngIf="item.title" class="mt-0 fs-md mb-2 lh-base">
+                        {{item.title}}
+                    </h6>
+                </a>
+                <div *ngIf="item.text" class="fs-sm text-muted">
+                    <p class="mb-1">{{item.text}}</p>
+                </div>
+                <p class="mb-0 fs-11 fw-medium text-muted">
+                    <span><i class="mdi mdi-clock-outline"></i> {{$any(item).creationDate.toDate() | timeago }}</span>
+                </p>
+            </div>
+            <div class="px-2 fs-base">
+                <div class="form-check notification-check">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="checkboxItems[item.id]" id="{{item.id}}">
+                    <label class="form-check-label" for="{{item.id}}"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="showLoadMore$ | async" class="d-grid card">
+        <button class="btn btn-outline-info" type="button" (click)="loadMore()">{{'USER_NOTIFICATION.LABEL.LOAD_MORE' | translate}}</button>
+    </div>
+    <div *ngIf="loading$ | async" id="elmLoader" class="text-center">
+        <div class="spinner-border text-primary avatar-sm" role="status"></div>
+    </div>
+    <div *ngIf="(userNotifications$ | async)?.length === 0 && !(loading$ | async)" class="empty-notification-elem text-center px-4">
+        <div class="mt-3 avatar-md mx-auto">
+            <div class="avatar-title bg-info-subtle text-info fs-24 rounded-circle">
+                <i class="bi bi-bell "></i>
+            </div>
+        </div>
+        <div class="pb-3 mt-2">
+            <h6 class="fs-lg fw-semibold lh-base">{{'USER_NOTIFICATION.LABEL.NONE' | translate}}</h6>
+        </div>
+    </div>
+</div>

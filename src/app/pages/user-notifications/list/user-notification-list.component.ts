@@ -1,21 +1,22 @@
 import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { BsDropdownDirective } from 'ngx-bootstrap/dropdown';
 import { BehaviorSubject, combineLatest, finalize, map, switchMap, take, tap } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { SimplebarAngularComponent } from 'simplebar-angular';
 import { getOrderTagItemIconClass, getUserNotificationTagItemClass, UserNotification } from '../user-notification.model';
 import { UserNotificationService } from '../user-notification.service';
 
 @UntilDestroy()
 @Component({
-    selector: 'user-notification-panel',
-    templateUrl: './user-notification-panel.component.html',
-    styleUrls: ['./user-notification-panel.component.scss'],
+    templateUrl: './user-notification-list.component.html',
+    styleUrls: ['./user-notification-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserNotificationPanelComponent {
+export class UserNotificationListComponent {
     private readonly queryHandler = this.userNotificationService.queryHandler;
     private readonly operationLoading$ = new BehaviorSubject<boolean>(false);
+    private readonly _userNotifications$ = new BehaviorSubject<UserNotification[]>([]);
+
 
     readonly loading$ = combineLatest([
         this.queryHandler.loading$,
@@ -34,22 +35,44 @@ export class UserNotificationPanelComponent {
             .then(() => console.log('deleteAllUserNotifications success'))
             .catch(e => console.log('deleteAllUserNotifications failed', e)),
     }];
-    readonly userNotifications$ = this.queryHandler.docs$;
     readonly unreadCountGlobal$ = this.userNotificationService.userNotificationsUnreadCount$;
+    readonly showLoadMore$ = combineLatest([
+        this.queryHandler.searchParams$,
+        this.queryHandler.totalRecords$,
+        this.loading$,
+    ]).pipe(map(([{page, pageSize}, total, loading]) => !loading && (total > (page * pageSize))));
     readonly getUserNotificationTagItemClass = getUserNotificationTagItemClass;
     readonly getOrderTagItemIconClass = getOrderTagItemIconClass;
     get checkedCount() {
         return Object.values(this.checkboxItems).filter(checked => checked).length;
     }
+    get userNotifications$() {
+        return this._userNotifications$.asObservable();
+    }
 
     checkboxItems: {[key: UserNotification['id']]: boolean} = {};
 
-    @ViewChild('notificationDropdown', {read: BsDropdownDirective}) dropdown?: BsDropdownDirective;
+    private isReload = false;
+
+    @ViewChild(SimplebarAngularComponent, {read: SimplebarAngularComponent}) simplebar?: SimplebarAngularComponent;
 
     constructor(private userNotificationService: UserNotificationService) {
         this.queryHandler.docs$.pipe(
             untilDestroyed(this),
-            tap(() => this.checkboxItems = {}),
+            tap(docs => {
+                this.checkboxItems = {};
+                this._userNotifications$.next([...(this.isReload ? [] : this._userNotifications$.value), ...docs]);
+                this.isReload = false;
+            }),
+        ).subscribe();
+        this.search();
+    }
+
+    loadMore() {
+        this.queryHandler.searchParams$.pipe(
+            untilDestroyed(this),
+            take(1),
+            tap(({page}) => this.queryHandler.gotoPage(page + 1)),
         ).subscribe();
     }
 
@@ -65,7 +88,7 @@ export class UserNotificationPanelComponent {
                 take(1),
                 tap(() => {
                     console.log('markAsRead success');
-                    this.search();
+                    this.search(true);
                 }),
             )),
         ).subscribe();
@@ -87,13 +110,14 @@ export class UserNotificationPanelComponent {
                 take(1),
                 tap(() => {
                     console.log('delete success');
-                    this.search();
+                    this.search(true);
                 }),
             ))
         ).subscribe();
     }
 
-    search() {
+    search(isReload = false) {
+        this.isReload = isReload;
         this.queryHandler.search();
     }
 }

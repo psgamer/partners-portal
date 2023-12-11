@@ -27,6 +27,7 @@ import { SimplebarAngularModule } from 'simplebar-angular';
 
 // Page Route
 import { SharedModule } from 'src/app/shared/shared.module';
+import { UserNotificationListComponent } from './list/user-notification-list.component';
 import { UserNotificationsRoutingModule } from './user-notifications-routing.module';
 
 // Component
@@ -40,6 +41,7 @@ const DEFAULT_DROPZONE_CONFIG: DropzoneConfigInterface = {
 
 @NgModule({
     declarations: [
+        UserNotificationListComponent,
     ],
     imports: [
         CommonModule,
