@@ -1,3 +1,4 @@
+import { cleanupObsoleteEventData } from './admin';
 import { assignContractorToUser } from './lib/auth';
 import { findByLicensePrivateKey } from './lib/license';
 import { generateOrderAmountRanges, onOrderWritten } from './lib/order';
@@ -5,5 +6,5 @@ import { deleteAllUserNotifications, markAllUserNotificationsAsRead, onUserNotif
 
 export {
     assignContractorToUser, generateOrderAmountRanges, onOrderWritten, findByLicensePrivateKey, onUserNotificationWritten,
-    markAllUserNotificationsAsRead, deleteAllUserNotifications
+    markAllUserNotificationsAsRead, deleteAllUserNotifications, cleanupObsoleteEventData
 };

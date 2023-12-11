@@ -49,7 +49,8 @@ export enum _OrderStatus {
 
 export interface _UserNotification {
     isRead: boolean;
-    skipTriggers?: boolean;
+    skipUpdateTriggers?: boolean;
+    skipDeleteTriggers?: boolean;
 }
 
 export interface _UserNotificationMetadata {

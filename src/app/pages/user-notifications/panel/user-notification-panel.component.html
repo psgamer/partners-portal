@@ -55,6 +55,9 @@
                         </div>
                     </div>
                 </div>
+                <div *ngIf="loading$ | async" id="elmLoader">
+                    <div class="spinner-border text-primary avatar-sm" role="status"></div>
+                </div>
             </ngx-simplebar>
             <div *ngIf="checkedCount > 0" class="notification-actions" style="display: block">
                 <div class="d-flex text-muted justify-content-center align-items-center">

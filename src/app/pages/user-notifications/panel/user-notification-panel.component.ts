@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BsDropdownDirective } from 'ngx-bootstrap/dropdown';
-import { BehaviorSubject, combineLatest, finalize, map, take, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, finalize, map, switchMap, take, tap } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { getOrderTagItemIconClass, getUserNotificationTagItemClass, UserNotification } from '../user-notification.model';
 import { UserNotificationService } from '../user-notification.service';
@@ -58,19 +58,17 @@ export class UserNotificationPanelComponent {
         this.loading$.pipe(
             untilDestroyed(this),
             take(1),
-            filter(loading => !loading),
-            tap(() => {
-                if (!isRead) {
-                    this.operationLoading$.next(true);
-                    this.userNotificationService.markUserNotificationRead(id).pipe(
-                        untilDestroyed(this),
-                        finalize(() => this.operationLoading$.next(false)),
-                        take(1),
-                        tap(() => console.log('markAsRead success')),
-                        tap(() => this.search()),
-                    ).subscribe();
-                }
-            })
+            filter(loading => !loading && !isRead),
+            tap(() => this.operationLoading$.next(true)),
+            switchMap(() => this.userNotificationService.markUserNotificationRead(id).pipe(
+                untilDestroyed(this),
+                finalize(() => this.operationLoading$.next(false)),
+                take(1),
+                tap(() => {
+                    console.log('markAsRead success');
+                    this.search();
+                }),
+            )),
         ).subscribe();
     }
 
@@ -79,22 +77,20 @@ export class UserNotificationPanelComponent {
             untilDestroyed(this),
             take(1),
             filter(loading => !loading),
-            tap(() => {
-                const notificationIds: UserNotification['id'][] = Object.entries(this.checkboxItems)
-                    .filter(([, checked]) => checked)
-                    .map(([notificationId]) => notificationId);
-
-                if (notificationIds.length) {
-                    this.operationLoading$.next(true);
-                    this.userNotificationService.deleteUserNotifications(notificationIds).pipe(
-                        untilDestroyed(this),
-                        finalize(() => this.operationLoading$.next(false)),
-                        take(1),
-                        tap(() => console.log('delete success')),
-                        tap(() => this.search()),
-                    ).subscribe();
-                }
-            })
+            map(() => Object.entries(this.checkboxItems)
+                .filter(([, checked]) => checked)
+                .map(([notificationId]) => notificationId)),
+            filter(notificationIds => !!notificationIds.length),
+            tap(() => this.operationLoading$.next(true)),
+            switchMap(notificationIds => this.userNotificationService.deleteUserNotifications(notificationIds).pipe(
+                untilDestroyed(this),
+                finalize(() => this.operationLoading$.next(false)),
+                take(1),
+                tap(() => {
+                    console.log('delete success');
+                    this.search();
+                }),
+            ))
         ).subscribe();
     }
 

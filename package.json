@@ -9,7 +9,9 @@
     "test": "ng test",
     "build_staging": "ng build --configuration staging",
     "build_prod": "ng build --configuration production",
-    "emulators": "firebase emulators:start --import emulators-data --export-on-exit emulators-data",
+    "emulators": "firebase emulators:start --only auth,firestore,hosting,storage,functions --import emulators-data --export-on-exit emulators-data",
+    "emulators_no_func": "firebase emulators:start --only auth,firestore,hosting,storage,pubsub --import emulators-data --export-on-exit emulators-data",
+    "functions_shell": "firebase functions:shell",
     "lint": "ng lint"
   },
   "private": true,

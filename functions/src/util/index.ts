@@ -1,4 +1,6 @@
-import { DocumentData, FirestoreDataConverter, QueryDocumentSnapshot, WithFieldValue } from 'firebase-admin/firestore';
+import {
+    DocumentData, FirestoreDataConverter, Query, QueryDocumentSnapshot, QuerySnapshot, WithFieldValue
+} from 'firebase-admin/firestore';
 import { SupportedRegion } from 'firebase-functions/v2/options';
 import { _WebClientDoc } from './types';
 
@@ -29,4 +31,26 @@ export const getBaseConverter = <T extends DocumentData>(): FirestoreDataConvert
         });
     },
 });
+
+export const recursivelyProcess = async <T extends DocumentData>(
+    collQuery: Query<T>,
+    batchProcessor: (docRefs: QuerySnapshot<T>) => Promise<void>,
+    limit: number = defaultBatchOperationSizeLimit
+) => {
+    const getDocsBatch = async () => collQuery.limit(limit).get();
+    let count = 0;
+
+    let docRefs = await getDocsBatch();
+
+    while (!docRefs.empty) {
+        await batchProcessor(docRefs);
+
+        count += docRefs.size;
+        docRefs = await getDocsBatch()
+    }
+
+    return count;
+};
+
+export const atStartOfMonthCron = '0 0 1 * *';
 

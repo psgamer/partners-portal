@@ -3,7 +3,7 @@ import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onCall } from 'firebase-functions/v2/https';
 import { db, processedEventsCollRef } from '../admin';
-import { defaultBatchOperationSizeLimit, defaultSlowOperationTimeoutSeconds, region } from '../util';
+import { defaultSlowOperationTimeoutSeconds, recursivelyProcess, region } from '../util';
 import { _Paths, _UserNotification, _UserNotificationMetadata } from '../util/types';
 
 export const markAllUserNotificationsAsRead = onCall<void, Promise<void>>({ cors: true, region, timeoutSeconds: defaultSlowOperationTimeoutSeconds }, async ({ auth }) => {
@@ -17,24 +17,16 @@ export const markAllUserNotificationsAsRead = onCall<void, Promise<void>>({ cors
     const collRef = db().collection(`users/${uid}/user-notifications`) as CollectionReference<_UserNotification>;
     const metadataDocRef = db().collection(`users/${uid}/user-notifications-metadata`).doc(uid) as DocumentReference<_UserNotificationMetadata>;
 
-    const getDocsBatch = async () => collRef
-        .where('isRead' as _Paths<_UserNotification>, '==', false)
-        .limit(defaultBatchOperationSizeLimit)
-        .get();
-    let markedCount = 0;
-
     logger.info(`Starting markAllAsRead userNotifications for uid ${uid}`);
 
-    let docRefs = await getDocsBatch();
-
-    while (!docRefs.empty) {
-        const batch = db().batch();
-        docRefs.forEach(({ref}) => batch.update(ref, {isRead: true, skipTriggers: true}));
-        await batch.commit();
-
-        markedCount += docRefs.size;
-        docRefs = await getDocsBatch()
-    }
+    const markedCount = await recursivelyProcess(
+        collRef.where('isRead' as _Paths<_UserNotification>, '==', false),
+        async docRefs => {
+            const batch = db().batch();
+            docRefs.forEach(({ref}) => batch.update(ref, {isRead: true, skipUpdateTriggers: true}));
+            await batch.commit();
+        },
+    );
 
     await metadataDocRef.update({ unreadCount: 0 });
 
@@ -53,21 +45,23 @@ export const deleteAllUserNotifications = onCall<void, Promise<void>>({ cors: tr
 
     const collRef = db().collection(`users/${uid}/user-notifications`) as CollectionReference<_UserNotification>;
 
-    const getDocsBatch = async () => collRef.limit(defaultBatchOperationSizeLimit).get();
-    let deletedCount = 0;
-
     logger.info(`Starting deleteAll userNotifications for uid ${uid}`);
 
-    let docRefs = await getDocsBatch();
+    const deletedCount = await recursivelyProcess(
+        collRef,
+        async docRefs => {
+            const updateBatch = db().batch();
+            const deleteBatch = db().batch();
 
-    while (!docRefs.empty) {
-        const batch = db().batch();
-        docRefs.forEach(({ref}) => batch.delete(ref));
-        await batch.commit();
+            docRefs.forEach(({ref}) => {
+                updateBatch.update(ref, { skipUpdateTriggers: true, skipDeleteTriggers: true });
+                deleteBatch.delete(ref);
+            });
 
-        deletedCount += docRefs.size;
-        docRefs = await getDocsBatch()
-    }
+            await updateBatch.commit();
+            await deleteBatch.commit();
+        },
+    );
 
     logger.info(`Deleted a total of ${deletedCount} userNotifications for uid ${uid}`);
 
@@ -104,13 +98,20 @@ export const onUserNotificationWritten = onDocumentWritten({ document: 'users/{u
         opType = 'create';
     }
 
-    if (((opType === 'create' || opType === 'update') && docSnap.get('skipTriggers' as _Paths<_UserNotification>))
-        || (opType === 'delete' && oldDocSnap.get('skipTriggers' as _Paths<_UserNotification>))) {
-        logger.info('Skip triggers is set, skipping processing' + (opType === 'delete' ? ' and clearing the skip flag' : ''));
+    if ((opType === 'update' && docSnap.get('skipUpdateTriggers' as _Paths<_UserNotification>))
+        || (opType === 'delete' && oldDocSnap.get('skipDeleteTriggers' as _Paths<_UserNotification>))) {
 
-        return opType === 'delete'
-            ? null
-            : (docSnap.ref as DocumentReference<_UserNotification>).update({ skipTriggers: FieldValue.delete() });
+
+        if (opType === 'delete') {
+            return null;
+        }
+        if (opType === 'update') {
+            if (docSnap.get('skipDeleteTriggers' as _Paths<_UserNotification>)) {
+                return null;
+            }
+
+            return (docSnap.ref as DocumentReference<_UserNotification>).update({ skipUpdateTriggers: FieldValue.delete() });
+        }
     }
 
     switch (opType) {
@@ -121,6 +122,14 @@ export const onUserNotificationWritten = onDocumentWritten({ document: 'users/{u
             return;
         }
         case "update": {
+            if (docSnap.get('skipUpdateTriggers' as _Paths<_UserNotification>)) {
+                if (docSnap.get('skipDeleteTriggers' as _Paths<_UserNotification>)) {
+                    // skip logic (update from another function) and don't clear the field - will delete as well from another function
+                    return;
+                }
+                // skip logic (update from another function) but clear the field
+                return (docSnap.ref as DocumentReference<_UserNotification>).update({ skipUpdateTriggers: FieldValue.delete() });
+            }
             if (isRead(oldDocSnap) && !isRead(docSnap)) {
                 await updateMetadataUnreadCountVersionIfNotDuplicate('increment');
             }
@@ -130,6 +139,10 @@ export const onUserNotificationWritten = onDocumentWritten({ document: 'users/{u
             return;
         }
         case 'delete': {
+            if (oldDocSnap.get('skipDeleteTriggers' as _Paths<_UserNotification>)) {
+                // skip logic (delete from another function)
+                return;
+            }
             if (!isRead(oldDocSnap)) {
                 await updateMetadataUnreadCountVersionIfNotDuplicate('decrement');
             }
