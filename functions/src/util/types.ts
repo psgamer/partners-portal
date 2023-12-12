@@ -14,6 +14,12 @@ export interface _Order {
         name: _Client['name'];
         taxCode: _Client['taxCode'];
     };
+    localSolutionRes: {
+        id: string;
+        name: _LocalSolution['name'];
+        count: number;
+        period: _Period;
+    };
     hasPendingChanges: boolean;
 }
 
@@ -22,12 +28,50 @@ export interface _OrderAmountRange {
     to: number | null;
 }
 
-export type _License = Record<string, never>;
-export type _ContractorLicense = _Subset<_License, Record<string, never>>
+export interface _LocalSolution {
+    name: string;
+}
+
+export interface _License {
+    expirationDate: Timestamp;
+    login: string;
+    publicKey: string;
+    localSolution: {
+        id: string;
+        name: _LocalSolution['name'];
+        count: number;
+    }
+    client: {
+        id: string;
+        taxCode: _Client['taxCode'];
+        name: _Client['name'];
+    }
+}
+
+export type _ContractorLicense = _Subset<_License, {
+    expirationDate: Timestamp;
+    login: string;
+    publicKey: string;
+    localSolution: {
+        id: string;
+        name: _LocalSolution['name'];
+        count: number;
+    }
+    client: {
+        id: string;
+        taxCode: _ContractorClient['taxCode'];
+        name: _ContractorClient['name'];
+    }
+}>
 
 export interface _LicensePrivateKey {
     licenseId: string;
     privateKey: string;
+}
+
+export interface _LicensePassword {
+    licenseId: string;
+    password: string;
 }
 
 export interface _Client {
@@ -59,6 +103,17 @@ export interface _UserNotificationMetadata {
 
 export interface _ProcessedEvent {
     timestamp: Timestamp;
+}
+
+export interface _Period {
+    count: number;
+    type: _PeriodType;
+}
+
+export enum _PeriodType {
+    YEAR = 'YEAR',
+    MONTH = 'MONTH',
+    DAY = 'DAY',
 }
 
 // eslint-disable-next-line

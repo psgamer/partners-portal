@@ -3,7 +3,7 @@ import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onCall } from 'firebase-functions/v2/https';
 import { db, processedEventsCollRef } from '../admin';
-import { defaultSlowOperationTimeoutSeconds, recursivelyProcess, region } from '../util';
+import { defaultSlowOperationTimeoutSeconds, processInBatches, region } from '../util';
 import { _Paths, _UserNotification, _UserNotificationMetadata } from '../util/types';
 
 export const markAllUserNotificationsAsRead = onCall<void, Promise<void>>({ cors: true, region, timeoutSeconds: defaultSlowOperationTimeoutSeconds }, async ({ auth }) => {
@@ -19,8 +19,8 @@ export const markAllUserNotificationsAsRead = onCall<void, Promise<void>>({ cors
 
     logger.info(`Starting markAllAsRead userNotifications for uid ${uid}`);
 
-    const markedCount = await recursivelyProcess(
-        collRef.where('isRead' as _Paths<_UserNotification>, '==', false),
+    const markedCount = await processInBatches(
+        () => collRef.where('isRead' as _Paths<_UserNotification>, '==', false),
         async docRefs => {
             const batch = db().batch();
             docRefs.forEach(({ref}) => batch.update(ref, {isRead: true, skipUpdateTriggers: true}));
@@ -47,8 +47,8 @@ export const deleteAllUserNotifications = onCall<void, Promise<void>>({ cors: tr
 
     logger.info(`Starting deleteAll userNotifications for uid ${uid}`);
 
-    const deletedCount = await recursivelyProcess(
-        collRef,
+    const deletedCount = await processInBatches(
+        () => collRef,
         async docRefs => {
             const updateBatch = db().batch();
             const deleteBatch = db().batch();

@@ -1,10 +1,18 @@
-import { CollectionReference, DocumentReference, UpdateData, } from 'firebase-admin/firestore';
+import { CollectionGroup, CollectionReference, DocumentReference, UpdateData, WithFieldValue } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onCall } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { v4 as uuid } from 'uuid';
 import { db } from '../admin';
-import { region } from '../util';
-import { _Client, _ContractorClient, _ContractorLicense, _License, _Order, _OrderAmountRange, _OrderStatus, _Paths } from '../util/types';
+import { defaultSlowOperationTimeoutSeconds, every10MinutesCron, nowPlusPeriodAsTimestamp, processInBatches, region } from '../util';
+import {
+    _Client, _ContractorClient, _ContractorLicense, _License, _LicensePassword, _LicensePrivateKey, _Order, _OrderAmountRange, _OrderStatus,
+    _Paths
+} from '../util/types';
+
+const completeOrderAmount = 10000;
+const cancelOrderAmount = 20000;
 
 export const generateOrderAmountRanges = onCall<void, Promise<void>>({ cors: true, region }, async ({ auth }) => {
     if (!(auth && auth.uid && auth.token.contractorId)) {
@@ -276,4 +284,130 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
     }
 
     await batch.commit();
+});
+
+export const processOrders = onSchedule({
+    schedule: every10MinutesCron,
+    region,
+    timeoutSeconds: defaultSlowOperationTimeoutSeconds,
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+}, async (event) => {
+    logger.info("process orders start");
+
+    const collGroup = db().collectionGroup('orders') as CollectionGroup<_Order>;
+    const collQuery = collGroup
+        .where('status' as _Paths<_Order>, '==', _OrderStatus.NEW)
+        .where('hasPendingChanges' as _Paths<_Order>, '==', false);
+    const licensesCollRef = db().collection('licenses') as CollectionReference<_License>;
+
+    let cancelledCount = 0;
+    let completedCount = 0;
+    let createdLicensesCount = 0;
+
+    const count = await processInBatches(
+        (prevBatchLastDocSnap) => !prevBatchLastDocSnap
+            ? collQuery
+            : collQuery.startAfter(prevBatchLastDocSnap),
+        async queryResultSnap => {
+            logger.info(`received batch, size = ${queryResultSnap.size}`);
+            const batch = db().batch();
+
+            queryResultSnap.forEach(docRef => {
+                const {
+                    amountTotal,
+                    licenseId,
+                    contractor: {id: contractorId},
+                    client: { id: clientId, name: clientName, taxCode: clientTaxCode },
+                    localSolutionRes: {
+                        id: localSolutionId,
+                        name: localSolutionName,
+                        count: localSolutionCount,
+                        period: localSolutionPeriod,
+                    },
+                } = docRef.data();
+                const contractorLicensesCollRef = db().collection(`contractors/${contractorId}/contractor-licenses`) as CollectionReference<_ContractorLicense>;
+
+                switch (amountTotal) {
+                    case completeOrderAmount: {
+                        completedCount++
+                        if (licenseId) {
+                            batch.update(docRef.ref, { status: _OrderStatus.COMPLETED });
+                        } else {
+                            const newLicenseRef = licensesCollRef.doc();
+                            const newLicenseId = newLicenseRef.id;
+
+                            const licensePrivateKeyCollRef = db().collection(`licenses/${newLicenseId}/license-private-key`) as CollectionReference<_LicensePrivateKey>;
+                            const licensePasswordCollRef = db().collection(`licenses/${newLicenseId}/license-password`) as CollectionReference<_LicensePassword>;
+                            const contractorLicenseRef = contractorLicensesCollRef.doc(newLicenseId);
+
+                            const license: WithFieldValue<_License | _ContractorLicense> = {
+                                expirationDate: nowPlusPeriodAsTimestamp(localSolutionPeriod),
+                                login: uuid(), // generated
+                                publicKey: uuid(), // generated
+                                localSolution: {
+                                    id: localSolutionId,
+                                    name: localSolutionName,
+                                    count: localSolutionCount,
+                                },
+                                client: {
+                                    id: clientId,
+                                    taxCode: clientTaxCode,
+                                    name: clientName,
+                                },
+                            };
+                            const licensePrivateKey: WithFieldValue<_LicensePrivateKey> = {
+                                licenseId: newLicenseId,
+                                privateKey: uuid(), // generated
+                            };
+                            const licensePassword: WithFieldValue<_LicensePassword> = {
+                                licenseId: newLicenseId,
+                                password: uuid(), // generated
+                            };
+
+                            logger.info("Creating license, contractorLicense and all license's private data for order processing")
+
+                            createdLicensesCount++;
+                            batch.update(docRef.ref, {
+                                status: _OrderStatus.COMPLETED,
+                                licenseId: newLicenseId,
+                            });
+                            batch.create(
+                                newLicenseRef,
+                                license,
+                            );
+                            batch.create(
+                                contractorLicenseRef,
+                                license,
+                            );
+                            batch.create(
+                                licensePrivateKeyCollRef.doc(newLicenseId),
+                                licensePrivateKey,
+                            );
+                            batch.create(
+                                licensePasswordCollRef.doc(newLicenseId),
+                                licensePassword,
+                            );
+                        }
+                        break;
+                    }
+                    case cancelOrderAmount: {
+                        cancelledCount++;
+                        batch.update(docRef.ref, {
+                            status: _OrderStatus.CANCELLED,
+                        });
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            });
+
+            await batch.commit();
+        },
+        100,
+    );
+
+    logger.info(`process orders end, cancelled: ${cancelledCount}, completed: ${completedCount}, total processed including skipped: ${count}`);
+
+    return;
 });

@@ -1,8 +1,8 @@
 import {
-    DocumentData, FirestoreDataConverter, Query, QueryDocumentSnapshot, QuerySnapshot, WithFieldValue
+    DocumentData, FirestoreDataConverter, Query, QueryDocumentSnapshot, QuerySnapshot, Timestamp, WithFieldValue
 } from 'firebase-admin/firestore';
 import { SupportedRegion } from 'firebase-functions/v2/options';
-import { _WebClientDoc } from './types';
+import { _Period, _PeriodType, _WebClientDoc } from './types';
 
 export const region: SupportedRegion = 'europe-west1';
 export const defaultBatchOperationSizeLimit = 500;
@@ -32,25 +32,47 @@ export const getBaseConverter = <T extends DocumentData>(): FirestoreDataConvert
     },
 });
 
-export const recursivelyProcess = async <T extends DocumentData>(
-    collQuery: Query<T>,
-    batchProcessor: (docRefs: QuerySnapshot<T>) => Promise<void>,
-    limit: number = defaultBatchOperationSizeLimit
+export const processInBatches = async <T extends DocumentData>(
+    queryProvider: (prevBatchLastDocSnap?: QueryDocumentSnapshot<T>) => Query<T>,
+    batchProcessor: (queryResultSnap: QuerySnapshot<T>) => Promise<void>,
+    batchSize: number = defaultBatchOperationSizeLimit
 ) => {
-    const getDocsBatch = async () => collQuery.limit(limit).get();
+    const getDocsBatch = async (prevBatchLastDocSnap?: QueryDocumentSnapshot<T>) =>
+        await queryProvider(prevBatchLastDocSnap).limit(batchSize).get();
+
     let count = 0;
+    let queryResultSnap = await getDocsBatch();
 
-    let docRefs = await getDocsBatch();
+    while (!queryResultSnap.empty) {
+        const lastDocSnap = queryResultSnap.docs[queryResultSnap.size - 1];
 
-    while (!docRefs.empty) {
-        await batchProcessor(docRefs);
-
-        count += docRefs.size;
-        docRefs = await getDocsBatch()
+        await batchProcessor(queryResultSnap);
+        count += queryResultSnap.size;
+        queryResultSnap = await getDocsBatch(lastDocSnap);
     }
 
     return count;
 };
 
-export const atStartOfMonthCron = '0 0 1 * *';
+export const nowPlusPeriodAsTimestamp = ({count, type}: _Period): Timestamp => {
+    const targetDate = new Date();
 
+    switch (type) {
+        case _PeriodType.YEAR:
+            targetDate.setFullYear(targetDate.getFullYear() + count);
+            break;
+        case _PeriodType.MONTH:
+            targetDate.setMonth(targetDate.getMonth() + count);
+            break;
+        case _PeriodType.DAY:
+            targetDate.setDate(targetDate.getDate() + count);
+            break;
+        default:
+            throw new Error('Unsupported period type: ' + type);
+    }
+
+    return Timestamp.fromDate(targetDate);
+};
+
+export const atStartOfMonthCron = '0 0 1 * *';
+export const every10MinutesCron = '*/10 * * * *';
