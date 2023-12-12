@@ -407,7 +407,7 @@ export const processOrders = onSchedule({
         100,
     );
 
-    logger.info(`process orders end, cancelled: ${cancelledCount}, completed: ${completedCount}, created licenses in process: ${licensesCollRef}, total processed including skipped: ${count}`);
+    logger.info(`process orders end, cancelled: ${cancelledCount}, completed: ${completedCount}, created licenses in process: ${createdLicensesCount}, total processed including skipped: ${count}`);
 
     return;
 });
