@@ -73,9 +73,10 @@ service cloud.firestore {
       }
       match /orders/{orderId} {
         function isValidCancelOperation() {
-          return diffMap().affectedKeys().hasOnly(['status'])
+          return diffMap().affectedKeys().hasOnly(['status','hasPendingChanges'])
             && futureDoc().status == 'CANCELLED'
-            && currentDoc().status in ['NEW', 'PENDING'];
+            && currentDoc().status in ['NEW', 'PENDING']
+            && futureDoc().hasPendingChanges;
         }
         function isValidDeleteOperation() {
           return currentDoc().status == 'NEW';

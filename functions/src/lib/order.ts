@@ -84,6 +84,7 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
         checkAndRemove_oldContractorClient: false,
         checkAndRemove_oldContractorLicense: false,
         unset_hasPendingChanges: false,
+        set_cancelledDate: false,
     }
 
     switch (opType) {
@@ -128,6 +129,9 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
             }
             if (docData.hasPendingChanges) {
                 operations.unset_hasPendingChanges = true;
+            }
+            if (docData.status !== oldDocData.status && docData.status === _OrderStatus.CANCELLED) {
+                operations.set_cancelledDate = true;
             }
             break;
         }
@@ -281,6 +285,9 @@ export const onOrderWritten = onDocumentWritten({ document: 'contractors/{contra
     if (operations.unset_hasPendingChanges) {
         docChanges.hasPendingChanges = false;
     }
+    if (operations.set_cancelledDate) {
+        docChanges.cancelledDate = FieldValue.serverTimestamp();
+    }
 
     if (Object.keys(docChanges).length) {
         batch.update(docSnap.ref, docChanges);
@@ -363,7 +370,10 @@ export const processOrders = onSchedule({
                         userMetadataUpdateMap[uid] = (userMetadataUpdateMap[uid] || 0) + 1;
                         batch.create(userNotificationsCollRef.doc(), buildNotification(number, _OrderStatus.COMPLETED));
                         if (licenseId) {
-                            batch.update(docRef.ref, { status: _OrderStatus.COMPLETED });
+                            batch.update(docRef.ref, {
+                                status: _OrderStatus.COMPLETED,
+                                completedDate: FieldValue.serverTimestamp(),
+                            });
                         } else {
                             const newLicenseRef = licensesCollRef.doc();
                             const newLicenseId = newLicenseRef.id;
@@ -399,6 +409,7 @@ export const processOrders = onSchedule({
                             createdLicensesCount++;
                             batch.update(docRef.ref, {
                                 status: _OrderStatus.COMPLETED,
+                                completedDate: FieldValue.serverTimestamp(),
                                 licenseId: newLicenseId,
                             });
                             batch.create(
@@ -426,6 +437,7 @@ export const processOrders = onSchedule({
                         batch.create(userNotificationsCollRef.doc(), buildNotification(number, _OrderStatus.CANCELLED));
                         batch.update(docRef.ref, {
                             status: _OrderStatus.CANCELLED,
+                            cancelledDate: FieldValue.serverTimestamp(),
                         });
                         break;
                     }

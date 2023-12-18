@@ -174,7 +174,8 @@ export class OrderService {
     cancelOrder(id: Order['id']) {
         return this.collRef$.pipe(
             map(collRef => doc(collRef, id)),
-            switchMap(docRef => setDoc(docRef, { status: OrderStatus.CANCELLED }, { merge: true })),
+            switchMap(docRef => setDoc(docRef, { status: OrderStatus.CANCELLED, hasPendingChanges: true }, { merge: true }).then(() => docRef)),
+            switchMap(docRef => this.createOrderObservableAfterUpdated(docRef)),
         );
     }
 

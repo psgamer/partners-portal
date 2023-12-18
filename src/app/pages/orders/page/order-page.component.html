@@ -9,9 +9,9 @@
                 <h6 class="card-title mb-0">{{'ORDER.LABELS.DETAILS.DATA' | translate}}</h6>
             </div>
             <div class="card-body">
-                <div class="row">
+                <div class="row g-3">
                     <div class="col-lg-6">
-                        <div class="row g-3">
+                        <div class="row">
                             <div class="col-auto">
                                 <label for="order.status">{{'ORDER.FIELDS.status' | translate}}:</label>
                             </div>
@@ -22,12 +22,32 @@
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="row g-3">
+                        <div class="row">
                             <div class="col-auto">
                                 <label for="order.createdDate">{{'ORDER.FIELDS.createdDate' | translate}}:</label>
                             </div>
                             <div class="col-auto">
                                 <span id="order.createdDate" readonly>{{order.createdDate.toDate() | date}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="order.completedDate" class="col-lg-6">
+                        <div class="row">
+                            <div class="col-auto">
+                                <label for="order.completedDate">{{'ORDER.FIELDS.completedDate' | translate}}:</label>
+                            </div>
+                            <div class="col-auto">
+                                <span id="order.completedDate" readonly>{{order.completedDate.toDate() | date}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="order.cancelledDate" class="col-lg-6">
+                        <div class="row">
+                            <div class="col-auto">
+                                <label for="order.cancelledDate">{{'ORDER.FIELDS.cancelledDate' | translate}}:</label>
+                            </div>
+                            <div class="col-auto">
+                                <span id="order.cancelledDate" readonly>{{order.cancelledDate.toDate() | date}}</span>
                             </div>
                         </div>
                     </div>

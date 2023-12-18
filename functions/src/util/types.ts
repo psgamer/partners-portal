@@ -22,6 +22,8 @@ export interface _Order {
     };
     hasPendingChanges: boolean;
     createdDate: Timestamp;
+    completedDate?: Timestamp;
+    cancelledDate?: Timestamp;
 }
 
 export interface _OrderAmountRange {

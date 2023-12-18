@@ -32,6 +32,8 @@ export interface Order {
     operation: OrderOperationType;
     status: OrderStatus;
     createdDate: Timestamp;
+    completedDate: Timestamp | undefined;
+    cancelledDate: Timestamp | undefined;
     localSolutionSrc: {
         id: LocalSolution['id'];
         name: LocalSolution['name'];

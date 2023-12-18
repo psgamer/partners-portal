@@ -86,6 +86,8 @@
     },
     "FIELDS" : {
       "createdDate": "Дата створення",
+      "completedDate": "Дата виконання",
+      "cancelledDate": "Дата ануляції",
       "number": "Номер замовлення",
       "localSolutionSrc.name":  "Наше рішення",
       "localSolutionSrc.count":  "Кількість",
