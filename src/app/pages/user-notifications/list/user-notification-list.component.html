@@ -32,14 +32,14 @@
                                 <i class="{{getOrderTagItemIconClass(item)}}"></i>
                             </span>
             </div>
-            <div class="flex-grow-1">
+            <div *ngIf="language$ | async as language" class="flex-grow-1">
                 <a href="javascript:void(0);" class="stretched-link" [ngClass]="{disabled: loading$ | async}" (click)="markAsRead(item)">
-                    <h6 *ngIf="item.title" class="mt-0 fs-md mb-2 lh-base">
-                        {{item.title}}
+                    <h6 *ngIf="item.title[language]" class="mt-0 fs-md mb-2 lh-base">
+                        {{item.title[language]}}
                     </h6>
                 </a>
-                <div *ngIf="item.text" class="fs-sm text-muted">
-                    <p class="mb-1">{{item.text}}</p>
+                <div *ngIf="item.text[language]" class="fs-sm text-muted">
+                    <p class="mb-1">{{item.text[language]}}</p>
                 </div>
                 <p class="mb-0 fs-11 fw-medium text-muted">
                     <span><i class="mdi mdi-clock-outline"></i> {{$any(item).creationDate.toDate() | timeago }}</span>

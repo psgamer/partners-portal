@@ -3,6 +3,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject, combineLatest, finalize, map, switchMap, take, tap } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { SimplebarAngularComponent } from 'simplebar-angular';
+import { LanguageService } from '../../../core/services/language.service';
 import { getOrderTagItemIconClass, getUserNotificationTagItemClass, UserNotification } from '../user-notification.model';
 import { UserNotificationService } from '../user-notification.service';
 
@@ -36,6 +37,7 @@ export class UserNotificationListComponent {
             .catch(e => console.log('deleteAllUserNotifications failed', e)),
     }];
     readonly unreadCountGlobal$ = this.userNotificationService.userNotificationsUnreadCount$;
+    readonly language$ = this.languageService.language$;
     readonly showLoadMore$ = combineLatest([
         this.queryHandler.searchParams$,
         this.queryHandler.totalRecords$,
@@ -56,7 +58,7 @@ export class UserNotificationListComponent {
 
     @ViewChild(SimplebarAngularComponent, {read: SimplebarAngularComponent}) simplebar?: SimplebarAngularComponent;
 
-    constructor(private userNotificationService: UserNotificationService) {
+    constructor(private userNotificationService: UserNotificationService, private languageService: LanguageService) {
         this.queryHandler.docs$.pipe(
             untilDestroyed(this),
             tap(docs => {

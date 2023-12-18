@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase-admin/firestore'
+import { FieldValue, Timestamp } from 'firebase-admin/firestore'
 
 export interface _Order {
     contractor: {
@@ -21,6 +21,7 @@ export interface _Order {
         period: _Period;
     };
     hasPendingChanges: boolean;
+    createdDate: Timestamp;
 }
 
 export interface _OrderAmountRange {
@@ -92,13 +93,30 @@ export enum _OrderStatus {
 }
 
 export interface _UserNotification {
+    creationDate: Timestamp | FieldValue;
     isRead: boolean;
+    title: {
+        [key in _Language]: string;
+    };
+    text: {
+        [key in _Language]: string;
+    };
+    type: _UserNotificationType;
+    skipCreateTriggers?: boolean;
     skipUpdateTriggers?: boolean;
     skipDeleteTriggers?: boolean;
 }
 
+export enum _UserNotificationType {
+    ORDER = 'ORDER',
+}
+
 export interface _UserNotificationMetadata {
     unreadCount: number;
+}
+
+export enum _Language {
+    UA = 'ua'
 }
 
 export interface _ProcessedEvent {

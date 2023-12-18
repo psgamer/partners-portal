@@ -1,12 +1,17 @@
 import { Timestamp } from "@angular/fire/firestore";
 import { User } from '../../core/models/auth.models';
+import { Language } from '../../core/models/language.models';
 
 export interface UserNotification {
     id: string;
     creationDate: Timestamp;
     isRead: boolean;
-    title: string;
-    text: string;
+    title: {
+        [key in Language]: string;
+    };
+    text: {
+        [key in Language]: string;
+    };
     type: UserNotificationType;
 }
 

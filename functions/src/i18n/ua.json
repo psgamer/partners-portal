@@ -1,0 +1,6 @@
+{
+  "USER_NOTIFICATION.ORDER.CANCELLED.TITLE": "Замовлення анульовано",
+  "USER_NOTIFICATION.ORDER.CANCELLED.TEXT": "Номер замовлення: {number}",
+  "USER_NOTIFICATION.ORDER.COMPLETED.TITLE": "Замовлення виконано",
+  "USER_NOTIFICATION.ORDER.COMPLETED.TEXT": "Номер замовлення: {number}"
+}

@@ -3,6 +3,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BsDropdownDirective } from 'ngx-bootstrap/dropdown';
 import { BehaviorSubject, combineLatest, finalize, map, switchMap, take, tap } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { LanguageService } from '../../../core/services/language.service';
 import { getOrderTagItemIconClass, getUserNotificationTagItemClass, UserNotification } from '../user-notification.model';
 import { UserNotificationService } from '../user-notification.service';
 
@@ -38,6 +39,7 @@ export class UserNotificationPanelComponent {
     readonly unreadCountGlobal$ = this.userNotificationService.userNotificationsUnreadCount$;
     readonly getUserNotificationTagItemClass = getUserNotificationTagItemClass;
     readonly getOrderTagItemIconClass = getOrderTagItemIconClass;
+    readonly language$ = this.languageService.language$;
     get checkedCount() {
         return Object.values(this.checkboxItems).filter(checked => checked).length;
     }
@@ -46,7 +48,7 @@ export class UserNotificationPanelComponent {
 
     @ViewChild('notificationDropdown', {read: BsDropdownDirective}) dropdown?: BsDropdownDirective;
 
-    constructor(private userNotificationService: UserNotificationService) {
+    constructor(private userNotificationService: UserNotificationService, private languageService: LanguageService) {
         this.queryHandler.docs$.pipe(
             untilDestroyed(this),
             tap(() => this.checkboxItems = {}),

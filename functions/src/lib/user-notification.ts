@@ -98,12 +98,16 @@ export const onUserNotificationWritten = onDocumentWritten({ document: 'users/{u
         opType = 'create';
     }
 
-    if ((opType === 'update' && docSnap.get('skipUpdateTriggers' as _Paths<_UserNotification>))
+    if ((opType === 'create' && docSnap.get('skipCreateTriggers' as _Paths<_UserNotification>))
+        || (opType === 'update' && docSnap.get('skipUpdateTriggers' as _Paths<_UserNotification>))
         || (opType === 'delete' && oldDocSnap.get('skipDeleteTriggers' as _Paths<_UserNotification>))) {
 
 
         if (opType === 'delete') {
             return null;
+        }
+        if (opType === 'create') {
+            return (docSnap.ref as DocumentReference<_UserNotification>).update({ skipCreateTriggers: FieldValue.delete() });
         }
         if (opType === 'update') {
             if (docSnap.get('skipDeleteTriggers' as _Paths<_UserNotification>)) {

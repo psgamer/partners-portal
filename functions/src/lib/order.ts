@@ -1,14 +1,17 @@
-import { CollectionGroup, CollectionReference, DocumentReference, UpdateData, WithFieldValue } from 'firebase-admin/firestore';
+import {
+    CollectionGroup, CollectionReference, DocumentReference, FieldValue, Timestamp, UpdateData, WithFieldValue
+} from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { v4 as uuid } from 'uuid';
-import { db } from '../admin';
+import { auth, db } from '../admin';
+import { translate } from '../i18n';
 import { defaultSlowOperationTimeoutSeconds, every10MinutesCron, nowPlusPeriodAsTimestamp, processInBatches, region } from '../util';
 import {
-    _Client, _ContractorClient, _ContractorLicense, _License, _LicensePassword, _LicensePrivateKey, _Order, _OrderAmountRange, _OrderStatus,
-    _Paths
+    _Client, _ContractorClient, _ContractorLicense, _Language, _License, _LicensePassword, _LicensePrivateKey, _Order, _OrderAmountRange,
+    _OrderStatus, _Paths, _UserNotification, _UserNotificationMetadata, _UserNotificationType
 } from '../util/types';
 
 const completeOrderAmount = 10000;
@@ -294,11 +297,16 @@ export const processOrders = onSchedule({
 }, async (event) => {
     logger.info("process orders start");
 
+    const tenMinutesEarlierDate = new Date();
+    tenMinutesEarlierDate.setMinutes(tenMinutesEarlierDate.getMinutes() - 10);
+
     const collGroup = db().collectionGroup('orders') as CollectionGroup<_Order>;
     const collQuery = collGroup
         .where('status' as _Paths<_Order>, '==', _OrderStatus.NEW)
-        .where('hasPendingChanges' as _Paths<_Order>, '==', false);
+        .where('hasPendingChanges' as _Paths<_Order>, '==', false)
+        .where('createdDate' as _Paths<_Order>, '<', Timestamp.fromDate(tenMinutesEarlierDate));
     const licensesCollRef = db().collection('licenses') as CollectionReference<_License>;
+    const getUserNotificationsMetadataDocRef = (uid: string) => db().collection(`users/${uid}/user-notifications-metadata`).doc(uid) as DocumentReference<_UserNotificationMetadata>;
 
     let cancelledCount = 0;
     let completedCount = 0;
@@ -309,13 +317,32 @@ export const processOrders = onSchedule({
             ? collQuery
             : collQuery.startAfter(prevBatchLastDocSnap),
         async queryResultSnap => {
-            logger.info(`received batch, size = ${queryResultSnap.size}`);
             const batch = db().batch();
+            const users = await auth().listUsers().then(({users}) => users);
+
+            const userMetadataUpdateMap = {} as {[uid: string]: number};
+
+            const buildNotification = (number: _Order['number'], status: _OrderStatus): _UserNotification => {
+                const buildTexts = (keySuffix: string) => Object.values(_Language).reduce((acc, lang) => {
+                    acc[lang] = translate(lang, `USER_NOTIFICATION.ORDER.${status}.${keySuffix}`, {number});
+                    return acc;
+                }, {} as _UserNotification['title' | 'text']);
+
+                return {
+                    title: buildTexts('TITLE'),
+                    text: buildTexts('TEXT'),
+                    isRead: false,
+                    skipCreateTriggers: true,
+                    creationDate: FieldValue.serverTimestamp(),
+                    type: _UserNotificationType.ORDER,
+                };
+            }
 
             queryResultSnap.forEach(docRef => {
                 const {
                     amountTotal,
                     licenseId,
+                    number,
                     contractor: {id: contractorId},
                     client: { id: clientId, name: clientName, taxCode: clientTaxCode },
                     localSolutionRes: {
@@ -325,11 +352,16 @@ export const processOrders = onSchedule({
                         period: localSolutionPeriod,
                     },
                 } = docRef.data();
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const { uid } = users.find(({customClaims}) => customClaims && customClaims['contractorId'] === contractorId)!;
                 const contractorLicensesCollRef = db().collection(`contractors/${contractorId}/contractor-licenses`) as CollectionReference<_ContractorLicense>;
+                const userNotificationsCollRef = db().collection(`users/${uid}/user-notifications`) as CollectionReference<_UserNotification>;
 
                 switch (amountTotal) {
                     case completeOrderAmount: {
                         completedCount++
+                        userMetadataUpdateMap[uid] = (userMetadataUpdateMap[uid] || 0) + 1;
+                        batch.create(userNotificationsCollRef.doc(), buildNotification(number, _OrderStatus.COMPLETED));
                         if (licenseId) {
                             batch.update(docRef.ref, { status: _OrderStatus.COMPLETED });
                         } else {
@@ -392,6 +424,8 @@ export const processOrders = onSchedule({
                     }
                     case cancelOrderAmount: {
                         cancelledCount++;
+                        userMetadataUpdateMap[uid] = (userMetadataUpdateMap[uid] || 0) + 1;
+                        batch.create(userNotificationsCollRef.doc(), buildNotification(number, _OrderStatus.CANCELLED));
                         batch.update(docRef.ref, {
                             status: _OrderStatus.CANCELLED,
                         });
@@ -402,9 +436,14 @@ export const processOrders = onSchedule({
                 }
             });
 
+            if (Object.keys(userMetadataUpdateMap).length) {
+                Object.entries(userMetadataUpdateMap).forEach(([uid, count]) =>
+                    batch.update(getUserNotificationsMetadataDocRef(uid), { unreadCount: FieldValue.increment(count) }))
+            }
+
             await batch.commit();
         },
-        100,
+        71,// max 500 writes per batch, currently up to 7 writes per doc
     );
 
     logger.info(`process orders end, cancelled: ${cancelledCount}, completed: ${completedCount}, created licenses in process: ${createdLicensesCount}, total processed including skipped: ${count}`);
