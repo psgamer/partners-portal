@@ -9,7 +9,7 @@ export const translate = (lang: _Language, key: string, params?: {[key: string]:
     let text = getI18nJson(lang)[key];
     if (params) {
         Object.entries(params).map(([key, value]) => {
-            text = text.replace(new RegExp(`\{${key}\}`, 'g'), `${value}`);
+            text = text.replace(new RegExp('{' + key + '}', 'g'), `${value}`);
         });
     }
     return text;
