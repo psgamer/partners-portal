@@ -34,13 +34,11 @@ export type ContractorLicense = Subset<License, {
 }>
 
 export interface LicensePrivateKey {
-    id: string;
-    licenseId: License['id'];
+    id: License['id'];
     privateKey: string;
 }
 
 export interface LicensePassword {
-    id: string;
-    licenseId: License['id'];
+    id: License['id'];
     password: string;
 }

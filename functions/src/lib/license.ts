@@ -23,7 +23,7 @@ export const findByLicensePrivateKey = onCall<{ privateKey: _LicensePrivateKey['
     const licenseIds = await licensePrivateKeyCollGroup
         .where('privateKey' as _Paths<_LicensePrivateKey>, '==', privateKey)
         .get()
-        .then(({docs}) => docs.map(doc => doc.data().licenseId));
+        .then(({docs}) => docs.map(doc => doc.id));
 
     if (!licenseIds.length) {
         return [];

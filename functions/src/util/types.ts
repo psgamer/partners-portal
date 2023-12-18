@@ -66,12 +66,10 @@ export type _ContractorLicense = _Subset<_License, {
 }>
 
 export interface _LicensePrivateKey {
-    licenseId: string;
     privateKey: string;
 }
 
 export interface _LicensePassword {
-    licenseId: string;
     password: string;
 }
 

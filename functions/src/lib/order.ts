@@ -388,11 +388,9 @@ export const processOrders = onSchedule({
                                 },
                             };
                             const licensePrivateKey: WithFieldValue<_LicensePrivateKey> = {
-                                licenseId: newLicenseId,
                                 privateKey: uuid(), // generated
                             };
                             const licensePassword: WithFieldValue<_LicensePassword> = {
-                                licenseId: newLicenseId,
                                 password: uuid(), // generated
                             };
 
