@@ -9,8 +9,13 @@ export interface NewsArticle {
 }
 
 export enum NewsArticleContentType {
-    TEXT = 'TEXT',
-    QUOTE = 'QUOTE',
+    TEXT = 'text',
+    QUOTE = 'quote',
 }
 
 export const newsArticleRouteParam = 'id';
+
+export const hasContent = (article: NewsArticle, contentType: NewsArticleContentType): boolean =>
+    article.content.some(({type}) => type === contentType);
+export const getContent = (article: NewsArticle, contentType: NewsArticleContentType): string =>
+    article.content.find(({type}) => type === contentType)!.value;

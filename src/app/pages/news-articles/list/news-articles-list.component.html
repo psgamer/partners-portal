@@ -1,7 +1,7 @@
 <ng-container *ngIf="newsArticles$ | async as newsArticles">
     <ng-container *ngFor="let newsArticle of newsArticles">
         <img [ngSrc]="newsArticle.imageUrl" width="400" height="200" alt="noimg">
-        <div>{{newsArticle | json}}</div>
+        <div>{{ newsArticle | json }}</div>
     </ng-container>
 </ng-container>
 <ng-container *ngIf="((newsArticles$ | async) == null) || ((newsArticles$ | async)!.length === 0)">
@@ -9,3 +9,37 @@
 </ng-container>
 <div *ngIf="loading$ | async">Loading...</div>
 <div *ngIf="canLoadMore$ | async" (click)="loadMore()">LoadMore</div>
+
+<!--TODO whole file-->
+
+
+<div class="row">
+    <ng-container *ngIf="newsArticles$ | async as newsArticles">
+        <ng-container *ngFor="let newsArticle of newsArticles">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div>
+                            <img [src]="newsArticle.imageUrl" width="100%">
+                        </div>
+
+                        <div class="pt-1">
+                            <h6 class="card-title">{{newsArticle.title}}</h6>
+                            <div class="text-muted hstack gap-2 flex-wrap list-unstyled mb-3">
+                                <div>
+                                    <i class="bi bi-calendar-event align-baseline me-1"></i> {{newsArticle.creationDate.toDate() | timeago}}
+                                </div>
+                            </div>
+                            <blockquote class="blockquote"
+                                        *ngIf="hasContent(newsArticle, NewsArticleContentType.QUOTE)">
+                                <p>{{getContent(newsArticle, NewsArticleContentType.QUOTE)}}</p>
+                            </blockquote>
+                            <!--TODO multiline-->
+                            <div [innerHTML]="getContent(newsArticle, NewsArticleContentType.TEXT)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div><!--end col-->
+        </ng-container>
+    </ng-container>
+</div><!--end row-->

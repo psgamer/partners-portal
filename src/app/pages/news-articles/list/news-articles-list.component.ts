@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject, Observable, of, ReplaySubject, scan, take, tap } from 'rxjs';
 import { catchError, filter, map, switchMap } from 'rxjs/operators';
-import { NewsArticle } from '../news-articles.model';
+import { getContent, hasContent, NewsArticle, NewsArticleContentType } from '../news-articles.model';
 import { NewsArticlesService } from '../news-articles.service';
 
 @UntilDestroy()
@@ -22,6 +22,11 @@ export class NewsArticlesListComponent {
     readonly newsArticles$: Observable<NewsArticle[]> = this._newsArticles$.pipe(
         scan((currentDocs, incomingDocs) => [...currentDocs, ...incomingDocs]),
     );
+
+    readonly Object = Object;
+    readonly NewsArticleContentType = NewsArticleContentType;
+    readonly hasContent = hasContent;
+    readonly getContent = getContent;
 
     constructor(private newsArticlesService: NewsArticlesService) {
         this.searchRequest$.pipe(
