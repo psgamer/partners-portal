@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { ActivatedRoute } from "@angular/router";
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { map, switchMap, take, tap, throwError } from 'rxjs';
+import { take, tap, throwError } from 'rxjs';
+import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { catchError } from "rxjs/operators";
-import { User } from "../../core/models/auth.models";
 import { AuthenticationService } from "../../core/services/auth.service";
 import { Contractor } from "../../shared/contractor/contractor.model";
 
@@ -16,7 +16,7 @@ import { Contractor } from "../../shared/contractor/contractor.model";
 })
 
 // Register Component
-export class AssignUserContractorComponent {
+export class AssignUserContractorComponent implements OnInit {
     text: string = 'Please add /contractorId to url and go';
     private readonly assignContractorToUser = httpsCallable<Payload, boolean>(this.functions, 'assignContractorToUser');
 
@@ -32,16 +32,8 @@ export class AssignUserContractorComponent {
 
         if (contractorId != null && contractorId !== '') {
             this.text = 'Please wait...';
-            /**
-             * TODO
-             * do NOT pass uid as payload
-             * https://github.com/firebase/firebase-tools/issues/5210
-             */
-            this.authService.currentUser$().pipe(
+            fromPromise(this.assignContractorToUser({contractorId})).pipe(
                 untilDestroyed(this),
-                take(1),
-                map(u => (u as NonNullable<typeof u>).uid),
-                switchMap(uid => this.assignContractorToUser({contractorId, uid})),
                 catchError((err) => {
                     this.text = 'Failure trying to assign contractor to user';
                     console.error('Failure trying to assign contractor to user', err);
@@ -61,5 +53,4 @@ export class AssignUserContractorComponent {
 
 interface Payload {
     contractorId: Contractor['id'];
-    uid: User['id'];
 }

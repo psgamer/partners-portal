@@ -1,23 +1,20 @@
 import { logger } from 'firebase-functions';
-import { onCall } from 'firebase-functions/v2/https';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { auth } from '../admin';
 import { region } from '../util';
 
-/**
- * TODO
- * do NOT pass auth and just use event.auth
- * https://github.com/firebase/firebase-tools/issues/5210
- */
-export const assignContractorToUser = onCall<{ uid: string; contractorId: string; }, Promise<boolean>>({
+export const assignContractorToUser = onCall<{ contractorId: string }, Promise<boolean>>({
     cors: true,
     region
-}, async ({ data }) => {
-    if (!(data && data.uid && data.contractorId)) {
-        logger.error('Insufficient data to assign contractorId to user, listing args', data);
-        return false;
+}, async ({ data: { contractorId }, auth: authData }) => {
+    if (!(authData && authData.uid && contractorId)) {
+        throw new HttpsError('unauthenticated', 'User is not signed in');
+    }
+    if (!contractorId) {
+        throw new HttpsError('invalid-argument', 'contractorId not specified');
     }
 
-    const { uid, contractorId } = data;
+    const { uid } = authData;
 
     return await auth().setCustomUserClaims(uid, { contractorId })
         .then(() => {

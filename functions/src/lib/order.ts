@@ -3,7 +3,7 @@ import {
 } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { onCall } from 'firebase-functions/v2/https';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { v4 as uuid } from 'uuid';
 import { auth, db } from '../admin';
@@ -19,8 +19,7 @@ const cancelOrderAmount = 20000;
 
 export const generateOrderAmountRanges = onCall<void, Promise<void>>({ cors: true, region }, async ({ auth }) => {
     if (!(auth && auth.uid && auth.token.contractorId)) {
-        logger.error('Insufficient permissions to generateOrderAmountRanges, should never happen, listing auth arg', auth);
-        return;
+        throw new HttpsError('unauthenticated', 'User is not signed in');
     }
 
     const docs: _OrderAmountRange[] = [{

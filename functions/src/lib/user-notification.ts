@@ -1,15 +1,14 @@
 import { CollectionReference, DocumentReference, FieldValue } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { DocumentSnapshot, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { onCall } from 'firebase-functions/v2/https';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { db, processedEventsCollRef } from '../admin';
 import { defaultSlowOperationTimeoutSeconds, processInBatches, region } from '../util';
 import { _Paths, _UserNotification, _UserNotificationMetadata } from '../util/types';
 
 export const markAllUserNotificationsAsRead = onCall<void, Promise<void>>({ cors: true, region, timeoutSeconds: defaultSlowOperationTimeoutSeconds }, async ({ auth }) => {
     if (!(auth && auth.uid)) {
-        logger.error('Insufficient permissions, listing auth arg', auth);
-        return;
+        throw new HttpsError('unauthenticated', 'User is not signed in');
     }
 
     const {uid} = auth;
@@ -37,8 +36,7 @@ export const markAllUserNotificationsAsRead = onCall<void, Promise<void>>({ cors
 
 export const deleteAllUserNotifications = onCall<void, Promise<void>>({ cors: true, region, timeoutSeconds: 600 }, async ({ auth }) => {
     if (!(auth && auth.uid)) {
-        logger.error('Insufficient permissions, listing auth arg', auth);
-        return;
+        throw new HttpsError('unauthenticated', 'User is not signed in');
     }
 
     const {uid} = auth;

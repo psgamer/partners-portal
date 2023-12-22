@@ -1,6 +1,5 @@
-import { cert, initializeApp } from 'firebase-admin/app';
+import { cert, initializeApp, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { ServiceAccount } from 'firebase-admin/lib/app/credential';
 import { getStorage } from 'firebase-admin/storage';
 import { memoize } from 'lodash';
 
