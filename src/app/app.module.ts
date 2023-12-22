@@ -3,7 +3,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 // lang
 import localeUk from '@angular/common/locales/uk';
-import { LOCALE_ID, NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule, Predicate } from '@angular/core';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { Auth, connectAuthEmulator, getAuth, provideAuth } from '@angular/fire/auth';
 import { FIREBASE_OPTIONS } from '@angular/fire/compat';
@@ -27,6 +27,7 @@ import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-comp
 
 // env
 import { environment } from '../environments/environment';
+import { FirebaseEmulatedServiceName } from '../environments/environment.types';
 
 // Page Route
 import { AppRoutingModule } from './app-routing.module';
@@ -36,11 +37,14 @@ import { AppComponent } from './app.component';
 import { AuthlayoutComponent } from './authlayout/authlayout.component';
 import { initFirebaseBackend } from './authUtils';
 import { DEFAULT_LANGUAGE } from './core/models/language.models';
+import { PageTitleService } from './core/page-title-service';
 import { PageTitleStrategy } from './core/page-title-strategy';
 import { LayoutsModule } from './layouts/layouts.module';
 
 registerLocaleData(localeUk, 'ua');
 const functionsRegion = 'europe-west1';
+const shouldUseEmulator: Predicate<FirebaseEmulatedServiceName> = serviceName =>
+    environment.useEmulators === true || (environment.useEmulators !== false && environment.useEmulators.includes(serviceName));
 
 export function createTranslateLoader(http: HttpClient): any {
     return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -78,7 +82,7 @@ export class MyIntl extends TimeagoIntl {
         provideAuth(() => {
             const auth = getAuth();
             // setPersistence(auth, browserSessionPersistence);
-            if (environment.useEmulators) {
+            if (shouldUseEmulator('auth')) {
                 connectAuthEmulator(auth, 'http://127.0.0.1:9099');
             }
             initFirebaseBackend(environment.firebase, auth);
@@ -86,7 +90,7 @@ export class MyIntl extends TimeagoIntl {
         }),
         provideFirestore(() => {
             const firestore = getFirestore();
-            if (environment.useEmulators) {
+            if (shouldUseEmulator('firestore')) {
                 connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
                 // TODO investigate this, probably refactor as recommended after version upgrade
                 enableMultiTabIndexedDbPersistence(firestore)
@@ -104,7 +108,7 @@ export class MyIntl extends TimeagoIntl {
         // }),
         provideFunctions(() => {
             const functions = getFunctions(undefined, functionsRegion);
-            if (environment.useEmulators) {
+            if (shouldUseEmulator('functions')) {
                 connectFunctionsEmulator(functions, "127.0.0.1", 5001);
             }
             return functions;
@@ -119,7 +123,7 @@ export class MyIntl extends TimeagoIntl {
         // }),
         provideStorage(() => {
             const storage = getStorage();
-            if (environment.useEmulators) {
+            if (shouldUseEmulator('storage')) {
                 connectStorageEmulator(storage, "127.0.0.1", 9199);
             }
             return storage;
@@ -148,7 +152,7 @@ export class MyIntl extends TimeagoIntl {
     }, {
         provide: DATE_PIPE_DEFAULT_OPTIONS,
         useValue: {dateFormat: 'short'}
-    }],
+    }, PageTitleService],
     bootstrap: [AppComponent]
 })
 export class AppModule {

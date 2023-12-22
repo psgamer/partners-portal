@@ -24,7 +24,7 @@ export const MENU: MenuItem[] = [
     {
         label: 'MENUITEMS.NEWS.TEXT',
         icon: 'ph-article',
-        link: '/',
+        link: '/news',
     },
 ].map((item, index) => ({
     ...item,

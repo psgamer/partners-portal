@@ -7,16 +7,6 @@ import { _Period, _PeriodType, _WebClientDoc } from './types';
 export const region: SupportedRegion = 'europe-west1';
 export const defaultBatchOperationSizeLimit = 500;
 export const defaultSlowOperationTimeoutSeconds = 600;
-export const memoize = <T>(initializer: () => T): () => T => {
-    let instance: T | undefined;
-
-    return () => {
-        if (!instance) {
-            instance = initializer();
-        }
-        return instance;
-    };
-}
 export const getBaseConverter = <T extends DocumentData>(): FirestoreDataConverter<_WebClientDoc<T>> => ({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     toFirestore({id, ...rest}: WithFieldValue<_WebClientDoc<T>>): T {

@@ -1,0 +1,11 @@
+<ng-container *ngIf="newsArticles$ | async as newsArticles">
+    <ng-container *ngFor="let newsArticle of newsArticles">
+        <img [ngSrc]="newsArticle.imageUrl" width="400" height="200" alt="noimg">
+        <div>{{newsArticle | json}}</div>
+    </ng-container>
+</ng-container>
+<ng-container *ngIf="((newsArticles$ | async) == null) || ((newsArticles$ | async)!.length === 0)">
+    no data yet
+</ng-container>
+<div *ngIf="loading$ | async">Loading...</div>
+<div *ngIf="canLoadMore$ | async" (click)="loadMore()">LoadMore</div>

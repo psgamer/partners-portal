@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { translateParamsSeparator } from '../../core/page-title-strategy';
+import { translateParamsSeparator } from '../../core/page-title-service';
 import { orderRouteParam } from './order.model';
 import { OrderPageComponent } from './page/order-page.component';
 

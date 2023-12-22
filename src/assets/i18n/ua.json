@@ -135,6 +135,13 @@
       }
     }
   },
+  "NEWS": {
+    "LABELS": {
+      "DETAILS": {
+        "TITLE": "Новина {id}"
+      }
+    }
+  },
   "TABLE": {
     "AMOUNT_TEXT": "Показано <span class=\"fw-semibold\">{current}</span> з <span class=\"fw-semibold\">{total}</span> результатів"
   },

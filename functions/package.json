@@ -18,11 +18,13 @@
     "copyfiles": "^2.4.1",
     "firebase-admin": "11.11.0",
     "firebase-functions": "4.5.0",
+    "lodash.memoize": "^4.1.2",
     "partners-portal": "file:..",
     "tslib": "2.6.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/lodash.memoize": "^4.1.9",
     "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "5.62.0",
     "@typescript-eslint/parser": "5.62.0",

@@ -10,6 +10,9 @@ const routes: Routes = [
     },
     {
         path: 'user-notifications', loadChildren: () => import('./user-notifications/user-notifications.module').then(({ UserNotificationsModule }) => UserNotificationsModule)
+    },
+    {
+        path: 'news', loadChildren: () => import('./news-articles/news-articles.module').then(({ NewsArticlesModule }) => NewsArticlesModule)
     }
 ];
 

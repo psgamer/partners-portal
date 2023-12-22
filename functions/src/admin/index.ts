@@ -1,12 +1,13 @@
-import { initializeApp } from 'firebase-admin/app';
+import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { CollectionReference, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { atStartOfMonthCron, defaultSlowOperationTimeoutSeconds, memoize, processInBatches, region } from '../util';
+import { memoize } from 'lodash';
+import { atStartOfMonthCron, defaultSlowOperationTimeoutSeconds, processInBatches, region } from '../util';
 import { _Paths, _ProcessedEvent } from '../util/types';
 
-export const app = memoize(initializeApp);
+const app = memoize(() => initializeApp({credential: applicationDefault()}));
 export const auth = memoize(() => getAuth(app()));
 export const db = memoize(() => getFirestore(app()));
 
