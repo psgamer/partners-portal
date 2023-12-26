@@ -1,10 +1,29 @@
 <!-- Start Breadcrumbs -->
 <breadcrumbs *ngIf="breadcrumbs$ | async as breadcrumbs" [breadcrumbs]="breadcrumbs"></breadcrumbs>
 <!-- End Breadcrumbs -->
-<ng-container *ngIf="newsArticle$ | async as newsArticle">
-    <img [ngSrc]="newsArticle.imageUrl" width="400" height="200" alt="noimg">
-    <div>{{newsArticle | json}}</div>
-</ng-container>
-<ng-container *ngIf="(newsArticle$ | async) == null">
-    no data yet
-</ng-container>
+<div class="row">
+    <div *ngIf="newsArticle$ | async as newsArticle" class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <div>
+                    <img [src]="newsArticle.imageUrl" width="100%">
+                </div>
+
+                <div class="pt-1">
+                    <h6 class="card-title">{{newsArticle.title}}</h6>
+                    <div class="text-muted hstack gap-2 flex-wrap list-unstyled mb-3">
+                        <div>
+                            <i class="bi bi-calendar-event align-baseline me-1"></i> {{newsArticle.creationDate.toDate() | timeago}}
+                        </div>
+                    </div>
+                    <blockquote class="blockquote"
+                                *ngIf="hasContent(newsArticle, NewsArticleContentType.QUOTE)">
+                        <p>{{getContent(newsArticle, NewsArticleContentType.QUOTE)}}</p>
+                    </blockquote>
+                    <div [innerHTML]="safe(getContent(newsArticle, NewsArticleContentType.TEXT))"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!--end row-->
+

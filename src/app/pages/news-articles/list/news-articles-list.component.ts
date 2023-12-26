@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { BehaviorSubject, Observable, of, ReplaySubject, scan, take, tap } from 'rxjs';
 import { catchError, filter, map, switchMap } from 'rxjs/operators';
@@ -27,8 +28,9 @@ export class NewsArticlesListComponent {
     readonly NewsArticleContentType = NewsArticleContentType;
     readonly hasContent = hasContent;
     readonly getContent = getContent;
+    readonly safe = this.sanitizer.bypassSecurityTrustHtml;
 
-    constructor(private newsArticlesService: NewsArticlesService) {
+    constructor(private newsArticlesService: NewsArticlesService, private sanitizer: DomSanitizer) {
         this.searchRequest$.pipe(
             untilDestroyed(this),
             tap(() => this._loading$.next(true)),

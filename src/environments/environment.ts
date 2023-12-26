@@ -8,7 +8,6 @@ import { EnvironmentConfig } from './environment.types';
 export const environment: EnvironmentConfig = {
     production: false,
     useEmulators: true,
-    // useEmulators: ['auth', 'firestore', 'storage'],
     // useEmulators: ['functions'],
     defaultauth: 'firebase',
     firebase: firebaseStagingConfig

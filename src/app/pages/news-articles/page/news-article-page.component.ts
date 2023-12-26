@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslateService } from '@ngx-translate/core';
-import { EMPTY, Observable, of, ReplaySubject, tap } from 'rxjs';
+import { concatWith, EMPTY, Observable, of, ReplaySubject, tap } from 'rxjs';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import { catchError, filter, map, switchMap } from 'rxjs/operators';
 import { PageTitleService } from '../../../core/page-title-service';
-import { NewsArticle, newsArticleRouteParam } from '../news-articles.model';
+import { getContent, hasContent, NewsArticle, NewsArticleContentType, newsArticleRouteParam } from '../news-articles.model';
 import { NewsArticlesService } from '../news-articles.service';
 
 @UntilDestroy()
@@ -23,15 +24,20 @@ export class NewsArticlePageComponent {
         map(param => param as NonNullable<typeof param>),
     );
 
+    readonly newsArticle$ = new ReplaySubject<NewsArticle>();
     readonly breadcrumbs$ = this.routeParam$.pipe(
         untilDestroyed(this),
-        switchMap(param => this.translate.get('NEWS.LABELS.DETAILS.TITLE', { [newsArticleRouteParam]: param }) as Observable<string>),
+        switchMap(param => (this.translate.get('NEWS.LABELS.DETAILS.TITLE', { [newsArticleRouteParam]: param }) as Observable<string>)
+            .pipe(concatWith(this.newsArticle$.pipe(map(({ title }) => title))))),
         map(finalBreadcrumb => [
             'MENUITEMS.NEWS.TEXT',
             finalBreadcrumb,
         ]),
     );
-    readonly newsArticle$ = new ReplaySubject<NewsArticle>();
+    readonly NewsArticleContentType = NewsArticleContentType;
+    readonly hasContent = hasContent;
+    readonly getContent = getContent;
+    readonly safe = this.sanitizer.bypassSecurityTrustHtml;
 
     constructor(
         private route: ActivatedRoute,
@@ -39,6 +45,7 @@ export class NewsArticlePageComponent {
         private newsArticlesService: NewsArticlesService,
         private router: Router,
         private pageTitleService: PageTitleService,
+        private sanitizer: DomSanitizer,
     ) {
         this.routeParam$.pipe(
             untilDestroyed(this),
